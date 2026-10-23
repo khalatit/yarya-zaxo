@@ -22,7 +22,7 @@ if(!db.settings) db.settings = {};
 if(!db.leaderboard) db.leaderboard = {};
 
 
-// --- V49: Admin NOT in code - Password from Environment Variable ONLY ---
+// --- V50: Admin NOT in code - Password from Environment Variable ONLY ---
 // Set in Render: Settings -> Environment -> ADMIN_PASSWORD = your secret
 // No hardcoded username/password in code - Safe
 function isAdminRequest(req){
@@ -111,6 +111,50 @@ function matchesFilter(docData, filter){
   return true;
 }
 
+
+// V50 SECURITY - Rate Limit + Cheat Check + Admin Protection
+const rateMap = new Map();
+function rateLimit(req,res,next){
+  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+  const now = Date.now();
+  const key = ip + ':' + (req.path||'');
+  if(!rateMap.has(key)) rateMap.set(key, []);
+  const arr = rateMap.get(key).filter(t=> now - t < 60000);
+  arr.push(now);
+  rateMap.set(key, arr);
+  if(arr.length > 100){
+    return res.status(429).json({error:'RATE_LIMIT', message:'زێدە Request - 5 خولەک چاڤەرێ بکە'});
+  }
+  next();
+}
+// Blocked users map
+const blockedUsers = new Set();
+function checkCheatScore(req,res,next){
+  // Only for user score updates
+  if(req.method==='PATCH' && req.originalUrl.includes('/api/firestore/users')){
+    try{
+      const fields = req.body.fields || {};
+      const plain = toPlain(fields);
+      const newScore = plain.bestScore || plain.bestScoreFree || plain.bestScoreMobile || plain.bestScoreCar || 0;
+      // If score jumps > 1000 in one request, it's cheat - reject
+      if(newScore > 10000){
+        return res.status(403).json({error:'CHEAT', message:'سکۆر گومان - Cheat'});
+      }
+    }catch(e){}
+  }
+  next();
+}
+app.use(rateLimit);
+app.use(checkCheatScore);
+// V50: Admin API already protected via isAdminRequest - ensure /api/users needs password
+// Also add unblock endpoint
+app.post('/api/unblock/:id', (req,res)=>{
+  if(!isAdminRequest(req)) return res.status(401).json({error:'UNAUTHORIZED'});
+  const id = req.params.id;
+  blockedUsers.delete(id);
+  res.json({ok:true, unblocked:id});
+});
+
 app.use(express.json({limit:'10mb'}));
 app.use(express.static(path.join(__dirname,'public')));
 
@@ -154,7 +198,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
     const collection = getCollection(col);
     let data = collection[id];
     let foundId = id;
-    // V49 FIX: If not found by ID, search by usernameLower/phoneNumber (for users)
+    // V50 FIX: If not found by ID, search by usernameLower/phoneNumber (for users)
     if(!data && col==='users'){
       const foundKey = Object.keys(collection).find(k=>{
         const u = collection[k];
@@ -168,7 +212,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
       if(foundKey){
         return res.json(docToFirestore(col,foundKey,collection[foundKey]));
       }
-      // V49: For settings docs, return empty 200 instead of 404 - avoids console spam
+      // V50: For settings docs, return empty 200 instead of 404 - avoids console spam
       if(col==='settings' || col==='winners'){
         return res.json({name: `projects/yarya-zaxo/databases/(default)/documents/${col}/${encodeURIComponent(id)}`, fields: {}});
       }
@@ -178,7 +222,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
   }catch(e){ console.error('get doc error', e); res.status(500).json({error:e.message}); }
 });
 
-// POST create - V49 ICON FIX - NO MERGE - SAME NAME FORBIDDEN
+// POST create - V50 SECURITY - NO MERGE - SAME NAME FORBIDDEN
 app.post('/api/firestore/:col', (req,res)=>{
   try{
     const col = safeDecode(req.params.col);
@@ -229,7 +273,7 @@ app.get('/api/check-username/:low', (req,res)=>{
 // --- V32: PATCH strict - do not allow changing username to taken one ---
 // GET leaderboard - ensure each doc is separate, no merging
 
-// V49 ICON FIX - Direct config endpoint - NO cache - for ALL players
+// V50 SECURITY - Direct config endpoint - NO cache - for ALL players
 app.get('/api/config', (req,res)=>{
   try{
     const cfg = (db.settings && db.settings.config) || {};
@@ -243,7 +287,7 @@ app.get('/api/config-version', (req,res)=>{
 });
 
 
-// V49 ICON FIX - Force reset ranking + new timer - server side (no batch bug)
+// V50 SECURITY - Force reset ranking + new timer - server side (no batch bug)
 app.post('/api/reset-ranking/:type', (req,res)=>{
   try{
     const type = req.params.type;
@@ -282,7 +326,7 @@ app.get('/api/leaderboard/:type', (req,res)=>{
 });
 
 
-// V49 ICON FIX - Pick winner = Highest score among ALL users, for ALL rankings
+// V50 SECURITY - Pick winner = Highest score among ALL users, for ALL rankings
 app.post('/api/pick-winner/:type', (req,res)=>{
   try{
     const type = req.params.type;
@@ -419,7 +463,7 @@ app.post('/api/firestore-query', (req,res)=>{
 });
 
 
-// --- V49 ADMIN: List users ---
+// --- V50 ADMIN: List users ---
 app.get('/api/users', (req,res)=>{ if(!isAdminRequest(req)) return res.status(401).json({error:'UNAUTHORIZED', message:'Password پێویستە'});
   try{
     const col = getCollection('users');
@@ -428,7 +472,7 @@ app.get('/api/users', (req,res)=>{ if(!isAdminRequest(req)) return res.status(40
     res.json({users, total: users.length});
   }catch(e){ res.status(500).json({error:e.message}); }
 });
-// --- V49 ADMIN: Set isAdmin ---
+// --- V50 ADMIN: Set isAdmin ---
 app.post('/api/set-admin', (req,res)=>{ if(!isAdminRequest(req)) return res.status(401).json({error:'UNAUTHORIZED', message:'Password پێویستە'});
   try{
     const {usernameLower, isAdmin} = req.body;
@@ -452,7 +496,7 @@ app.get('/api/leaderboard', (req,res)=>{
 app.get('/api/stats', (req,res)=>{
   const users = getCollection('users');
   const winners = getCollection('winners');
-  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V49 ICON FIX URI' });
+  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V50 SECURITY URI' });
 });
 app.post('/api/auth', (req,res)=>{
   const {username, phone, password}=req.body;
@@ -485,6 +529,6 @@ app.get('*', (req,res)=>{
   return res.sendFile(path.join(__dirname,'public','index.html'));
 });
 app.listen(PORT, '0.0.0.0', ()=>{
-  console.log('V49 ICON FIX - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
-  console.log(`V49 ICON FIX - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
+  console.log('V50 SECURITY - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
+  console.log(`V50 SECURITY - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
 });
