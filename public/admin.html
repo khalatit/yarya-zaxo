@@ -613,10 +613,9 @@ async function checkAdminPwd(){
 <div id="winnerBanner" class="winnerBanner"></div>
 
 
-<script src="firebase-shim.js"></script>
 <script type="module">
-// V38: Firebase shim - $0 - same globals - NO Firebase CDN - original dashboard preserved
 
+import { initializeApp, getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, orderBy, limit, getDocs, addDoc, serverTimestamp, deleteDoc, writeBatch } from "./firebase-shim.js";
 const firebaseConfig = {
   apiKey: "AIzaSyB5y-soQQwolnaRLPcARamLXq-YbGFph74",
   authDomain: "yarya-zaxo.firebaseapp.com",
