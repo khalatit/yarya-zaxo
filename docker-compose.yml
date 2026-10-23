@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  yarya-way1:
+    build: .
+    container_name: yarya-way1
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
