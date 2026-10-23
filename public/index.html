@@ -7,6 +7,10 @@
 
 <meta name="apple-mobile-web-app-title" content="YARYA ZAXO PRO">
 <meta name="theme-color" content="#F7C600">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="YARYA ZAXO">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
 <style>
@@ -6443,7 +6447,7 @@ window.addEventListener('appinstalled', ()=>{
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('/sw.js?v=v27-cost-optimized').then(r=>console.log('✅ SW V27 registered - کێم-مەسرەف', r.scope)).catch(e=>console.log('SW fail', e));
+    navigator.serviceWorker.register('/sw.js?v=v48-pwa').then(r=>console.log('✅ SW V27 registered - کێم-مەسرەف', r.scope)).catch(e=>console.log('SW fail', e));
   });
 }
 

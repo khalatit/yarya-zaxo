@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "47.0.0",
-  "description": "YARYA ZAXO PRO V47 GOLD CUP - System picks highest score among ALL and shows in gold cup - $0",
+  "version": "48.0.0",
+  "description": "YARYA ZAXO PRO V48 PWA - Installable app - Manifest + Service Worker - $0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
