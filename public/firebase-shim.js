@@ -133,6 +133,9 @@ export async function updateDoc(docRef, data){
   await fetchFirestore(`/${docRef._collectionId}/${encodeURIComponent(docRef._docId)}?${mask}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({fields})});
 }
 export async function addDoc(colRef, data){
+  if(colRef._collectionId==='users' && data.usernameLower){
+    try{ const cr = await fetch(`/api/check-username/${encodeURIComponent(data.usernameLower.toLowerCase().trim())}`); const cd = await cr.json(); if(cd.taken){ throw new Error('USERNAME_TAKEN - ئەم ناڤە هاتیە گرتن - قەدەغەیە'); } }catch(e){ if(e.message.includes('USERNAME_TAKEN')) throw e; }
+  }
   const fields = toFirestoreFields(data);
   const res = await fetchFirestore(`/${colRef._collectionId}`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({fields})});
   const name = res.name || '';

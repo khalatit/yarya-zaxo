@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "30.1.0",
-  "description": "YARYA ZAXO PRO V30.1 FIXED URI - NO FIREBASE - $0 - NO BAZ",
+  "version": "32.0.0",
+  "description": "YARYA ZAXO PRO V32 STRICT UNIQUE - Each player private account - Same name FORBIDDEN - No merge - $0 - NO BAZ",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

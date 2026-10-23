@@ -1845,7 +1845,18 @@ window.handleAuth=async function(){
   showError('');
   if(!u||u.length<3){showError('ناڤ کورتە - دڤێت 3 پیت یان پتر بیت');document.getElementById('usernameInput').classList.add('shake');setTimeout(()=>document.getElementById('usernameInput').classList.remove('shake'),400);return;}
   if(!p||p.length<3){showError('وشەی نهێنی کورتە');return;}
+  // V32 STRICT - Check username BEFORE register - QeDexeye if taken
   if(currentTab==='register'){
+    try{
+      const checkRes = await fetch(`/api/check-username/${encodeURIComponent(u.toLowerCase())}`);
+      const checkData = await checkRes.json();
+      if(checkData.taken){
+        showError('⛔ ئەم ناڤە هاتیە گرتن - قەدەغەیە! ناڤەکێ دی هەلبژێرە');
+        btn.disabled=false; btn.textContent='تۆمارکرن';
+        return;
+      }
+    }catch{}
+
     if(!phone||phone.length<10){showError('📱 ژمارا موبایلێ پێویستە - 0750...');return;}
     if(!phone.startsWith('07')){showError('📱 ژمارا موبایلێ خەلەتە - دڤێت 0750... بیت');return;}
     if(!photoBase64){showError('وێنە پێویستە');return;}

@@ -154,17 +154,64 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
   }catch(e){ console.error('get doc error', e); res.status(500).json({error:e.message}); }
 });
 
-// POST create
+// POST create - V32 STRICT UNIQUE - NO MERGE - SAME NAME FORBIDDEN
 app.post('/api/firestore/:col', (req,res)=>{
   try{
     const col = safeDecode(req.params.col);
     const collection = getCollection(col);
     const plainData = toPlain(req.body.fields || {});
+    // --- V32: STRICT UNIQUE CHECK for users ---
+    if(col==='users'){
+      const low = (plainData.usernameLower || plainData.username || '').toString().toLowerCase().trim();
+      const phone = (plainData.phoneNumber || plainData.phone || '').toString().trim();
+      for(const k in collection){
+        const u = collection[k];
+        const uLow = (u.usernameLower || u.username || '').toString().toLowerCase().trim();
+        const uPhone = (u.phoneNumber || u.phone || '').toString().trim();
+        if(low && uLow===low){
+          console.log(`[STRICT] REJECTED duplicate username: ${low} - QeDexeye!`);
+          return res.status(409).json({error:'USERNAME_TAKEN', message:'ئەم ناڤە هاتیە گرتن - قەدەغەیە - ناڤەکێ دی هەلبژێرە'});
+        }
+        if(phone && phone.length>=7 && uPhone===phone){
+          console.log(`[STRICT] REJECTED duplicate phone: ${phone}`);
+          return res.status(409).json({error:'PHONE_TAKEN', message:'ئەم ژمارا موبایلێ هاتیە گرتن - قەدەغەیە'});
+        }
+      }
+      // Each account is PRIVATE - Random ID so scores are separate, not shared
+      const id = 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+      // Store usernameLower as unique key but keep ID separate - so 1 name cannot be reused
+      collection[id]= {...plainData, usernameLower: low};
+      saveDB();
+      console.log(`[STRICT] New PRIVATE account: ${low} ID=${id} - Score separate`);
+      return res.json(docToFirestore(col,id,collection[id]));
+    }
     const id = Date.now().toString() + Math.random().toString(36).slice(2,6);
     collection[id]=plainData;
     saveDB();
     res.json(docToFirestore(col,id,plainData));
   }catch(e){ console.error('create error', e); res.status(500).json({error:e.message}); }
+});
+
+// --- V32: Check username availability ---
+app.get('/api/check-username/:low', (req,res)=>{
+  try{
+    const low = safeDecode(req.params.low).toLowerCase().trim();
+    const col = getCollection('users');
+    const exists = Object.values(col).some(u=> (u.usernameLower||u.username||'').toString().toLowerCase().trim()===low);
+    res.json({available: !exists, taken: exists, message: exists ? 'ئەم ناڤە هاتیە گرتن - قەدەغەیە' : 'ئەم ناڤە ئازایە'});
+  }catch(e){ res.status(500).json({error:e.message}); }
+});
+
+// --- V32: PATCH strict - do not allow changing username to taken one ---
+// GET leaderboard - ensure each doc is separate, no merging
+app.get('/api/leaderboard-strict', (req,res)=>{
+  try{
+    const col = getCollection('users');
+    const users = Object.entries(col).map(([id,u])=>({id, ...u}));
+    // Sort by bestScore desc, each is separate private account
+    users.sort((a,b)=> (b.bestScore||0)-(a.bestScore||0));
+    res.json(users.slice(0,50));
+  }catch(e){ res.status(500).json({error:e.message}); }
 });
 
 // PATCH update - handle any ID
@@ -243,7 +290,7 @@ app.get('/api/leaderboard', (req,res)=>{
 app.get('/api/stats', (req,res)=>{
   const users = getCollection('users');
   const winners = getCollection('winners');
-  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V30.1 FIXED URI' });
+  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V32 STRICT UNIQUE URI' });
 });
 app.post('/api/auth', (req,res)=>{
   const {username, phone, password}=req.body;
@@ -276,6 +323,6 @@ app.get('*', (req,res)=>{
   return res.sendFile(path.join(__dirname,'public','index.html'));
 });
 app.listen(PORT, '0.0.0.0', ()=>{
-  console.log('V30.1 FIXED - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
-  console.log(`V30.1 FIXED - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
+  console.log('V32 STRICT UNIQUE - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
+  console.log(`V32 STRICT UNIQUE - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
 });
