@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "29.0.0",
-  "description": "YARYA ZAXO PRO V29 OLD STYLE FULL - NO FIREBASE - $0",
+  "version": "30.0.0",
+  "description": "YARYA ZAXO PRO V30 ORIGINAL FULL - NO FIREBASE - $0 - NO BAZ",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

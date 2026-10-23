@@ -1,4 +1,14 @@
 {
-  "users": [],
-  "winners": []
+  "users": {},
+  "winners": {},
+  "broadcasts": {},
+  "sponsors": {},
+  "friendRequests": {},
+  "messages": {},
+  "notifications": {},
+  "shopkeepers": {},
+  "transactions": {},
+  "unlockTransactions": {},
+  "typing": {},
+  "settings": {}
 }
