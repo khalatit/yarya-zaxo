@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "34.0.0",
-  "description": "YARYA ZAXO PRO V34 FIX NAME CHECK - Fix where == bug - New names now work - $0 - NO BAZ",
+  "version": "35.0.0",
+  "description": "YARYA ZAXO PRO V35 SYNTAX FIXED - Fix async async and double catch - handleAuth and switchTab work - $0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
