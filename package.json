@@ -1,12 +1,13 @@
 {
-  "name": "yarya-way1-hybrid",
-  "version": "1.0.0",
-  "description": "WAY 1 - YARYA ZAXO PRO + BAZ on Contabo - Firebase DB stays",
+  "name": "yarya-zaxo-full-no-firebase",
+  "version": "28.0.0",
+  "description": "YARYA ZAXO PRO V28 FULL - No Firebase - $0 cost - Render $7",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
   }
 }
