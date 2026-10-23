@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "48.0.0",
-  "description": "YARYA ZAXO PRO V48 PWA - Installable app - Manifest + Service Worker - $0",
+  "version": "49.0.0",
+  "description": "YARYA ZAXO PRO V49 ICON FIX - Trophy Chick icon for PWA - $0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

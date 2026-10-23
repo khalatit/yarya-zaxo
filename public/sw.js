@@ -1,6 +1,6 @@
 // YARYA ZAXO PWA V48 - CACHE static, NETWORK for /api (timer sync)
-const CACHE = 'yarya-v48-pwa';
-const STATIC = ['/', '/index.html', '/manifest.json', '/firebase-shim.js', '/icons/icon-192x192.png', '/icons/icon-512x512.png'];
+const CACHE = 'yarya-v49-icon';
+const STATIC = ['/', '/index.html', '/manifest.json', '/firebase-shim.js', '/icons/icon-96x96.png', '/icons/icon-192x192.png', '/icons/icon-512x512.png'];
 self.addEventListener('install', e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(STATIC)).then(()=>self.skipWaiting()));
 });

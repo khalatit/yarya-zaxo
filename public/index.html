@@ -12,6 +12,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="YARYA ZAXO">
 <link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" href="/icons/icon-192x192.png">
+<link rel="shortcut icon" href="/icons/icon-192x192.png">
 <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
 <style>
 /* V27: Prevent text selection except inputs - beautiful UX */
@@ -6278,7 +6280,7 @@ console.log('✅ V19 Emergency recovery active');
 <div id="costSavingBadge" class="costBadge" style="display:none">💰 V27 73% کێمتر مەسرەف!</div>
 
 <div id="pwaInstallBanner">
-  <img src="/icons/icon-96x96.png" alt="YARYA ZAXO PRO 🏆🐥">
+  <img src="/icons/icon-192x192.png" alt="YARYA ZAXO PRO 🏆🐥">
   <div class="info">
     <b>🏆 YARYA ZAXO PRO دابەزێنە</b>
     <span id="pwaBannerText">وەک ئەپ - کلیک بکە دابەزاندن</span>
@@ -6447,7 +6449,7 @@ window.addEventListener('appinstalled', ()=>{
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('/sw.js?v=v48-pwa').then(r=>console.log('✅ SW V27 registered - کێم-مەسرەف', r.scope)).catch(e=>console.log('SW fail', e));
+    navigator.serviceWorker.register('/sw.js?v=v49-icon').then(r=>console.log('✅ SW V27 registered - کێم-مەسرەف', r.scope)).catch(e=>console.log('SW fail', e));
   });
 }
 
