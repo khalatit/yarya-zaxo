@@ -89,9 +89,9 @@ function matchesFilter(docData, filter){
   else if(valObj.arrayValue !== undefined) expected=(valObj.arrayValue.values||[]).map(x=> toPlain({tmp:x}).tmp);
   else expected=valObj;
   const actual = docData[field];
-  if(op==='EQUAL') return actual===expected;
-  if(op==='ARRAY_CONTAINS') return Array.isArray(actual) && actual.includes(expected);
-  if(op==='NOT_EQUAL') return actual!==expected;
+  if(op==='EQUAL' || op==='==') return actual===expected;
+  if(op==='ARRAY_CONTAINS' || op==='array-contains') return Array.isArray(actual) && actual.includes(expected);
+  if(op==='NOT_EQUAL' || op==='!=') return actual!==expected;
   if(op==='GREATER_THAN') return actual>expected;
   if(op==='LESS_THAN') return actual<expected;
   if(op==='GREATER_THAN_OR_EQUAL') return actual>=expected;
@@ -140,10 +140,18 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
     const rawId = req.params[1];
     const id = safeDecode(rawId.split('?')[0]);
     const collection = getCollection(col);
-    const data = collection[id];
-    // Try also with encoded key if not found
+    let data = collection[id];
+    let foundId = id;
+    // V34 FIX: If not found by ID, search by usernameLower/phoneNumber (for users)
+    if(!data && col==='users'){
+      const foundKey = Object.keys(collection).find(k=>{
+        const u = collection[k];
+        const low = (u.usernameLower||u.username||'').toString().toLowerCase().trim();
+        return low===id.toLowerCase().trim();
+      });
+      if(foundKey){ data = collection[foundKey]; foundId = foundKey; }
+    }
     if(!data){
-      // Try find by searching all keys with safe compare
       const foundKey = Object.keys(collection).find(k=> k===id || safeDecode(k)===id || k===rawId);
       if(foundKey){
         return res.json(docToFirestore(col,foundKey,collection[foundKey]));
@@ -154,7 +162,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
   }catch(e){ console.error('get doc error', e); res.status(500).json({error:e.message}); }
 });
 
-// POST create - V33 NO DEVICE BLOCK - NO MERGE - SAME NAME FORBIDDEN
+// POST create - V34 FIX NAME CHECK - NO MERGE - SAME NAME FORBIDDEN
 app.post('/api/firestore/:col', (req,res)=>{
   try{
     const col = safeDecode(req.params.col);
@@ -290,7 +298,7 @@ app.get('/api/leaderboard', (req,res)=>{
 app.get('/api/stats', (req,res)=>{
   const users = getCollection('users');
   const winners = getCollection('winners');
-  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V33 NO DEVICE BLOCK URI' });
+  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V34 FIX NAME CHECK URI' });
 });
 app.post('/api/auth', (req,res)=>{
   const {username, phone, password}=req.body;
@@ -323,6 +331,6 @@ app.get('*', (req,res)=>{
   return res.sendFile(path.join(__dirname,'public','index.html'));
 });
 app.listen(PORT, '0.0.0.0', ()=>{
-  console.log('V33 NO DEVICE BLOCK - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
-  console.log(`V33 NO DEVICE BLOCK - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
+  console.log('V34 FIX NAME CHECK - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
+  console.log(`V34 FIX NAME CHECK - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
 });

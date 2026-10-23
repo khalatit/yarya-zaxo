@@ -105,7 +105,9 @@ export async function getDocs(q){
   // Use query endpoint
   const body = { structuredQuery: { from: [{collectionId: colId}] } };
   if(whereClause){
-    body.structuredQuery.where = { fieldFilter: { field: {fieldPath: whereClause.fieldPath}, op: whereClause.op, value: {stringValue: String(whereClause.value)} } };
+    const opMap = {'==':'EQUAL','!=':'NOT_EQUAL','>':'GREATER_THAN','<':'LESS_THAN','>=':'GREATER_THAN_OR_EQUAL','<=':'LESS_THAN_OR_EQUAL','array-contains':'ARRAY_CONTAINS','in':'IN','EQUAL':'EQUAL','NOT_EQUAL':'NOT_EQUAL'};
+    const firestoreOp = opMap[whereClause.op] || whereClause.op;
+    body.structuredQuery.where = { fieldFilter: { field: {fieldPath: whereClause.fieldPath}, op: firestoreOp, value: {stringValue: String(whereClause.value)} } };
     // Handle non-string values
     const val = whereClause.value;
     if(typeof val==='number') body.structuredQuery.where.fieldFilter.value = {integerValue: String(val)};

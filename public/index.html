@@ -1827,6 +1827,11 @@ async function checkIfDeviceBlocked(deviceId){
 
 async function checkUsernameExists(usernameLower){
   try{
+    // V34: Use server check first - authoritative
+    const cr = await fetch(`/api/check-username/${encodeURIComponent(usernameLower)}`);
+    if(cr.ok){ const cd = await cr.json(); if(cd.taken){ return {usernameLower, username: usernameLower}; } else { return null; } }
+  }catch{}
+  try{
     const direct = await fetchUserById(usernameLower);
     if(direct) return direct;
     const q = query(collection(db,'users'), where('usernameLower','==',usernameLower), limit(1));
@@ -1837,7 +1842,8 @@ async function checkUsernameExists(usernameLower){
       return found;
     }
     return null;
-  }catch(e){ return null; }
+  }catch{ return null; }
+catch(e){ return null; }
 }
 
 window.handleAuth=async function(){

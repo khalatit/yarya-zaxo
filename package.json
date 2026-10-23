@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "33.0.0",
-  "description": "YARYA ZAXO PRO V33 NO DEVICE BLOCK - Allow many accounts per device - Each player private - Same name forbidden - $0 - NO BAZ",
+  "version": "34.0.0",
+  "description": "YARYA ZAXO PRO V34 FIX NAME CHECK - Fix where == bug - New names now work - $0 - NO BAZ",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
