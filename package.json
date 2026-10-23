@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "51.0.0",
-  "description": "YARYA ZAXO PRO V51 DISK FIX - Disk at /data, not /app - $0",
+  "version": "52.0.0",
+  "description": "YARYA ZAXO PRO V52 ADMIN EDIT - Admin delete+edit, Player edit name/mobile/bio, Name unique block, ID/code locked",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

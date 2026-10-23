@@ -6573,7 +6573,31 @@ console.log('✅ V31 ALL FIXES APPLIED');
 })();
 </script>
 
+
+<script>
+// V52 PLAYER EDIT - Player can change name/mobile/bio, NOT ID/code
+window.V52_PLAYER = {
+  async editProfile(){
+    const current = window.currentUser || JSON.parse(localStorage.getItem('yarya_user')||'{}');
+    if(!current.username){ alert('بەرێ خو تومار بکە'); return; }
+    const newName = prompt('ناڤێ نوو (ID و کود ناهێتە گهورین):', current.username);
+    if(newName===null) return;
+    if(newName.trim().toLowerCase()===current.username.toLowerCase()){ alert('ئەڤە هەمان ناڤە'); return; }
+    const newMobile = prompt('ژمارا موبایلێ نوو:', current.mobile||'');
+    const newBio = prompt('بایو نوو:', current.bio||'');
+    const res = await fetch('/api/firestore/users/'+encodeURIComponent(current.id||current.usernameLower), {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({fields:{username:{stringValue:newName}, usernameLower:{stringValue:newName.toLowerCase()}, mobile:{stringValue:newMobile}, bio:{stringValue:newBio}}})
+    });
+    if(res.status===409){ alert('⚠️ ئەڤ ناڤە هەیە! - ناڤێ دی بکە - Blocked'); return; }
+    if(res.ok){ alert('گهورین درست ✅ - ID و کود نەگهورین'); const u = {...current, username:newName, usernameLower:newName.toLowerCase(), mobile:newMobile, bio:newBio}; localStorage.setItem('yarya_user', JSON.stringify(u)); location.reload(); }
+    else { alert('نەبوو ❌'); }
+  }
+};
+</script>
 </body>
+
 
 
 <script>
