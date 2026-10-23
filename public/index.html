@@ -3672,13 +3672,16 @@ async function proCheckWinners(){
   if(proConfig.freeEndAt){ if(checkFreeze(proConfig.freeEndAt, 'free')) return; }
   if(proConfig.mobileEndAt){ if(checkFreeze(proConfig.mobileEndAt, 'mobile')) return; }
   if(proConfig.carEndAt){ if(checkFreeze(proConfig.carEndAt, 'car')) return; }
+  // V45 ALL 3 RANKINGS - Check each independently, not else-if
   if(proConfig.freeEndAt && now>=proConfig.freeEndAt){
     console.log('🏁 Timer ended for FREE - picking winner ONCE');
     await proHandleWinner('free');
-  }else if(proConfig.mobileEndAt && now>=proConfig.mobileEndAt){
+  }
+  if(proConfig.mobileEndAt && now>=proConfig.mobileEndAt){
     console.log('🏁 Timer ended for MOBILE - picking winner ONCE');
     await proHandleWinner('mobile');
-  }else if(proConfig.carEndAt && now>=proConfig.carEndAt){
+  }
+  if(proConfig.carEndAt && now>=proConfig.carEndAt){
     console.log('🏁 Timer ended for CAR - picking winner ONCE');
     await proHandleWinner('car');
   }
@@ -3916,7 +3919,7 @@ async function centralizedPickWinnerAsLeader(type, cycleId){
       });
       
       if(found){
-        winnerName = found.username||found.displayName||found.id||'کەس نەبوو';
+        winnerName = found.username||found.displayName||found.name||found.id||'کەس نەبوو';
         winnerScore = found[orderField]||found.bestScore||0;
         winnerPhone = found.phoneNumber||'';
         winnerId = found.id||found.usernameLower||'none';
@@ -4005,6 +4008,13 @@ async function centralizedPickWinnerAsLeader(type, cycleId){
       }, {merge:true});
     }catch(e){}
     
+    // V45: After 22s, auto reset for this ranking (ALL 3) - so timer becomes new, not stuck 0
+    setTimeout(async ()=>{
+      try{ await autoResetRanking(type); }catch(e){ console.log('autoReset error', e); }
+      try{ if(typeof proLoadConfig==='function') proLoadConfig(); }catch(e){}
+      try{ updateWinnerBottomBar(); }catch(e){}
+      proIsResetting = false;
+    }, 22000);
     // Show winner for leader
     showCentralWinner(type, winnerName, winnerScore, prize);
     
@@ -4254,12 +4264,27 @@ async function autoResetRanking(type){
       });
       if(batchCount>0) await currentBatch.commit();
     }
-    const newEnd = new Date(Date.now()+7*24*60*60*1000);
+    // V45: Use same duration as admin set - if admin set 2 min, next cycle is 2 min again, not 7 days
+    let durMs = 7*24*60*60*1000;
+    try{
+      const cfgSnap2 = await getDoc(doc(db,'settings','config'));
+      if(cfgSnap2.exists()){
+        const cd = cfgSnap2.data();
+        const durKey = type==='free'?'freeDurationMs': type==='mobile'?'mobileDurationMs':'carDurationMs';
+        if(cd[durKey]) durMs = parseInt(cd[durKey]);
+        else if(cd[type+'EndAt']){
+          const prevEnd = cd[type+'EndAt']?.toDate ? cd[type+'EndAt'].toDate() : new Date(cd[type+'EndAt']);
+          const prevStart = cd[type+'StartAt'] ? new Date(cd[type+'StartAt']) : null;
+          if(prevStart && prevEnd>prevStart) durMs = prevEnd.getTime()-prevStart.getTime();
+        }
+      }
+    }catch(e){}
+    const newEnd = new Date(Date.now()+durMs);
     const cfgRef = doc(db,'settings','config');
     try{
-      if(type==='free'){ await updateDoc(cfgRef, {freeEndAt: newEnd}); proConfig.freeEndAt = newEnd; }
-      else if(type==='mobile'){ await updateDoc(cfgRef, {mobileEndAt: newEnd}); proConfig.mobileEndAt = newEnd; }
-      else{ await updateDoc(cfgRef, {carEndAt: newEnd}); proConfig.carEndAt = newEnd; }
+      if(type==='free'){ await updateDoc(cfgRef, {freeEndAt: newEnd, freeStartAt: new Date(), freeDurationMs: durMs}); proConfig.freeEndAt = newEnd; }
+      else if(type==='mobile'){ await updateDoc(cfgRef, {mobileEndAt: newEnd, mobileStartAt: new Date(), mobileDurationMs: durMs}); proConfig.mobileEndAt = newEnd; }
+      else{ await updateDoc(cfgRef, {carEndAt: newEnd, carStartAt: new Date(), carDurationMs: durMs}); proConfig.carEndAt = newEnd; }
       console.log('New timer set for '+type+': '+newEnd.toLocaleString());
     }catch(e){ console.log('config update error', e); }
     console.log('Auto reset complete for '+type);
@@ -4272,8 +4297,8 @@ function proShowWinnerModal(name, score, prize, icon, type){
   modal.classList.remove('background-mode');
   modal.classList.remove('isBackground');
   
-  document.getElementById('winnerNamePRO').textContent = name;
-  document.getElementById('winnerScorePRO').textContent = score;
+  document.getElementById('winnerNamePRO').textContent = name || 'کەس نەبوو';
+  document.getElementById('winnerScorePRO').textContent = (score||0);
   document.getElementById('winnerPrizePRO').textContent = `🎁 ${prize} - ${type==='free'?'بەلاش': type==='mobile'?'ئایفون':'ترومبێل'}`;
   const iconEl = document.getElementById('winnerIconPRO');
   if(iconEl) iconEl.textContent = icon;

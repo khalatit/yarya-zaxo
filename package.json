@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "44.0.0",
-  "description": "YARYA ZAXO PRO V44 FORCE SYNC - Admin timer for ALL players via direct /api/config no-store - $0",
+  "version": "45.0.0",
+  "description": "YARYA ZAXO PRO V45 ALL 3 RANKINGS - Winner name fix + Timer resets for free/mobile/car - $0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

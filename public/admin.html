@@ -1481,12 +1481,12 @@ window.saveSetting
         mobileLockMessage: type==='mobile'?lockMessage:'',
         carLocked: type==='car'?lockCheck:false,
         carLockMessage: type==='car'?lockMessage:'',
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(), freeDurationMs: type==='free'?Math.max(60000, endDate.getTime()-Date.now()):7*24*60*60*1000, mobileDurationMs: type==='mobile'?Math.max(60000, endDate.getTime()-Date.now()):7*24*60*60*1000, carDurationMs: type==='car'?Math.max(60000, endDate.getTime()-Date.now()):7*24*60*60*1000
       });
     } else {
-      if(type==='free') await updateDoc(ref, {freeEndAt:endDate, freePrize:prizeInput, freeLocked:lockCheck, freeLockMessage:lockMessage});
-      else if(type==='mobile') await updateDoc(ref, {mobileEndAt:endDate, mobilePrize:prizeInput, mobileLocked:lockCheck, mobileLockMessage:lockMessage});
-      else await updateDoc(ref, {carEndAt:endDate, carPrize:prizeInput, carLocked:lockCheck, carLockMessage:lockMessage});
+      if(type==='free') await updateDoc(ref, {freeEndAt:endDate, freePrize:prizeInput, freeLocked:lockCheck, freeLockMessage:lockMessage, freeDurationMs: Math.max(60000, endDate.getTime()-Date.now()), freeStartAt: new Date()});
+      else if(type==='mobile') await updateDoc(ref, {mobileEndAt:endDate, mobilePrize:prizeInput, mobileLocked:lockCheck, mobileLockMessage:lockMessage, mobileDurationMs: Math.max(60000, endDate.getTime()-Date.now()), mobileStartAt: new Date()});
+      else await updateDoc(ref, {carEndAt:endDate, carPrize:prizeInput, carLocked:lockCheck, carLockMessage:lockMessage, carDurationMs: Math.max(60000, endDate.getTime()-Date.now()), carStartAt: new Date()});
     }
     if(type==='free'){ configData.freeEndAt=endDate; configData.freePrize=prizeInput; configData.freeLocked=lockCheck; configData.freeLockMessage=lockMessage; }
     else if(type==='mobile'){ configData.mobileEndAt=endDate; configData.mobilePrize=prizeInput; configData.mobileLocked=lockCheck; configData.mobileLockMessage=lockMessage; }
