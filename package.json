@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "42.0.0",
-  "description": "YARYA ZAXO PRO V42 TIMER SYNC - Admin timer changes for players - 0 -> leaderboard resets - Fix _collectionId",
+  "version": "43.0.0",
+  "description": "YARYA ZAXO PRO V43 ALL SYNC - Admin timer for ALL players - Fix string date parsing - $0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

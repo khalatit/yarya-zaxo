@@ -3452,32 +3452,6 @@ window.refreshCurrentUserFromDB = async function(){
 console.log('PRO V2 enhancements loading - keeping original game as is');
 
 
-// V42 TIMER SYNC - Admin sets timer -> players see it, and when 0 -> leaderboard resets
-setInterval(async ()=>{
-  try{
-    const { doc, getDoc } = await import('/firebase-shim.js');
-    const { getFirestore } = await import('/firebase-shim.js');
-    const db = getFirestore({});
-    const snap = await getDoc(doc(db,'settings','config'));
-    if(snap.exists()){
-      const d = snap.data();
-      const toDate = (v)=>{ if(!v) return null; if(v.toDate) return v.toDate(); if(v.seconds) return new Date(v.seconds*1000); if(typeof v==='string') return new Date(v); return new Date(v); };
-      const nFree = toDate(d.freeEndAt), nMob = toDate(d.mobileEndAt), nCar = toDate(d.carEndAt);
-      if(nFree && window.proConfig && window.proConfig.freeEndAt && nFree.getTime() !== window.proConfig.freeEndAt.getTime()){
-        window.proConfig.freeEndAt = nFree; window.proConfig.freePrize = d.freePrize || window.proConfig.freePrize;
-        console.log('V42: freeEndAt updated from admin', nFree);
-      }
-      if(nMob && window.proConfig && window.proConfig.mobileEndAt && nMob.getTime() !== window.proConfig.mobileEndAt.getTime()){
-        window.proConfig.mobileEndAt = nMob;
-      }
-      if(nCar && window.proConfig && window.proConfig.carEndAt && nCar.getTime() !== window.proConfig.carEndAt.getTime()){
-        window.proConfig.carEndAt = nCar;
-      }
-      // Also update dashConfig if exists (admin dashboard inside game)
-      if(window.dashConfig && nFree) window.dashConfig.freeEndAt = nFree;
-    }
-  }catch(e){}
-}, 10000);
 
 let proConfig = {freeEndAt:null, mobileEndAt:null, carEndAt:null, freePrize:'100$', mobilePrize:'ئایفون 18 پرو ماکس', carPrize:'ترومبێل', freeLocked:false, freeLockMessage:'', mobileLocked:false, mobileLockMessage:'', carLocked:false, carLockMessage:''};
 let proCountdownInterval = null;
@@ -3492,9 +3466,10 @@ async function proLoadConfig(){
     const snap = await getDoc(cfgRef);
     if(snap.exists()){
       const d = snap.data();
-      proConfig.freeEndAt = d.freeEndAt?.toDate ? d.freeEndAt.toDate() : (d.freeEndAt?.seconds ? new Date(d.freeEndAt.seconds*1000) : null);
-      proConfig.mobileEndAt = d.mobileEndAt?.toDate ? d.mobileEndAt.toDate() : (d.mobileEndAt?.seconds ? new Date(d.mobileEndAt.seconds*1000) : null);
-      proConfig.carEndAt = d.carEndAt?.toDate ? d.carEndAt.toDate() : (d.carEndAt?.seconds ? new Date(d.carEndAt.seconds*1000) : null);
+      const toDateX = (v)=>{ if(!v) return null; if(v.toDate) return v.toDate(); if(v.seconds) return new Date(v.seconds*1000); if(typeof v==='string') return new Date(v); return new Date(v); };
+      proConfig.freeEndAt = toDateX(d.freeEndAt);
+      proConfig.mobileEndAt = toDateX(d.mobileEndAt);
+      proConfig.carEndAt = toDateX(d.carEndAt);
       proConfig.freePrize = d.freePrize||'100$';
       proConfig.mobilePrize = d.mobilePrize||'ئایفون 18 پرو ماکس';
       proConfig.carPrize = d.carPrize||'ترومبێل';
@@ -3553,6 +3528,8 @@ async function proLoadConfig(){
 
 function proFormatCountdown(endDate){
   if(!endDate) return '--:--:--';
+  if(typeof endDate==='string') endDate = new Date(endDate);
+  if(!(endDate instanceof Date) || isNaN(endDate.getTime())) return '--:--:--';
   let diff = Math.floor((endDate - new Date())/1000);
   if(diff<=0) return '00:00:00';
   const days = Math.floor(diff/86400); diff%=86400;
@@ -3624,6 +3601,26 @@ function proUpdateCountdownDisplay(){
   if(bigMobile && proConfig.mobileEndAt) bigMobile.textContent = proFormatCountdownBig(proConfig.mobileEndAt);
   if(bigCar && proConfig.carEndAt) bigCar.textContent = proFormatCountdownBig(proConfig.carEndAt);
 }
+
+
+// V43 ALL SYNC - Admin sets timer -> ALL players see it - poll every 8s
+setInterval(async ()=>{
+  try{
+    const cfgSnap = await getDoc(doc(db,'settings','config'));
+    if(!cfgSnap.exists()) return;
+    const d = cfgSnap.data();
+    const toD = (v)=>{ if(!v) return null; if(v.toDate) return v.toDate(); if(v.seconds) return new Date(v.seconds*1000); if(typeof v==='string') return new Date(v); return new Date(v); };
+    const nFree = toD(d.freeEndAt), nMob = toD(d.mobileEndAt), nCar = toD(d.carEndAt);
+    let changed = false;
+    if(nFree && (!proConfig.freeEndAt || nFree.getTime() !== proConfig.freeEndAt.getTime())){ proConfig.freeEndAt = nFree; changed = true; }
+    if(nMob && (!proConfig.mobileEndAt || nMob.getTime() !== proConfig.mobileEndAt.getTime())){ proConfig.mobileEndAt = nMob; changed = true; }
+    if(nCar && (!proConfig.carEndAt || nCar.getTime() !== proConfig.carEndAt.getTime())){ proConfig.carEndAt = nCar; changed = true; }
+    if(d.freePrize) proConfig.freePrize = d.freePrize;
+    if(d.mobilePrize) proConfig.mobilePrize = d.mobilePrize;
+    if(d.carPrize) proConfig.carPrize = d.carPrize;
+    if(changed){ proUpdateCountdownDisplay(); console.log('V43: Timer updated from admin for ALL players', nFree, nMob, nCar); }
+  }catch(e){}
+}, 8000);
 
 function proStartCountdown(){
   if(proCountdownInterval) clearInterval(proCountdownInterval);

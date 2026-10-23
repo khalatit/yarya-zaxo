@@ -27,6 +27,7 @@ function toFirestoreFields(obj){
   for(const k in obj){
     const v=obj[k];
     if(v===null || v===undefined) fields[k]={nullValue:null};
+    else if(v instanceof Date) fields[k]={timestampValue: v.toISOString()};
     else if(typeof v==='string') fields[k]={stringValue:v};
     else if(typeof v==='number') fields[k]= Number.isInteger(v) ? {integerValue: String(v)} : {doubleValue: v};
     else if(typeof v==='boolean') fields[k]={booleanValue:v};
