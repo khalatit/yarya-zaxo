@@ -3499,7 +3499,7 @@ async function proLoadConfig(){
         }, {merge:true});
       }catch(e){ console.log('config create error',e); }
     }
-    console.log('PRO config loaded', proConfig);
+    window._lastConfigVersion = d._version || 0; console.log('PRO config loaded', proConfig);
     // 🔒 ئەگەر قفل بیت یەکسەر بچە سەر قفل
     try{
       const mode = window.proCurrentMode || window.currentRankingMode || 'free';
@@ -3603,12 +3603,17 @@ function proUpdateCountdownDisplay(){
 }
 
 
-// V43 ALL SYNC - Admin sets timer -> ALL players see it - poll every 8s
-setInterval(async ()=>{
+
+
+// V44 FORCE SYNC - Admin timer for ALL players - DIRECT fetch, NO cache, every 5s
+let _lastConfigVersion = -1;
+async function v44SyncConfig(){
   try{
-    const cfgSnap = await getDoc(doc(db,'settings','config'));
-    if(!cfgSnap.exists()) return;
-    const d = cfgSnap.data();
+    const r = await fetch('/api/config?t='+Date.now(), {cache:'no-store', headers:{'Cache-Control':'no-store'}});
+    if(!r.ok) return;
+    const d = await r.json();
+    const ver = d._version || 0;
+    // If version changed OR dates differ, update
     const toD = (v)=>{ if(!v) return null; if(v.toDate) return v.toDate(); if(v.seconds) return new Date(v.seconds*1000); if(typeof v==='string') return new Date(v); return new Date(v); };
     const nFree = toD(d.freeEndAt), nMob = toD(d.mobileEndAt), nCar = toD(d.carEndAt);
     let changed = false;
@@ -3618,9 +3623,18 @@ setInterval(async ()=>{
     if(d.freePrize) proConfig.freePrize = d.freePrize;
     if(d.mobilePrize) proConfig.mobilePrize = d.mobilePrize;
     if(d.carPrize) proConfig.carPrize = d.carPrize;
-    if(changed){ proUpdateCountdownDisplay(); console.log('V43: Timer updated from admin for ALL players', nFree, nMob, nCar); }
+    if(d.freeLocked !== undefined) proConfig.freeLocked = d.freeLocked;
+    if(d.mobileLocked !== undefined) proConfig.mobileLocked = d.mobileLocked;
+    if(d.carLocked !== undefined) proConfig.carLocked = d.carLocked;
+    if(changed || ver !== _lastConfigVersion){
+      _lastConfigVersion = ver;
+      if(typeof proUpdateCountdownDisplay==='function') proUpdateCountdownDisplay();
+      console.log('V44: Timer synced from admin for ALL players - version', ver, nFree);
+    }
   }catch(e){}
-}, 8000);
+}
+setInterval(v44SyncConfig, 5000);
+v44SyncConfig();
 
 function proStartCountdown(){
   if(proCountdownInterval) clearInterval(proCountdownInterval);

@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "43.0.0",
-  "description": "YARYA ZAXO PRO V43 ALL SYNC - Admin timer for ALL players - Fix string date parsing - $0",
+  "version": "44.0.0",
+  "description": "YARYA ZAXO PRO V44 FORCE SYNC - Admin timer for ALL players via direct /api/config no-store - $0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
