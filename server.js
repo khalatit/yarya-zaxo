@@ -22,7 +22,7 @@ if(!db.settings) db.settings = {};
 if(!db.leaderboard) db.leaderboard = {};
 
 
-// --- V46: Admin NOT in code - Password from Environment Variable ONLY ---
+// --- V47: Admin NOT in code - Password from Environment Variable ONLY ---
 // Set in Render: Settings -> Environment -> ADMIN_PASSWORD = your secret
 // No hardcoded username/password in code - Safe
 function isAdminRequest(req){
@@ -154,7 +154,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
     const collection = getCollection(col);
     let data = collection[id];
     let foundId = id;
-    // V46 FIX: If not found by ID, search by usernameLower/phoneNumber (for users)
+    // V47 FIX: If not found by ID, search by usernameLower/phoneNumber (for users)
     if(!data && col==='users'){
       const foundKey = Object.keys(collection).find(k=>{
         const u = collection[k];
@@ -168,7 +168,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
       if(foundKey){
         return res.json(docToFirestore(col,foundKey,collection[foundKey]));
       }
-      // V46: For settings docs, return empty 200 instead of 404 - avoids console spam
+      // V47: For settings docs, return empty 200 instead of 404 - avoids console spam
       if(col==='settings' || col==='winners'){
         return res.json({name: `projects/yarya-zaxo/databases/(default)/documents/${col}/${encodeURIComponent(id)}`, fields: {}});
       }
@@ -178,7 +178,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
   }catch(e){ console.error('get doc error', e); res.status(500).json({error:e.message}); }
 });
 
-// POST create - V46 WINNER NAME - NO MERGE - SAME NAME FORBIDDEN
+// POST create - V47 GOLD CUP - NO MERGE - SAME NAME FORBIDDEN
 app.post('/api/firestore/:col', (req,res)=>{
   try{
     const col = safeDecode(req.params.col);
@@ -229,7 +229,7 @@ app.get('/api/check-username/:low', (req,res)=>{
 // --- V32: PATCH strict - do not allow changing username to taken one ---
 // GET leaderboard - ensure each doc is separate, no merging
 
-// V46 WINNER NAME - Direct config endpoint - NO cache - for ALL players
+// V47 GOLD CUP - Direct config endpoint - NO cache - for ALL players
 app.get('/api/config', (req,res)=>{
   try{
     const cfg = (db.settings && db.settings.config) || {};
@@ -243,7 +243,7 @@ app.get('/api/config-version', (req,res)=>{
 });
 
 
-// V46 WINNER NAME - Force reset ranking + new timer - server side (no batch bug)
+// V47 GOLD CUP - Force reset ranking + new timer - server side (no batch bug)
 app.post('/api/reset-ranking/:type', (req,res)=>{
   try{
     const type = req.params.type;
@@ -278,6 +278,64 @@ app.get('/api/leaderboard/:type', (req,res)=>{
     const field = type==='free'?'bestScoreFree': type==='mobile'?'bestScoreMobile':'bestScoreCar';
     users.sort((a,b)=> (b[field]||0)-(a[field]||0));
     res.json(users.slice(0,20));
+  }catch(e){ res.status(500).json({error:e.message}); }
+});
+
+
+// V47 GOLD CUP - Pick winner = Highest score among ALL users, for ALL rankings
+app.post('/api/pick-winner/:type', (req,res)=>{
+  try{
+    const type = req.params.type;
+    const col = getCollection('users');
+    const field = type==='free'?'bestScoreFree': type==='mobile'?'bestScoreMobile':'bestScoreCar';
+    // Find highest score - check both specific field AND generic bestScore
+    let best = null, bestScore = -1;
+    for(const id in col){
+      const u = col[id];
+      const sc = (u[field]||0) > 0 ? (u[field]||0) : (u.bestScore||0);
+      // Also consider bestScoreFree for free, bestScore for others
+      const score = type==='free' ? Math.max(u.bestScoreFree||0, u.bestScore||0) : (u[field]||0);
+      if(score > bestScore){
+        bestScore = score;
+        best = {id, ...u, _score: score};
+      }
+    }
+    if(!best || bestScore<=0){
+      return res.json({winnerName:'کەس نەبوو', winnerScore:0, winnerId:'none'});
+    }
+    const winnerName = best.username || best.displayName || best.name || best.id || 'کەس نەبوو';
+    const winnerScore = bestScore;
+    const winnerId = best.id;
+    // Save winner doc - use cycle based on current config end time
+    const cfg = getCollection('settings')['config'] || {};
+    const endAt = cfg[type+'EndAt'] || new Date().toISOString();
+    const endTs = Math.floor(new Date(endAt).getTime()/1000);
+    const cycleId = type + '_' + endTs;
+    const winners = getCollection('winners');
+    // If existing winner is bad (کەس نەبوو/undefined), overwrite it
+    const existing = winners[cycleId];
+    if(!existing || existing.winnerName==='کەس نەبوو' || existing.winnerName==='undefined' || !existing.winnerName){
+      winners[cycleId] = {
+        type, winnerName, winnerScore, winnerId,
+        winnerPhone: best.phoneNumber||'', phoneNumber: best.phoneNumber||'',
+        prize: type==='free' ? (cfg.freePrize||'100$') : type==='mobile' ? (cfg.mobilePrize||'ئایفون 18 پرو ماکس') : (cfg.carPrize||'ترومبێل'),
+        createdAt: new Date().toISOString(), endAt: new Date().toISOString(), docId: cycleId
+      };
+      saveDB();
+    } else {
+      // Use existing good winner
+      return res.json({winnerName: existing.winnerName, winnerScore: existing.winnerScore, winnerId: existing.winnerId, cycleId, existing:true});
+    }
+    // Also update currentWinners flat for bottom bar gold cup
+    if(!getCollection('settings')['currentWinners']) getCollection('settings')['currentWinners']={};
+    const cw = getCollection('settings')['currentWinners'];
+    cw[type+'Name'] = winnerName;
+    cw[type+'Score'] = winnerScore;
+    cw[type+'Prize'] = type==='free' ? (cfg.freePrize||'100$') : type==='mobile' ? (cfg.mobilePrize||'ئایفون 18 پرو ماکس') : (cfg.carPrize||'ترومبێل');
+    cw.lastType = type;
+    cw.lastUpdate = new Date().toISOString();
+    saveDB();
+    res.json({winnerName, winnerScore, winnerId, cycleId});
   }catch(e){ res.status(500).json({error:e.message}); }
 });
 
@@ -361,7 +419,7 @@ app.post('/api/firestore-query', (req,res)=>{
 });
 
 
-// --- V46 ADMIN: List users ---
+// --- V47 ADMIN: List users ---
 app.get('/api/users', (req,res)=>{ if(!isAdminRequest(req)) return res.status(401).json({error:'UNAUTHORIZED', message:'Password پێویستە'});
   try{
     const col = getCollection('users');
@@ -370,7 +428,7 @@ app.get('/api/users', (req,res)=>{ if(!isAdminRequest(req)) return res.status(40
     res.json({users, total: users.length});
   }catch(e){ res.status(500).json({error:e.message}); }
 });
-// --- V46 ADMIN: Set isAdmin ---
+// --- V47 ADMIN: Set isAdmin ---
 app.post('/api/set-admin', (req,res)=>{ if(!isAdminRequest(req)) return res.status(401).json({error:'UNAUTHORIZED', message:'Password پێویستە'});
   try{
     const {usernameLower, isAdmin} = req.body;
@@ -394,7 +452,7 @@ app.get('/api/leaderboard', (req,res)=>{
 app.get('/api/stats', (req,res)=>{
   const users = getCollection('users');
   const winners = getCollection('winners');
-  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V46 WINNER NAME URI' });
+  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V47 GOLD CUP URI' });
 });
 app.post('/api/auth', (req,res)=>{
   const {username, phone, password}=req.body;
@@ -427,6 +485,6 @@ app.get('*', (req,res)=>{
   return res.sendFile(path.join(__dirname,'public','index.html'));
 });
 app.listen(PORT, '0.0.0.0', ()=>{
-  console.log('V46 WINNER NAME - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
-  console.log(`V46 WINNER NAME - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
+  console.log('V47 GOLD CUP - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
+  console.log(`V47 GOLD CUP - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
 });

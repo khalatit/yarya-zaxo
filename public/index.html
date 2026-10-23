@@ -3812,6 +3812,33 @@ function showCentralFreezeOverlay(type, remainingSec){
 
 // V29: Centralized winner selection - ONE WINNER FOR ALL, searched in 10 sec
 async function centralizedPickWinner(type){
+  // V47 GOLD CUP - Server picks highest score among ALL - simple, reliable
+  try{
+    const r = await fetch('/api/pick-winner/'+type, {method:'POST', cache:'no-store'});
+    if(r.ok){
+      const w = await r.json();
+      const name = w.winnerName;
+      const score = w.winnerScore||0;
+      const prize = type==='free'?proConfig.freePrize: type==='mobile'?proConfig.mobilePrize:proConfig.carPrize;
+      if(name && name!=='کەس نەبوو' && name!=='undefined'){
+        console.log('🏆 V47 GOLD CUP WINNER:', name, score);
+        showCentralWinner(type, name, score, prize);
+        // After 22s, auto reset via server
+        setTimeout(async ()=>{
+          try{ const rr = await fetch('/api/reset-ranking/'+type, {method:'POST'}); console.log('V47 reset done', type, rr.ok); }catch(e){}
+          try{ if(typeof proLoadConfig==='function') proLoadConfig(); }catch(e){}
+          try{ updateWinnerBottomBar(); }catch(e){}
+          proIsResetting = false;
+        }, 22000);
+        // Also update bottom bar gold cup immediately
+        try{
+          const bar = document.getElementById('winnerBarName') || document.querySelector('.winnerBarName');
+          if(bar) bar.textContent = name;
+        }catch(e){}
+        return;
+      }
+    }
+  }catch(e){ console.log('V47 server pick error', e); }
   try{
     console.log('🏆 V29 CENTRAL PICK START for', type);
     // Determine cycle ID from endAt
@@ -4303,6 +4330,8 @@ function proShowWinnerModal(name, score, prize, icon, type){
   modal.classList.remove('isBackground');
   
   document.getElementById('winnerNamePRO').textContent = (name && name!=='undefined') ? name : 'کەس نەبوو';
+  try{ const barEls = document.querySelectorAll('[data-winner-name], .winnerBarName, #winnerBarName'); barEls.forEach(el=>{ el.textContent = (name && name!=='undefined') ? name : 'کەس نەبوو'; }); }catch(e){}
+  try{ const goldCup = document.getElementById('goldCupWinnerName'); if(goldCup) goldCup.textContent = (name && name!=='undefined') ? name : 'کەس نەبوو'; }catch(e){}
   document.getElementById('winnerScorePRO').textContent = (score||0);
   document.getElementById('winnerPrizePRO').textContent = `🎁 ${prize} - ${type==='free'?'بەلاش': type==='mobile'?'ئایفون':'ترومبێل'}`;
   const iconEl = document.getElementById('winnerIconPRO');
@@ -6975,6 +7004,14 @@ async function fetchLatestWinnerFromFirestoreWithMode(){
   // FIXED: SDK first for players visibility
   try{
     const activeMode = getActiveWinnerMode();
+    // V47: First try server currentWinners flat (gold cup)
+    try{
+      const r2 = await fetch('/api/config?t='+Date.now(), {cache:'no-store'});
+      if(r2.ok){
+        const cfg2 = await r2.json();
+        // currentWinners is in settings, not config - try leaderboard for top
+      }
+    }catch(e){}
     try{
       if(typeof db !== 'undefined' && db){
         const q = query(collection(db, "winners"), orderBy("createdAt", "desc"), limit(20));
@@ -7109,7 +7146,7 @@ async function updateWinnerBottomBar(){
           const top = cache[0];
           if(top && (top.score>0 || top.bestScore>0)){
             topWinner = {
-              displayName: top.name || top.displayName || top.username || top.winnerName || '—',
+              displayName: (top.name && top.name!=='undefined' ? top.name : null) || (top.displayName && top.displayName!=='undefined' ? top.displayName : null) || (top.username && top.username!=='undefined' ? top.username : null) || (top.winnerName && top.winnerName!=='undefined' ? top.winnerName : null) || '—',
               bestScore: top.score || top.bestScore || 0,
               score: top.score || top.bestScore || 0,
               prize: activeMode==='free'?'100$':activeMode==='mobile'?'📱 ئایفون':'🚗 ترومبێل',
