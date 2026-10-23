@@ -614,6 +614,8 @@ async function checkAdminPwd(){
 
 
 <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, orderBy, limit, getDocs, addDoc, serverTimestamp, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import { initializeApp, getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, orderBy, limit, getDocs, addDoc, serverTimestamp, deleteDoc, writeBatch } from "./firebase-shim.js";
 const firebaseConfig = {
@@ -751,6 +753,9 @@ function startCountdown(){
 
 function formatCountdown(end){
   if(!end) return '--:--:--';
+  if(typeof end==='string') end = new Date(end);
+  if(end && end.seconds) end = new Date(end.seconds*1000);
+  if(!(end instanceof Date) || isNaN(end.getTime())) return '--:--:--';
   let diff = Math.floor((end - new Date())/1000);
   if(diff<=0) return '00:00:00';
   const d = Math.floor(diff/86400); diff%=86400;
@@ -837,7 +842,7 @@ async function handleWinner(type){
       const winnerRef = doc(db, 'winners', docId);
       const existingSnap = await getDoc(winnerRef);
       if(existingSnap.exists()){
-        console.log('Winner already exists for '+docId+', skipping duplicate');
+        if(!window._winnerLogOnce) { window._winnerLogOnce={}; } if(!window._winnerLogOnce[docId]){ window._winnerLogOnce[docId]=1; console.log('Winner already exists for '+docId+', skipping duplicate'); }
         isResetting = false;
         return;
       }

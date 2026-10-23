@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "39.0.0",
-  "description": "YARYA ZAXO PRO V39 FIX SHIM - Fix export error - Original V12 Dashboard works - $0",
+  "version": "40.0.0",
+  "description": "YARYA ZAXO PRO V40 FIX 404 NAN - Fix NaN timer and 404 spam - Original dashboard preserved - $0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
