@@ -22,7 +22,7 @@ if(!db.settings) db.settings = {};
 if(!db.leaderboard) db.leaderboard = {};
 
 
-// --- V40: Admin NOT in code - Password from Environment Variable ONLY ---
+// --- V41: Admin NOT in code - Password from Environment Variable ONLY ---
 // Set in Render: Settings -> Environment -> ADMIN_PASSWORD = your secret
 // No hardcoded username/password in code - Safe
 function isAdminRequest(req){
@@ -154,7 +154,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
     const collection = getCollection(col);
     let data = collection[id];
     let foundId = id;
-    // V40 FIX: If not found by ID, search by usernameLower/phoneNumber (for users)
+    // V41 FIX: If not found by ID, search by usernameLower/phoneNumber (for users)
     if(!data && col==='users'){
       const foundKey = Object.keys(collection).find(k=>{
         const u = collection[k];
@@ -168,7 +168,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
       if(foundKey){
         return res.json(docToFirestore(col,foundKey,collection[foundKey]));
       }
-      // V40: For settings docs, return empty 200 instead of 404 - avoids console spam
+      // V41: For settings docs, return empty 200 instead of 404 - avoids console spam
       if(col==='settings' || col==='winners'){
         return res.json({name: `projects/yarya-zaxo/databases/(default)/documents/${col}/${encodeURIComponent(id)}`, fields: {}});
       }
@@ -178,7 +178,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
   }catch(e){ console.error('get doc error', e); res.status(500).json({error:e.message}); }
 });
 
-// POST create - V40 FIX 404 NAN - NO MERGE - SAME NAME FORBIDDEN
+// POST create - V41 FIX DUPLICATE - NO MERGE - SAME NAME FORBIDDEN
 app.post('/api/firestore/:col', (req,res)=>{
   try{
     const col = safeDecode(req.params.col);
@@ -307,7 +307,7 @@ app.post('/api/firestore-query', (req,res)=>{
 });
 
 
-// --- V40 ADMIN: List users ---
+// --- V41 ADMIN: List users ---
 app.get('/api/users', (req,res)=>{ if(!isAdminRequest(req)) return res.status(401).json({error:'UNAUTHORIZED', message:'Password پێویستە'});
   try{
     const col = getCollection('users');
@@ -316,7 +316,7 @@ app.get('/api/users', (req,res)=>{ if(!isAdminRequest(req)) return res.status(40
     res.json({users, total: users.length});
   }catch(e){ res.status(500).json({error:e.message}); }
 });
-// --- V40 ADMIN: Set isAdmin ---
+// --- V41 ADMIN: Set isAdmin ---
 app.post('/api/set-admin', (req,res)=>{ if(!isAdminRequest(req)) return res.status(401).json({error:'UNAUTHORIZED', message:'Password پێویستە'});
   try{
     const {usernameLower, isAdmin} = req.body;
@@ -340,7 +340,7 @@ app.get('/api/leaderboard', (req,res)=>{
 app.get('/api/stats', (req,res)=>{
   const users = getCollection('users');
   const winners = getCollection('winners');
-  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V40 FIX 404 NAN URI' });
+  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V41 FIX DUPLICATE URI' });
 });
 app.post('/api/auth', (req,res)=>{
   const {username, phone, password}=req.body;
@@ -373,6 +373,6 @@ app.get('*', (req,res)=>{
   return res.sendFile(path.join(__dirname,'public','index.html'));
 });
 app.listen(PORT, '0.0.0.0', ()=>{
-  console.log('V40 FIX 404 NAN - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
-  console.log(`V40 FIX 404 NAN - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
+  console.log('V41 FIX DUPLICATE - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
+  console.log(`V41 FIX DUPLICATE - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
 });
