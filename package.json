@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "52.0.0",
-  "description": "YARYA ZAXO PRO V52 ADMIN EDIT - Admin delete+edit, Player edit name/mobile/bio, Name unique block, ID/code locked",
+  "version": "53.0.0",
+  "description": "YARYA ZAXO PRO V53 FIX - Real Delete/Edit buttons in admin table - Name unique block",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

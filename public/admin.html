@@ -1116,6 +1116,8 @@ function renderPlayers(players){
         <div style="display:flex;flex-direction:column;gap:4px">
           <button onclick="resetPlayer('${u.id}','free')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:#fff;font-size:9px;cursor:pointer;font-weight:700">سفر بەلاش</button>
           ${isBlocked?`<button onclick="unblockPlayer('${u.id}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(0,255,136,0.3);background:rgba(0,255,136,0.15);color:#00ff99;font-size:9px;cursor:pointer;font-weight:800">🔓 ئازاد</button>`:`<button onclick="blockPlayerDevice('${u.id}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(212,16,31,0.3);background:rgba(212,16,31,0.15);color:#ff8a8a;font-size:9px;cursor:pointer;font-weight:800">⛔ بلوک جیهاز</button>`}
+          <button onclick="v53DeletePlayer('${u.id}','${escapeHtml(u.username||u.displayName||'').replace(/'/g, "\\'")}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(239,68,68,0.4);background:#ef4444;color:#fff;font-size:9px;cursor:pointer;font-weight:800">🗑️ ژێبە</button>
+          <button onclick="v53EditPlayer('${u.id}','${escapeHtml(u.username||u.displayName||'').replace(/'/g, "\\'")}','${escapeHtml((u.bio||'').replace(/'/g, "\\'"))}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(59,130,246,0.4);background:#3b82f6;color:#fff;font-size:9px;cursor:pointer;font-weight:800">✏️ گهورە</button>
         </div>
       </td>
     `;
@@ -1879,50 +1881,6 @@ init();
 
 </script>
 
-<script>
-// V52 ADMIN EDIT - Delete + Edit Name/Bio + Block duplicate notification
-window.V52_ADMIN = {
-  async deleteUser(id, name){
-    if(!confirm('یاریکەر '+name+' ژێببەم؟')) return;
-    const pwd = localStorage.getItem('adminPwd') || prompt('Password ئەدمین:');
-    if(!pwd) return;
-    localStorage.setItem('adminPwd', pwd);
-    const res = await fetch('/api/firestore/users/'+encodeURIComponent(id)+'?adminPassword='+encodeURIComponent(pwd), {method:'DELETE', headers:{'x-admin-password':pwd}});
-    if(res.ok){ alert('ژێبرا ✅'); location.reload(); } else { alert('نەبوو ❌ - '+await res.text()); }
-  },
-  async editUser(id, currentName, currentBio){
-    const newName = prompt('ناڤێ نوو:', currentName);
-    if(newName===null) return;
-    const newBio = prompt('بایو نوو:', currentBio||'');
-    const pwd = localStorage.getItem('adminPwd') || prompt('Password ئەدمین:');
-    if(!pwd) return;
-    const res = await fetch('/api/firestore/users/'+encodeURIComponent(id), {
-      method:'PATCH',
-      headers:{'Content-Type':'application/json','x-admin-password':pwd},
-      body: JSON.stringify({fields:{username:{stringValue:newName}, usernameLower:{stringValue:newName.toLowerCase()}, bio:{stringValue:newBio}, adminPassword:{stringValue:pwd}}})
-    });
-    if(res.status===409){ alert('ئەڤ ناڤە هەیە! - ناڤێ دی بکە'); return; }
-    if(res.ok){ alert('گهورین درست ✅'); location.reload(); } else { alert('نەبوو ❌'); }
-  }
-};
-// Hook delete/edit into existing table - add buttons after render
-document.addEventListener('DOMContentLoaded', ()=>{
-  const observer = new MutationObserver(()=>{
-    document.querySelectorAll('[data-user-id]').forEach(el=>{
-      if(el.dataset.v52) return; el.dataset.v52='1';
-      const id = el.dataset.userId;
-      const name = el.dataset.userName || '';
-      const bio = el.dataset.userBio || '';
-      const del = document.createElement('button'); del.textContent='🗑️ ژێبە'; del.style.cssText='background:#ef4444;color:white;border:none;padding:6px 10px;border-radius:8px;margin:2px;cursor:pointer';
-      del.onclick=()=>window.V52_ADMIN.deleteUser(id,name);
-      const edt = document.createElement('button'); edt.textContent='✏️ گهورە'; edt.style.cssText='background:#3b82f6;color:white;border:none;padding:6px 10px;border-radius:8px;margin:2px;cursor:pointer';
-      edt.onclick=()=>window.V52_ADMIN.editUser(id,name,bio);
-      el.appendChild(del); el.appendChild(edt);
-    });
-  });
-  observer.observe(document.body, {childList:true, subtree:true});
-});
-</script>
 </body>
 
 </html>
