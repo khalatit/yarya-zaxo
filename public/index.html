@@ -2757,33 +2757,15 @@ window.closeProfile=function(){document.getElementById('profileModal')?.classLis
 
 window.saveProfile=async function(){
   const bioInput=document.getElementById('profileBioInput'),errEl=document.getElementById('profileError'),btn=document.getElementById('profileSaveBtn');
-  const nameInput=document.getElementById('profileNameInput'), phoneInput=document.getElementById('profilePhoneDisplay');
   const newBio=bioInput.value.trim();
-  const newName=nameInput ? nameInput.value.trim() : currentUser.username;
-  const newPhone=phoneInput ? phoneInput.value.trim() : currentUser.phoneNumber;
   errEl.style.display='none';
   if(!newBio){errEl.textContent='بایۆ پێویستە';errEl.style.display='block';return;}
-  if(!newName){errEl.textContent='ناڤ پێویستە';errEl.style.display='block';return;}
   btn.disabled=true;btn.textContent='چاوەڕێبە...';
   try{
     const uid=currentUser.usernameLower,updateData={};
-    // V54 FIX: NAME AND PHONE CAN CHANGE - ID and CODE cannot! Check duplicate name
-    if(newName.toLowerCase() !== currentUser.username.toLowerCase()){
-      // Check duplicate via Firestore query - load all users
-      const allUsersSnap = await fetch('/api/firestore/users', {headers:{'Content-Type':'application/json'}}).then(r=>r.json()).catch(()=>null);
-      // Use firestoreQuerySimple if available
-      try{
-        const docs = await firestoreQuerySimple('users','usernameLower', newName.toLowerCase(), 5);
-        if(docs && docs.length>0){ errEl.textContent='⚠️ ئەڤ ناڤە هەیە! - ناڤێ دی بکە - Blocked'; errEl.style.display='block'; btn.disabled=false; btn.textContent='پاشکەوتکرن ✅'; return; }
-      }catch(e){}
-      // Server also checks duplicate - PATCH will return 409 if duplicate
-    }
+    // V28: NAME AND PHONE ARE IMMUTABLE - DO NOT UPDATE THEM
+    // Only bio and photo can be changed
     updateData.bio=newBio;
-    updateData.username=newName;
-    updateData.usernameLower=newName.toLowerCase();
-    updateData.displayName=newName;
-    updateData.phoneNumber=newPhone;
-    updateData.mobile=newPhone;
     if(profilePhotoBase64 && profilePhotoBase64!==currentUser.photoBase64) updateData.photoBase64=profilePhotoBase64;
     await saveUser(uid,updateData);
     // Update friendRequests bio and photo only (not name)
@@ -2799,10 +2781,10 @@ window.saveProfile=async function(){
       const fields={toBio:{stringValue:newBio}, toPhoto:{stringValue:updateData.photoBase64||currentUser.photoBase64||''}};
       await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});
     }
-    currentUser.bio=newBio; currentUser.username=newName; currentUser.usernameLower=newName.toLowerCase(); currentUser.displayName=newName; currentUser.phoneNumber=newPhone;
+    currentUser.bio=newBio;
     if(updateData.photoBase64) currentUser.photoBase64=updateData.photoBase64;
     if(currentUser.photoBase64) localStorage.setItem('yarya_user_photo',currentUser.photoBase64);
-    document.getElementById('topName').textContent=newName;
+    document.getElementById('topName').textContent=currentUser.username;
     document.getElementById('topBio').textContent=newBio.substring(0,30);
     document.getElementById('bioPreviewValue').textContent=newBio;
     document.getElementById('bioPreviewValue').className='value';

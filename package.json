@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "54.0.0",
-  "description": "YARYA ZAXO V54 FULL FIX",
+  "version": "55.0.0",
+  "description": "V55 SIMPLE - Fix loadPlayers not defined - Simple buttons",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
