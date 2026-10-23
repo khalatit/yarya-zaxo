@@ -19,8 +19,15 @@ if(!db.transactions) db.transactions = {};
 if(!db.unlockTransactions) db.unlockTransactions = {};
 if(!db.typing) db.typing = {};
 if(!db.settings) db.settings = {};
+if(!db.leaderboard) db.leaderboard = {};
 
-function saveDB(){ try{ fs.writeFileSync(DB_FILE, JSON.stringify(db,null,2)); }catch(e){} }
+function saveDB(){ try{ fs.writeFileSync(DB_FILE, JSON.stringify(db,null,2)); }catch(e){ console.error('save error', e); } }
+function safeDecode(s){
+  if(!s) return s;
+  try{ return decodeURIComponent(s); }catch(e){
+    try{ return decodeURI(s); }catch(e2){ return s; }
+  }
+}
 function toPlain(fields){
   const out={};
   if(!fields) return out;
@@ -54,7 +61,6 @@ function toFirestoreFields(obj){
 }
 function getCollection(col){
   if(!db[col]) db[col]={};
-  // Support both array and object formats: migrate array to object
   if(Array.isArray(db[col])){
     const obj={};
     db[col].forEach((item,idx)=>{
@@ -66,7 +72,7 @@ function getCollection(col){
   return db[col];
 }
 function docToFirestore(col, id, data){
-  return { name: `projects/yarya-zaxo/databases/(default)/documents/${col}/${id}`, fields: toFirestoreFields(data) };
+  return { name: `projects/yarya-zaxo/databases/(default)/documents/${col}/${encodeURIComponent(id)}`, fields: toFirestoreFields(data) };
 }
 function matchesFilter(docData, filter){
   if(!filter) return true;
@@ -88,93 +94,147 @@ function matchesFilter(docData, filter){
   if(op==='NOT_EQUAL') return actual!==expected;
   if(op==='GREATER_THAN') return actual>expected;
   if(op==='LESS_THAN') return actual<expected;
+  if(op==='GREATER_THAN_OR_EQUAL') return actual>=expected;
+  if(op==='LESS_THAN_OR_EQUAL') return actual<=expected;
   return true;
 }
 
 app.use(express.json({limit:'10mb'}));
 app.use(express.static(path.join(__dirname,'public')));
 
-// Firestore REST: GET list
+// Helper to extract doc ID from original URL safely (handles / ? % chars)
+function extractId(req){
+  // URL is /api/firestore/col/id?query - we need id part after col/
+  const url = req.originalUrl || req.url;
+  // Remove /api/firestore/
+  let after = url.replace(/^\/api\/firestore\//,'');
+  // after is col/id?query or col/id
+  const qIndex = after.indexOf('?');
+  if(qIndex!==-1) after = after.substring(0,qIndex);
+  // after is col/id (id may contain encoded / as %2F or literal /)
+  const slashIdx = after.indexOf('/');
+  if(slashIdx===-1) return {col: safeDecode(after), id: null};
+  const col = safeDecode(after.substring(0,slashIdx));
+  let idPart = after.substring(slashIdx+1);
+  // Express may have already decoded parts, but we try safe decode
+  idPart = safeDecode(idPart);
+  // If id contains further / because username had /, join them
+  return {col, id: idPart};
+}
+
+// Firestore REST: GET list - /api/firestore/:col
 app.get('/api/firestore/:col', (req,res)=>{
-  const col = req.params.col;
-  const collection = getCollection(col);
-  const docs = Object.entries(collection).map(([id,data])=> docToFirestore(col,id,data));
-  // Handle pageSize
-  const pageSize = parseInt(req.query.pageSize)||50;
-  res.json({ documents: docs.slice(0,pageSize) });
-});
-// GET single doc
-app.get('/api/firestore/:col/:id', (req,res)=>{
-  const col = req.params.col; const id = decodeURIComponent(req.params.id);
-  const collection = getCollection(col);
-  const data = collection[id];
-  if(!data) return res.status(404).json({error:'not found'});
-  res.json(docToFirestore(col,id,data));
-});
-// POST create
-app.post('/api/firestore/:col', (req,res)=>{
-  const col = req.params.col;
-  const collection = getCollection(col);
-  const fields = req.body.fields || req.body;
-  const plain = fields.fields ? toPlain(fields.fields) : (fields.stringValue ? toPlain(fields) : req.body);
-  // Actually req.body is {fields: {...}}
-  const plainData = toPlain(req.body.fields || {});
-  const id = Date.now().toString() + Math.random().toString(36).slice(2,6);
-  collection[id]=plainData;
-  saveDB();
-  res.json(docToFirestore(col,id,plainData));
-});
-// PATCH update (also for setDoc)
-app.patch('/api/firestore/:col/:id', (req,res)=>{
-  const col = req.params.col; const id = decodeURIComponent(req.params.id);
-  const collection = getCollection(col);
-  const plainData = toPlain(req.body.fields || {});
-  if(!collection[id]) collection[id]={};
-  // If setDoc without mask, replace; if updateMask, merge
-  Object.assign(collection[id], plainData);
-  saveDB();
-  res.json(docToFirestore(col,id,collection[id]));
-});
-// POST with PATCH method via POST? Some SDK uses POST for create already handled.
-// DELETE
-app.delete('/api/firestore/:col/:id', (req,res)=>{
-  const col = req.params.col; const id = decodeURIComponent(req.params.id);
-  const collection = getCollection(col);
-  delete collection[id];
-  saveDB();
-  res.json({ok:true});
-});
-// Also handle DELETE via query param method override (some code uses fetch DELETE with query string)
-app.post('/api/firestore-query', (req,res)=>{
-  const sq = req.body.structuredQuery || req.body;
-  const from = sq.from && sq.from[0];
-  const col = from ? from.collectionId : null;
-  if(!col) return res.json([]);
-  const collection = getCollection(col);
-  let entries = Object.entries(collection).map(([id,data])=> ({id, data}));
-  // where
-  if(sq.where) entries = entries.filter(e=> matchesFilter(e.data, sq.where));
-  // orderBy
-  if(sq.orderBy && sq.orderBy[0]){
-    const field = sq.orderBy[0].field.fieldPath;
-    const dir = sq.orderBy[0].direction;
-    entries.sort((a,b)=>{
-      const va=a.data[field]||0, vb=b.data[field]||0;
-      if(typeof va==='string') return dir==='DESCENDING' ? vb.localeCompare(va) : va.localeCompare(vb);
-      return dir==='DESCENDING' ? vb-va : va-vb;
-    });
-  }
-  if(sq.limit) entries = entries.slice(0, sq.limit);
-  const result = entries.map(e=> ({ document: docToFirestore(col, e.id, e.data) }));
-  res.json(result);
-});
-// Support runQuery via GET with body? Already POST
-app.post('/api/firestore/:col/:id', (req,res)=>{
-  // Some SDK may POST to update
-  return res.json({ok:true});
+  try{
+    const col = safeDecode(req.params.col);
+    const collection = getCollection(col);
+    const docs = Object.entries(collection).map(([id,data])=> docToFirestore(col,id,data));
+    const pageSize = parseInt(req.query.pageSize)||100;
+    res.json({ documents: docs.slice(0,pageSize) });
+  }catch(e){ console.error('list error', e); res.status(500).json({error:e.message}); }
 });
 
-// Legacy API for V28/V29 compatibility
+// GET single doc - handle any ID with special chars
+app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
+  try{
+    const col = safeDecode(req.params[0]);
+    const rawId = req.params[1];
+    const id = safeDecode(rawId.split('?')[0]);
+    const collection = getCollection(col);
+    const data = collection[id];
+    // Try also with encoded key if not found
+    if(!data){
+      // Try find by searching all keys with safe compare
+      const foundKey = Object.keys(collection).find(k=> k===id || safeDecode(k)===id || k===rawId);
+      if(foundKey){
+        return res.json(docToFirestore(col,foundKey,collection[foundKey]));
+      }
+      return res.status(404).json({error:'not found', id});
+    }
+    res.json(docToFirestore(col,id,data));
+  }catch(e){ console.error('get doc error', e); res.status(500).json({error:e.message}); }
+});
+
+// POST create
+app.post('/api/firestore/:col', (req,res)=>{
+  try{
+    const col = safeDecode(req.params.col);
+    const collection = getCollection(col);
+    const plainData = toPlain(req.body.fields || {});
+    const id = Date.now().toString() + Math.random().toString(36).slice(2,6);
+    collection[id]=plainData;
+    saveDB();
+    res.json(docToFirestore(col,id,plainData));
+  }catch(e){ console.error('create error', e); res.status(500).json({error:e.message}); }
+});
+
+// PATCH update - handle any ID
+app.patch(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
+  try{
+    const col = safeDecode(req.params[0]);
+    const rawId = req.params[1];
+    const id = safeDecode(rawId.split('?')[0]);
+    const collection = getCollection(col);
+    const plainData = toPlain(req.body.fields || {});
+    if(!collection[id]) collection[id]={};
+    Object.assign(collection[id], plainData);
+    saveDB();
+    res.json(docToFirestore(col,id,collection[id]));
+  }catch(e){ console.error('patch error', e, req.originalUrl); res.status(500).json({error:e.message, stack:e.stack}); }
+});
+
+// PUT as alternative to PATCH
+app.put(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
+  try{
+    const col = safeDecode(req.params[0]);
+    const rawId = req.params[1];
+    const id = safeDecode(rawId.split('?')[0]);
+    const collection = getCollection(col);
+    const plainData = toPlain(req.body.fields || {});
+    if(!collection[id]) collection[id]={};
+    Object.assign(collection[id], plainData);
+    saveDB();
+    res.json(docToFirestore(col,id,collection[id]));
+  }catch(e){ console.error('put error', e); res.status(500).json({error:e.message}); }
+});
+
+// DELETE - handle any ID
+app.delete(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
+  try{
+    const col = safeDecode(req.params[0]);
+    const rawId = req.params[1];
+    const id = safeDecode(rawId.split('?')[0]);
+    const collection = getCollection(col);
+    delete collection[id];
+    saveDB();
+    res.json({ok:true});
+  }catch(e){ console.error('delete error', e); res.status(500).json({error:e.message}); }
+});
+
+// Firestore runQuery
+app.post('/api/firestore-query', (req,res)=>{
+  try{
+    const sq = req.body.structuredQuery || req.body;
+    const from = sq.from && sq.from[0];
+    const col = from ? from.collectionId : null;
+    if(!col) return res.json([]);
+    const collection = getCollection(col);
+    let entries = Object.entries(collection).map(([id,data])=> ({id, data}));
+    if(sq.where) entries = entries.filter(e=> matchesFilter(e.data, sq.where));
+    if(sq.orderBy && sq.orderBy[0]){
+      const field = sq.orderBy[0].field.fieldPath;
+      const dir = sq.orderBy[0].direction;
+      entries.sort((a,b)=>{
+        const va=a.data[field]||0, vb=b.data[field]||0;
+        if(typeof va==='string') return dir==='DESCENDING' ? vb.localeCompare(va) : va.localeCompare(vb);
+        return dir==='DESCENDING' ? vb-va : va-vb;
+      });
+    }
+    if(sq.limit) entries = entries.slice(0, sq.limit);
+    const result = entries.map(e=> ({ document: docToFirestore(col, e.id, e.data) }));
+    res.json(result);
+  }catch(e){ console.error('query error', e); res.status(500).json({error:e.message}); }
+});
+
 app.get('/api/leaderboard', (req,res)=>{
   const col = getCollection('users');
   const arr = Object.values(col).sort((a,b)=>(b.bestScore||0)-(a.bestScore||0)).slice(0,100);
@@ -183,25 +243,20 @@ app.get('/api/leaderboard', (req,res)=>{
 app.get('/api/stats', (req,res)=>{
   const users = getCollection('users');
   const winners = getCollection('winners');
-  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, onlineEstimate: Object.keys(users).length, firebaseCost:0, hosting:'Render $7 - 512MB - Never sleeps', costReduction:'100% Firebase $0 - Same game!!', version:'V30 ORIGINAL FULL' });
+  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V30.1 FIXED URI' });
 });
-app.get('/api/admin-stats', (req,res)=>{
-  const users = getCollection('users');
-  const winners = getCollection('winners');
-  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, onlineEstimate: Object.keys(users).length, firebaseCost:0, hosting:'Render $7', costReduction:'100% Firebase $0 - Same game!!' });
-});
-// Simple auth endpoints for V29 compatibility (kept)
 app.post('/api/auth', (req,res)=>{
   const {username, phone, password}=req.body;
   const lower=(username||'').toLowerCase();
   const col=getCollection('users');
-  let user=Object.values(col).find(u=>u.usernameLower===lower);
-  if(!user){
-    const id=Date.now().toString();
-    user={username, usernameLower:lower, phone:phone||password||'', bestScore:0, createdAt:new Date().toISOString(), isAdmin:false};
+  let foundId = Object.keys(col).find(k=> col[k].usernameLower===lower);
+  if(!foundId){
+    const id=lower || Date.now().toString();
+    const user={username, usernameLower:lower, phone:phone||password||'', bestScore:0, createdAt:new Date().toISOString(), isAdmin:false};
     col[id]=user; saveDB();
+    return res.json({success:true, user});
   }
-  res.json({success:true, user});
+  res.json({success:true, user:col[foundId]});
 });
 app.post('/api/score', (req,res)=>{
   const {username, score, usernameLower}=req.body;
@@ -216,10 +271,11 @@ app.post('/api/score', (req,res)=>{
 
 app.get('*', (req,res)=>{
   const filePath = path.join(__dirname, 'public', req.path);
+  if(req.path.startsWith('/api/')) return res.status(404).json({error:'api not found '+req.path});
   if(fs.existsSync(filePath) && fs.statSync(filePath).isFile()) return res.sendFile(filePath);
   return res.sendFile(path.join(__dirname,'public','index.html'));
 });
 app.listen(PORT, '0.0.0.0', ()=>{
-  console.log('V30 ORIGINAL FULL - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
-  console.log(`V30 ORIGINAL - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
+  console.log('V30.1 FIXED - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
+  console.log(`V30.1 FIXED - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
 });
