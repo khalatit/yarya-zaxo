@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "50.0.0",
-  "description": "YARYA ZAXO PRO V50 SECURITY - Cheat check + Rate Limit + Admin protection - $0",
+  "version": "51.0.0",
+  "description": "YARYA ZAXO PRO V51 DISK FIX - Disk at /data, not /app - $0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

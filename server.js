@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 10000;
-const DB_FILE = path.join(__dirname, 'db.json');
+const DB_FILE = process.env.DB_PATH || (fs.existsSync('/data') ? path.join('/data', 'db.json') : path.join(__dirname, 'db.json'));
 let db = {};
 try { if(fs.existsSync(DB_FILE)){ db = JSON.parse(fs.readFileSync(DB_FILE,'utf8')); } } catch(e){ console.log('DB load error', e); }
 if(!db.users) db.users = {};
@@ -22,7 +22,7 @@ if(!db.settings) db.settings = {};
 if(!db.leaderboard) db.leaderboard = {};
 
 
-// --- V50: Admin NOT in code - Password from Environment Variable ONLY ---
+// --- V51: Admin NOT in code - Password from Environment Variable ONLY ---
 // Set in Render: Settings -> Environment -> ADMIN_PASSWORD = your secret
 // No hardcoded username/password in code - Safe
 function isAdminRequest(req){
@@ -112,7 +112,7 @@ function matchesFilter(docData, filter){
 }
 
 
-// V50 SECURITY - Rate Limit + Cheat Check + Admin Protection
+// V51 DISK FIX - Rate Limit + Cheat Check + Admin Protection
 const rateMap = new Map();
 function rateLimit(req,res,next){
   const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
@@ -144,9 +144,8 @@ function checkCheatScore(req,res,next){
   }
   next();
 }
-app.use(rateLimit);
-app.use(checkCheatScore);
-// V50: Admin API already protected via isAdminRequest - ensure /api/users needs password
+// rateLimit after json - will be added after express.json
+// V51: Admin API already protected via isAdminRequest - ensure /api/users needs password
 // Also add unblock endpoint
 app.post('/api/unblock/:id', (req,res)=>{
   if(!isAdminRequest(req)) return res.status(401).json({error:'UNAUTHORIZED'});
@@ -156,6 +155,8 @@ app.post('/api/unblock/:id', (req,res)=>{
 });
 
 app.use(express.json({limit:'10mb'}));
+app.use(rateLimit);
+app.use(checkCheatScore);
 app.use(express.static(path.join(__dirname,'public')));
 
 // Helper to extract doc ID from original URL safely (handles / ? % chars)
@@ -198,7 +199,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
     const collection = getCollection(col);
     let data = collection[id];
     let foundId = id;
-    // V50 FIX: If not found by ID, search by usernameLower/phoneNumber (for users)
+    // V51 FIX: If not found by ID, search by usernameLower/phoneNumber (for users)
     if(!data && col==='users'){
       const foundKey = Object.keys(collection).find(k=>{
         const u = collection[k];
@@ -212,7 +213,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
       if(foundKey){
         return res.json(docToFirestore(col,foundKey,collection[foundKey]));
       }
-      // V50: For settings docs, return empty 200 instead of 404 - avoids console spam
+      // V51: For settings docs, return empty 200 instead of 404 - avoids console spam
       if(col==='settings' || col==='winners'){
         return res.json({name: `projects/yarya-zaxo/databases/(default)/documents/${col}/${encodeURIComponent(id)}`, fields: {}});
       }
@@ -222,7 +223,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
   }catch(e){ console.error('get doc error', e); res.status(500).json({error:e.message}); }
 });
 
-// POST create - V50 SECURITY - NO MERGE - SAME NAME FORBIDDEN
+// POST create - V51 DISK FIX - NO MERGE - SAME NAME FORBIDDEN
 app.post('/api/firestore/:col', (req,res)=>{
   try{
     const col = safeDecode(req.params.col);
@@ -273,7 +274,7 @@ app.get('/api/check-username/:low', (req,res)=>{
 // --- V32: PATCH strict - do not allow changing username to taken one ---
 // GET leaderboard - ensure each doc is separate, no merging
 
-// V50 SECURITY - Direct config endpoint - NO cache - for ALL players
+// V51 DISK FIX - Direct config endpoint - NO cache - for ALL players
 app.get('/api/config', (req,res)=>{
   try{
     const cfg = (db.settings && db.settings.config) || {};
@@ -287,7 +288,7 @@ app.get('/api/config-version', (req,res)=>{
 });
 
 
-// V50 SECURITY - Force reset ranking + new timer - server side (no batch bug)
+// V51 DISK FIX - Force reset ranking + new timer - server side (no batch bug)
 app.post('/api/reset-ranking/:type', (req,res)=>{
   try{
     const type = req.params.type;
@@ -326,7 +327,7 @@ app.get('/api/leaderboard/:type', (req,res)=>{
 });
 
 
-// V50 SECURITY - Pick winner = Highest score among ALL users, for ALL rankings
+// V51 DISK FIX - Pick winner = Highest score among ALL users, for ALL rankings
 app.post('/api/pick-winner/:type', (req,res)=>{
   try{
     const type = req.params.type;
@@ -463,7 +464,7 @@ app.post('/api/firestore-query', (req,res)=>{
 });
 
 
-// --- V50 ADMIN: List users ---
+// --- V51 ADMIN: List users ---
 app.get('/api/users', (req,res)=>{ if(!isAdminRequest(req)) return res.status(401).json({error:'UNAUTHORIZED', message:'Password پێویستە'});
   try{
     const col = getCollection('users');
@@ -472,7 +473,7 @@ app.get('/api/users', (req,res)=>{ if(!isAdminRequest(req)) return res.status(40
     res.json({users, total: users.length});
   }catch(e){ res.status(500).json({error:e.message}); }
 });
-// --- V50 ADMIN: Set isAdmin ---
+// --- V51 ADMIN: Set isAdmin ---
 app.post('/api/set-admin', (req,res)=>{ if(!isAdminRequest(req)) return res.status(401).json({error:'UNAUTHORIZED', message:'Password پێویستە'});
   try{
     const {usernameLower, isAdmin} = req.body;
@@ -496,7 +497,7 @@ app.get('/api/leaderboard', (req,res)=>{
 app.get('/api/stats', (req,res)=>{
   const users = getCollection('users');
   const winners = getCollection('winners');
-  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V50 SECURITY URI' });
+  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V51 DISK FIX URI' });
 });
 app.post('/api/auth', (req,res)=>{
   const {username, phone, password}=req.body;
@@ -529,6 +530,6 @@ app.get('*', (req,res)=>{
   return res.sendFile(path.join(__dirname,'public','index.html'));
 });
 app.listen(PORT, '0.0.0.0', ()=>{
-  console.log('V50 SECURITY - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
-  console.log(`V50 SECURITY - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
+  console.log('V51 DISK FIX - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
+  console.log(`V51 DISK FIX - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
 });
