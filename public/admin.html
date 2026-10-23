@@ -1,42 +1,13 @@
-<!DOCTYPE html><html lang="ku" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin - YARYA ZAXO PRO - V36</title>
-<style>body{background:#0b0b0f;color:#fff;font-family:system-ui;padding:20px}h1{color:#FFD700;text-align:center}.card{background:#17171c;border:1px solid #2a2a2e;border-radius:16px;padding:18px;max-width:900px;margin:20px auto}input{width:100%;padding:12px;border-radius:10px;border:1px solid #333;background:#111;color:#fff;margin:8px 0}button{padding:10px 16px;border:0;border-radius:10px;font-weight:800;cursor:pointer}.btnAdmin{background:#FFD700;color:#000}.btnRemove{background:#D4101F;color:#fff}.userRow{display:flex;gap:10px;align-items:center;background:#111;border:1px solid #222;border-radius:12px;padding:12px;margin:8px 0;flex-wrap:wrap}.userRow .name{font-weight:900;color:#FFD700}.badge{background:#222;padding:4px 8px;border-radius:999px;font-size:11px}.badge.admin{background:#FFD700;color:#000}.badge.user{background:#333;color:#fff}</style></head><body>
-<div class="card"><h1>👑 Admin - YARYA ZAXO PRO - V36</h1><p style="text-align:center;color:#aaa">یوزەران ببینە - isAdmin true بکە</p>
-<input id="search" placeholder="🔍 ل ناڤێ بگەڕە... khalat2" oninput="render()">
-<div id="stats" style="background:#111;padding:12px;border-radius:10px;text-align:center">Loading...</div>
-<div id="list"></div>
-<button onclick="load()" style="width:100%;padding:12px;background:#FFD700;border:0;border-radius:10px;font-weight:800;cursor:pointer;margin-top:12px">🔄 Refresh</button>
-<p style="text-align:center;font-size:11px;color:#777;margin-top:12px">https://yarya-zaxo.onrender.com/admin.html - V36 - $0 Firebase</p>
-</div>
+<!DOCTYPE html><html lang="ku" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin - YARYA ZAXO PRO - V37</title>
+<style>body{background:#0b0b0f;color:#fff;font-family:system-ui;padding:20px}h1{color:#FFD700;text-align:center}.card{background:#17171c;border:1px solid #2a2a2e;border-radius:16px;padding:18px;max-width:900px;margin:20px auto}input{width:100%;padding:12px;border-radius:10px;border:1px solid #333;background:#111;color:#fff;margin:8px 0}button{padding:10px 16px;border:0;border-radius:10px;font-weight:800;cursor:pointer}.btnAdmin{background:#FFD700;color:#000}.btnRemove{background:#D4101F;color:#fff}.userRow{display:flex;gap:10px;align-items:center;background:#111;border:1px solid #222;border-radius:12px;padding:12px;margin:8px 0;flex-wrap:wrap}.userRow .name{font-weight:900;color:#FFD700}.badge{background:#222;padding:4px 8px;border-radius:999px;font-size:11px}.badge.admin{background:#FFD700;color:#000}.badge.user{background:#333;color:#fff}#loginBox{display:block}#mainBox{display:none}</style></head><body>
+<div class="card"><h1>👑 Admin - YARYA ZAXO PRO - V37</h1><p style="text-align:center;color:#aaa">Password پێویستە - دناڤ کودی دا نیە</p>
+<div id="loginBox"><input type="password" id="pwd" placeholder="🔒 Admin Password..."><button onclick="doLogin()" style="width:100%;padding:12px;background:#FFD700;border:0;border-radius:10px;font-weight:800;cursor:pointer">چوونە ژوور 🔐</button><p id="loginErr" style="color:#ff6b6b;text-align:center"></p><p style="text-align:center;font-size:11px;color:#777">Password ل Render دا دانیە: Settings → Environment → ADMIN_PASSWORD</p></div>
+<div id="mainBox"><input id="search" placeholder="🔍 ل ناڤێ بگەڕە..." oninput="render()"><div id="stats" style="background:#111;padding:12px;border-radius:10px;text-align:center">Loading...</div><div id="list"></div><button onclick="load()" style="width:100%;padding:12px;background:#FFD700;border:0;border-radius:10px;font-weight:800;cursor:pointer;margin-top:12px">🔄 Refresh</button></div>
+<p style="text-align:center;font-size:11px;color:#777;margin-top:12px">V37 FINAL - یاریا رەسەن وەک خۆ - گهورین قەدەغە</p></div>
 <script>
-let users=[];
-async function load(){
-  const r=await fetch('/api/users'); const d=await r.json();
-  users=d.users||d||[];
-  const s=await (await fetch('/api/stats')).json();
-  document.getElementById('stats').innerHTML=`👥 یوزەر: <b>${s.totalUsers||users.length}</b> | 🏆 Winners: ${s.totalWinners||0} | 💰 Firebase: $0 | V36`;
-  render();
-}
-function render(){
-  const q=(document.getElementById('search').value||'').toLowerCase().trim();
-  const list=document.getElementById('list');
-  const filtered=users.filter(u=> !q || (u.username||'').toLowerCase().includes(q) || (u.usernameLower||'').toLowerCase().includes(q) || (u.phoneNumber||'').includes(q));
-  if(filtered.length===0){ list.innerHTML='<div style="text-align:center;color:#aaa;padding:20px">یوزەر نەهاتە دیتن</div>'; return; }
-  list.innerHTML=filtered.map(u=>{
-    const low=(u.usernameLower||u.username||'').toLowerCase();
-    const isAdmin = u.isAdmin===true || u.isAdmin==='true';
-    return `<div class="userRow">
-      <div style="flex:1"><span class="name">${u.username||u.usernameLower}</span> <span class="badge ${isAdmin?'admin':'user'}">${isAdmin?'👑 ADMIN':'👤 USER'}</span><br><small style="color:#aaa">📱 ${u.phoneNumber||u.phone||'-'} | 🏆 Score: ${u.bestScore||0} | ID: ${u.id||low}</small></div>
-      <button class="btnAdmin" onclick="setAdmin('${low}', true)">👑 بکە Admin</button>
-      <button class="btnRemove" onclick="setAdmin('${low}', false)">❌ ژ Admin ببە</button>
-    </div>`;
-  }).join('');
-}
-async function setAdmin(low, val){
-  if(!confirm(val ? `تۆ دڤێی ${low} بکەی ADMIN؟` : `تۆ دڤێی ${low} ژ ADMIN ببەی؟`)) return;
-  const r=await fetch('/api/set-admin', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({usernameLower: low, isAdmin: val})});
-  const d=await r.json();
-  alert(d.message || (d.ok ? 'چێبوو ✅' : 'خەلەتە ❌'));
-  load();
-}
-load();
+let users=[], PWD='';
+async function doLogin(){ PWD=document.getElementById('pwd').value; if(!PWD){ document.getElementById('loginErr').textContent='Password بنڤیسە'; return; } const r=await fetch('/api/users',{headers:{'x-admin-password':PWD}}); if(!r.ok){ document.getElementById('loginErr').textContent='⛔ Password خەلەتە'; return; } document.getElementById('loginBox').style.display='none'; document.getElementById('mainBox').style.display='block'; load(); }
+async function load(){ const r=await fetch('/api/users',{headers:{'x-admin-password':PWD}}); const d=await r.json(); users=d.users||[]; const s=await (await fetch('/api/stats')).json(); document.getElementById('stats').innerHTML=`👥 یوزەر: <b>${s.totalUsers||users.length}</b> | V37`; render(); }
+function render(){ const q=(document.getElementById('search').value||'').toLowerCase().trim(); const list=document.getElementById('list'); const filtered=users.filter(u=> !q || (u.username||'').toLowerCase().includes(q) || (u.usernameLower||'').toLowerCase().includes(q)); if(filtered.length===0){ list.innerHTML='<div style="text-align:center;color:#aaa;padding:20px">یوزەر نەهاتە دیتن</div>'; return; } list.innerHTML=filtered.map(u=>{ const low=(u.usernameLower||u.username||'').toLowerCase(); const isAdmin = u.isAdmin===true; return `<div class="userRow"><div style="flex:1"><span class="name">${u.username||u.usernameLower}</span> <span class="badge ${isAdmin?'admin':'user'}">${isAdmin?'👑 ADMIN':'👤 USER'}</span><br><small style="color:#aaa">📱 ${u.phoneNumber||'-'} | 🏆 Score: ${u.bestScore||0}</small></div><button class="btnAdmin" onclick="setAdmin('${low}', true)">👑 بکە Admin</button><button class="btnRemove" onclick="setAdmin('${low}', false)">❌ ژ Admin ببە</button></div>`; }).join(''); }
+async function setAdmin(low, val){ if(!confirm(val ? `تۆ دڤێی ${low} بکەی ADMIN؟` : `تۆ دڤێی ${low} ژ ADMIN ببەی؟`)) return; const r=await fetch('/api/set-admin', {method:'POST', headers:{'Content-Type':'application/json','x-admin-password':PWD}, body: JSON.stringify({usernameLower: low, isAdmin: val, adminPassword: PWD})}); const d=await r.json(); alert(d.message || (d.ok ? 'چێبوو ✅' : 'خەلەتە ❌')); load(); }
 </script></body></html>

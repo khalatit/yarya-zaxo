@@ -21,6 +21,18 @@ if(!db.typing) db.typing = {};
 if(!db.settings) db.settings = {};
 if(!db.leaderboard) db.leaderboard = {};
 
+
+// --- V37: Admin NOT in code - Password from Environment Variable ONLY ---
+// Set in Render: Settings -> Environment -> ADMIN_PASSWORD = your secret
+// No hardcoded username/password in code - Safe
+function isAdminRequest(req){
+  const pwd = process.env.ADMIN_PASSWORD || '';
+  if(!pwd) return false; // If no password set, admin APIs are CLOSED - safe
+  const hdr = req.headers['x-admin-password'] || '';
+  const bodyPwd = (req.body && req.body.adminPassword) || '';
+  return hdr === pwd || bodyPwd === pwd;
+}
+
 function saveDB(){ try{ fs.writeFileSync(DB_FILE, JSON.stringify(db,null,2)); }catch(e){ console.error('save error', e); } }
 function safeDecode(s){
   if(!s) return s;
@@ -142,7 +154,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
     const collection = getCollection(col);
     let data = collection[id];
     let foundId = id;
-    // V36 FIX: If not found by ID, search by usernameLower/phoneNumber (for users)
+    // V37 FIX: If not found by ID, search by usernameLower/phoneNumber (for users)
     if(!data && col==='users'){
       const foundKey = Object.keys(collection).find(k=>{
         const u = collection[k];
@@ -162,7 +174,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
   }catch(e){ console.error('get doc error', e); res.status(500).json({error:e.message}); }
 });
 
-// POST create - V36 ADMIN PANEL - NO MERGE - SAME NAME FORBIDDEN
+// POST create - V37 FINAL COMPLETE - NO MERGE - SAME NAME FORBIDDEN
 app.post('/api/firestore/:col', (req,res)=>{
   try{
     const col = safeDecode(req.params.col);
@@ -291,8 +303,8 @@ app.post('/api/firestore-query', (req,res)=>{
 });
 
 
-// --- V36 ADMIN: List users ---
-app.get('/api/users', (req,res)=>{
+// --- V37 ADMIN: List users ---
+app.get('/api/users', (req,res)=>{ if(!isAdminRequest(req)) return res.status(401).json({error:'UNAUTHORIZED', message:'Password پێویستە'});
   try{
     const col = getCollection('users');
     const users = Object.entries(col).map(([id,u])=>({id, username: u.username, usernameLower: u.usernameLower, phoneNumber: u.phoneNumber, phone: u.phone, bestScore: u.bestScore||0, isAdmin: u.isAdmin||false, createdAt: u.createdAt}));
@@ -300,8 +312,8 @@ app.get('/api/users', (req,res)=>{
     res.json({users, total: users.length});
   }catch(e){ res.status(500).json({error:e.message}); }
 });
-// --- V36 ADMIN: Set isAdmin ---
-app.post('/api/set-admin', (req,res)=>{
+// --- V37 ADMIN: Set isAdmin ---
+app.post('/api/set-admin', (req,res)=>{ if(!isAdminRequest(req)) return res.status(401).json({error:'UNAUTHORIZED', message:'Password پێویستە'});
   try{
     const {usernameLower, isAdmin} = req.body;
     const low = (usernameLower||'').toString().toLowerCase().trim();
@@ -324,7 +336,7 @@ app.get('/api/leaderboard', (req,res)=>{
 app.get('/api/stats', (req,res)=>{
   const users = getCollection('users');
   const winners = getCollection('winners');
-  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V36 ADMIN PANEL URI' });
+  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V37 FINAL COMPLETE URI' });
 });
 app.post('/api/auth', (req,res)=>{
   const {username, phone, password}=req.body;
@@ -357,6 +369,6 @@ app.get('*', (req,res)=>{
   return res.sendFile(path.join(__dirname,'public','index.html'));
 });
 app.listen(PORT, '0.0.0.0', ()=>{
-  console.log('V36 ADMIN PANEL - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
-  console.log(`V36 ADMIN PANEL - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
+  console.log('V37 FINAL COMPLETE - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
+  console.log(`V37 FINAL COMPLETE - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
 });

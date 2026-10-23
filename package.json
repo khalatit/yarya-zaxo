@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "36.0.0",
-  "description": "YARYA ZAXO PRO V36 ADMIN PANEL - See users and set isAdmin - $0",
+  "version": "37.0.0",
+  "description": "YARYA ZAXO PRO V37 FINAL COMPLETE - Original game as is - No changes - Admin NOT in code - Password in Render env - $0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
