@@ -1843,6 +1843,11 @@ async function checkUsernameExists(usernameLower){
 window.handleAuth=async function(){
   const u=document.getElementById('usernameInput').value.trim(),p=document.getElementById('passwordInput').value.trim(),bio=document.getElementById('bioInput')?.value.trim()||'',phone=document.getElementById('phoneInput')?.value.trim()||'',btn=document.getElementById('mainBtn');
   showError('');
+  // V33: Username validation - block /?%()<> special chars that break URLs
+  if(u && /[\/\?\%\(\)<>@]/.test(u)){
+    showError('⛔ ناڤ نابیت / ? % ( ) < > @ هەبیت - ناڤەکێ پاک هەلبژێرە');
+    return;
+  }
   if(!u||u.length<3){showError('ناڤ کورتە - دڤێت 3 پیت یان پتر بیت');document.getElementById('usernameInput').classList.add('shake');setTimeout(()=>document.getElementById('usernameInput').classList.remove('shake'),400);return;}
   if(!p||p.length<3){showError('وشەی نهێنی کورتە');return;}
   // V32 STRICT - Check username BEFORE register - QeDexeye if taken
@@ -1917,30 +1922,7 @@ window.handleAuth=async function(){
       // ===== REGISTER - STRICT SINGLE ACCOUNT PER DEVICE =====
       // 1. Check device already has account - BLOCK and return to original
       const existingDeviceAccount = await checkDeviceHasAccount(dev);
-      if(existingDeviceAccount){
-        window._pendingOriginalAccount = existingDeviceAccount;
-        const blockText = document.getElementById('singleAccountBlockText');
-        if(blockText){
-          blockText.innerHTML = `
-            ⛔ تە ئێک ئەکاونت هەیە ل سەر ڤی ئامێری<br><br>
-            👤 ناڤێ تە یێ رەسەن: <b style="color:#F7C600">${escapeHtml(existingDeviceAccount.username||existingDeviceAccount.id)}</b><br>
-            📱 موبایل: <b style="color:#00ff88">${escapeHtml(existingDeviceAccount.phoneNumber||'نەدیار')}</b><br><br>
-            🚫 نابیت ئەکاونتەکێ دی چێکەی<br>
-            🔙 دێ زڤرینە سەر یاریا رەسەن یا تە<br><br>
-            <small style="color:rgba(255,255,255,0.5)">هەر ئامێرەکێ تەنها ئێک ئەکاونت</small>
-          `;
-        }
-        document.getElementById('singleAccountBlockModal')?.classList.add('show');
-        showError('⛔ تە ئەکاونتەک هەیە - نابیت ئێکی دی چێکەی - زڤرین بۆ رەسەن');
-        btn.disabled=false;btn.textContent='تۆمارکرن';
-        // Auto return after 3 seconds to original game
-        setTimeout(()=>{
-          if(window._pendingOriginalAccount){
-            closeSingleAccountBlock();
-          }
-        }, 3000);
-        return;
-      }
+      /* V33: REMOVED device block - allow multiple accounts per device */
 
       // 2. DUPLICATE NAME CHECK - strict lowercase
       const ex=await checkUsernameExists(low);
@@ -2816,7 +2798,7 @@ async function tryAutoLogin(){
   try{
     // V28: First check if device has any account in Firestore (strict single account)
     try{
-      const deviceAccount = await checkDeviceHasAccount(dev);
+      const deviceAccount = null; // V33: REMOVED auto-return to original - allow free login
       if(deviceAccount && !savedId){
         // Device has account but no local storage - auto login to original
         console.log('🔒 Device has original account, auto returning:', deviceAccount.username);
