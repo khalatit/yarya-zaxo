@@ -1,92 +1,73 @@
 <!DOCTYPE html>
-<html lang="ku" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>YARYA ZAXO PRO V28 FULL - $0 Firebase - Same Game</title>
-<meta name="theme-color" content="#F7C600">
+<html lang="ckb" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>YARYA ZAXO PRO 👑</title>
 <style>
-*{user-select:none} input,textarea{user-select:text}
-body{margin:0; font-family:system-ui; background:#0f0f0f; color:#fff; direction:rtl;}
-.header{background:linear-gradient(135deg,#F7C600,#FFD700); color:#000; padding:12px; text-align:center; font-weight:900; font-size:18px; position:sticky; top:0; z-index:100;}
-.container{max-width:900px; margin:0 auto; padding:16px;}
-.card{background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:16px; margin:12px 0;}
-.btn{background:#F7C600; color:#000; border:none; padding:12px 20px; border-radius:999px; font-weight:900; cursor:pointer; width:100%; margin:6px 0;}
-.btn:hover{background:#FFD700;}
-.input{width:100%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:#fff; padding:12px; border-radius:12px; margin:6px 0; box-sizing:border-box;}
-.leaderItem{display:flex; align-items:center; gap:10px; padding:10px; background:rgba(255,255,255,0.04); border-radius:12px; margin:6px 0;}
-.rank{width:28px; height:28px; background:#F7C600; color:#000; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px;}
-.badge{background:rgba(0,255,0,0.15); border:1px solid rgba(0,255,0,0.3); color:#8f8; padding:4px 8px; border-radius:999px; font-size:10px;}
-</style>
-</head>
-<body>
-<div class="header">👑 YARYA ZAXO PRO V28 FULL - هەمان یاری - $0 Firebase</div>
-<div class="container">
-<div class="card" id="authCard">
-<h3>🔐 چوونەژوورەوە - بێ Firebase - هەمان یاری</h3>
-<input id="username" class="input" placeholder="ناڤ - username">
-<input id="password" class="input" type="password" placeholder="پاسۆرد - password">
-<input id="phone" class="input" placeholder="تەلەفۆن - optional">
-<button class="btn" onclick="register()">✅ تۆماربوون - $0 Firebase</button>
-<button class="btn" style="background:rgba(255,255,255,0.15); color:#fff;" onclick="login()">🔑 چوونەژوورەوە</button>
-<div id="authMsg" style="margin-top:8px; font-size:12px;"></div>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0b0b0f;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto;min-height:100vh}
+.top{background:linear-gradient(180deg,#1a1a1a,#111);padding:14px 16px;text-align:center;border-bottom:3px solid #FFD700;position:sticky;top:0;z-index:10}
+.top h1{font-size:28px;letter-spacing:1px;color:#FFD700;text-shadow:0 2px 10px rgba(255,215,0,.4)}
+.top p{font-size:13px;color:#ccc;margin-top:4px}
+.wrap{max-width:720px;margin:0 auto;padding:18px 14px 40px}
+.card{background:#17171c;border:1px solid #2a2a2e;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 8px 30px rgba(0,0,0,.45)}
+.card h2{font-size:18px;margin-bottom:14px;text-align:center;color:#FFD700}
+label{font-size:13px;color:#aaa}
+input{width:100%;padding:13px 14px;margin:6px 0 12px;border-radius:10px;border:1px solid #333;background:#222;color:#fff;font-size:15px;outline:none}
+input:focus{border-color:#FFD700}
+.btn{width:100%;padding:14px;border:0;border-radius:12px;font-size:16px;font-weight:800;cursor:pointer}
+.btn-gold{background:#FFD700;color:#111}
+.btn-dark{background:#222;color:#fff;border:1px solid #333;margin-top:10px}
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+.tab{flex:1;padding:11px 6px;border-radius:10px;border:1px solid #333;background:#222;color:#fff;cursor:pointer;font-weight:700;font-size:14px}
+.tab.active{background:#FFD700;color:#111;border-color:#FFD700}
+.prize{display:flex;gap:10px;margin-bottom:12px}
+.prize div{flex:1;background:#222;border:1px solid #333;border-radius:12px;padding:12px;text-align:center}
+.prize b{font-size:18px;color:#FFD700;display:block}
+.prize span{font-size:12px;color:#aaa}
+.row{display:flex;justify-content:space-between;align-items:center;background:#222;border:1px solid #2c2c2c;padding:11px 12px;border-radius:10px;margin-bottom:8px}
+.rank{width:30px;height:30px;border-radius:50%;background:#FFD700;color:#111;display:flex;align-items:center;justify-content:center;font-weight:800}
+.stats{text-align:center;color:#aaa;font-size:13px;line-height:1.8}
+.stats b{color:#fff}
+.footer{text-align:center;color:#666;font-size:12px;margin-top:14px}
+a{color:#FFD700}
+</style></head><body>
+<div class="top"><h1>👑 YARYA ZAXO PRO</h1><p>یاریا زاخۆ - سەروکترین یاریا بادینان</p></div>
+<div class="wrap">
+<div class="card"><h2>🔐 چوونەژوورەوە - هەمان یاری</h2>
+<label>ناڤ</label><input id="u" placeholder="khalat2" value="khalat2">
+<label>ژمارا مۆبایلێ / پاسۆرد</label><input id="p" placeholder="07501234567" value="07501234567" type="password">
+<button class="btn btn-gold" onclick="login()">✅ تۆماربوون - چوونەژوورەوە</button>
+<button class="btn btn-dark" onclick="location.href='/baz/'">🎮 یاریا BAZ - بازێ بادینان</button>
+<p id="msg" style="text-align:center;margin-top:10px;color:#FFD700"></p>
 </div>
-<div class="card" id="gameCard" style="display:none;">
-<h3>🎮 <span id="currentUserDisplay"></span> <span class="badge">V28 FULL - هەمان یاری - $0</span></h3>
-<button class="btn" onclick="submitScore(100)">🎯 نمرە 100</button>
-<button class="btn" style="background:rgba(255,255,255,0.15); color:#fff;" onclick="submitScore(Math.floor(Math.random()*1000))">🎲 Random</button>
-<div id="myBest" style="text-align:center; margin:10px 0; color:#F7C600;"></div>
-</div>
-<div class="card">
-<h3>🏆 رێزبەندی - Cache 10s - $0 Firebase - هەمان یاری</h3>
-<div style="display:flex; gap:6px; margin-bottom:10px;">
-<button class="btn" style="flex:1; padding:8px; font-size:12px;" onclick="loadLeaderboard('free')">🆓 $100</button>
-<button class="btn" style="flex:1; padding:8px; font-size:12px; background:rgba(255,255,255,0.1); color:#fff;" onclick="loadLeaderboard('mobile')">📱 5000</button>
-<button class="btn" style="flex:1; padding:8px; font-size:12px; background:rgba(255,255,255,0.1); color:#fff;" onclick="loadLeaderboard('car')">🚗 10000</button>
-</div>
-<div id="leaderboard">⏳...</div>
-</div>
-<div class="card">
-<h3>📊 Stats - $0 Firebase</h3>
-<div id="stats">⏳...</div>
-<button class="btn" style="background:rgba(255,255,255,0.1); color:#fff; font-size:12px;" onclick="loadStats()">Refresh</button>
-<a href="/admin.html" style="display:block; text-align:center; margin-top:8px; color:#F7C600;">→ Admin</a>
-<a href="/baz/" style="display:block; text-align:center; margin-top:4px; color:#F7C600;">→ BAZ</a>
-</div>
-<div class="card" style="background:linear-gradient(135deg, rgba(0,255,0,0.1), rgba(0,255,0,0.05)); border-color:rgba(0,255,0,0.3);">
-<h3 style="color:#8f8;">✅ هەمان یاری - V28 FULL - $0 Firebase</h3>
-<div style="font-size:12px; line-height:1.8;">
-• هەمان یاری V27 - هەمان دیزاین - هەمان 3 رێزبەندی<br>
-• Firebase بەری: $15-45/heyv - نها: <b>$0 - 100% کێم!</b><br>
-• Hosting: Render $7 - نها $7 تەنیا!<br>
-• بۆ 100k و 50k ئونلاین: دبیت! $85 - با پارە بچیت!<br>
-</div>
-</div>
+<div class="card"><h2>🏆 رێزبەندی - هەمان یاری</h2>
+<div class="tabs"><button class="tab active" id="t100" onclick="loadLb('100',this)">💵 $100</button><button class="tab" onclick="loadLb('5000',this)">📱 5000</button><button class="tab" onclick="loadLb('10000',this)">🚗 10000</button></div>
+<div class="prize"><div><b>💵 $100</b><span>یەکم - خەلات</span></div><div><b>📱 iPhone</b><span>5000 - خەلات</span></div><div><b>🚗 Car</b><span>10000 - خەلات</span></div></div>
+<div id="lb"></div></div>
+<div class="card"><h2>📊 Stats</h2><div class="stats" id="stats">چاوەڕوان بە...</div></div>
+<div class="footer">YARYA ZAXO + BAZ • <a href="/admin.html">Admin</a> • V29 OLD STYLE - FULL $0</div>
 </div>
 <script>
-let currentUser=null;
-async function register(){
-  const username=document.getElementById('username').value.trim();
-  const password=document.getElementById('password').value.trim();
-  const phoneNumber=document.getElementById('phone').value.trim();
-  if(!username||!password){document.getElementById('authMsg').innerText='❌ ناڤ و پاسۆرد'; return;}
-  const res=await fetch('/api/register',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username,password,phoneNumber,province:'Duhok'})});
-  const data=await res.json(); if(!res.ok){document.getElementById('authMsg').innerText='❌ '+data.error; return;}
-  currentUser=data.user; document.getElementById('authMsg').innerText='✅ تۆماربوو - $0!'; showGame();
-}
+let curUser=null;
 async function login(){
-  const username=document.getElementById('username').value.trim();
-  const password=document.getElementById('password').value.trim();
-  if(!username||!password){document.getElementById('authMsg').innerText='❌ ناڤ و پاسۆرد'; return;}
-  const res=await fetch('/api/login',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username,password})});
-  const data=await res.json(); if(!res.ok){document.getElementById('authMsg').innerText='❌ '+data.error; return;}
-  currentUser=data.user; document.getElementById('authMsg').innerText='✅ چوویە ژوور - $0!'; showGame();
+  const username=document.getElementById('u').value.trim();
+  const phone=document.getElementById('p').value.trim();
+  if(!username) return alert('ناڤ بنڤیسە');
+  const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,phone,password:phone})});
+  const d=await r.json();
+  if(d.success){ curUser=d.user; document.getElementById('msg').textContent='بخێرهاتی '+d.user.username+' - Score: '+(d.user.bestScore||0); loadLb('100'); loadStats(); }
+  else alert('خەلەتی');
 }
-function showGame(){document.getElementById('authCard').style.display='none'; document.getElementById('gameCard').style.display='block'; document.getElementById('currentUserDisplay').innerText=currentUser.username; document.getElementById('myBest').innerText='بهترین: '+(currentUser.bestScore||0); loadLeaderboard('free'); loadStats();}
-async function submitScore(score){ if(!currentUser) return; const res=await fetch('/api/score',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({usernameLower:currentUser.usernameLower, score, mode:'free'})}); const data=await res.json(); if(data.ok){currentUser.bestScore=data.bestScore; document.getElementById('myBest').innerText='بهترین: '+data.bestScore+' - $0!'; loadLeaderboard('free');}}
-async function loadLeaderboard(mode='free'){ const res=await fetch('/api/leaderboard?mode='+mode); const data=await res.json(); const div=document.getElementById('leaderboard'); if(!data.length){div.innerHTML='<div style="text-align:center; padding:20px; color:rgba(255,255,255,0.5);">هێشتا کەس نیە</div>'; return;} div.innerHTML=data.map((u,i)=>`<div class="leaderItem"><div class="rank">${i+1}</div><div style="flex:1;"><div style="font-weight:800; font-size:13px;">${u.username}</div></div><div style="font-weight:900; color:#F7C600;">${u.bestScore||0}</div></div>`).join('');}
-async function loadStats(){ const res=await fetch('/api/stats'); const s=await res.json(); document.getElementById('stats').innerHTML=`👥 ${s.totalUsers} بکارهێنەر | 🟢 ${s.onlineEstimate} ئونلاین | 💰 Firebase $${s.firebaseCost} - 100% کێم!`; }
-loadLeaderboard('free'); loadStats();
-</script>
-</body>
-</html>
+async function loadLb(cat,el){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const r=await fetch('/api/leaderboard?category='+cat); const d=await r.json();
+  const lb=document.getElementById('lb');
+  if(!d.leaderboard||d.leaderboard.length===0){ lb.innerHTML='<p style="text-align:center;color:#aaa;padding:14px">هێشتا کەس نییە - تۆ یەکم بە!</p>'; return; }
+  lb.innerHTML=d.leaderboard.map(u=>`<div class="row"><div style="display:flex;gap:10px;align-items:center"><span class="rank">${u.rank}</span><b>${u.username}</b></div><b style="color:#FFD700">${u.score}</b></div>`).join('');
+}
+async function loadStats(){
+  const r=await fetch('/api/stats'); const d=await r.json();
+  document.getElementById('stats').innerHTML=`👥 <b>${d.totalUsers}</b> بکارهێنەر | 🟢 <b>${d.onlineEstimate}</b> ئونلاین | 💰 Firebase $0 - 100% کێم!`;
+}
+loadLb('100'); loadStats();
+</script></body></html>

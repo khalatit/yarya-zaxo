@@ -1,13 +1,15 @@
 {
-  "name": "yarya-zaxo-full-no-firebase",
-  "version": "28.0.0",
-  "description": "YARYA ZAXO PRO V28 FULL - No Firebase - $0 cost - Render $7",
+  "name": "yarya-zaxo",
+  "version": "29.0.0",
+  "description": "YARYA ZAXO PRO V29 OLD STYLE FULL - NO FIREBASE - $0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5"
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
