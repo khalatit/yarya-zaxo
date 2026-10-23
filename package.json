@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "45.0.0",
-  "description": "YARYA ZAXO PRO V45 ALL 3 RANKINGS - Winner name fix + Timer resets for free/mobile/car - $0",
+  "version": "46.0.0",
+  "description": "YARYA ZAXO PRO V46 WINNER NAME - Fix winner name undefined + Timer auto reset for all 3 - $0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

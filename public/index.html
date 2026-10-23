@@ -3899,58 +3899,59 @@ async function centralizedPickWinnerAsLeader(type, cycleId){
     let winnerId = 'none';
     let winnerPhoto = '';
     
+    // V46 WINNER NAME FIX - Direct API, robust, includes admin if no other player (for test)
     try{
-      // Determine field to order by
       let orderField = 'bestScoreFree';
       if(type==='mobile') orderField = 'bestScoreMobile';
       else if(type==='car') orderField = 'bestScoreCar';
-      
-      // Query top 10 to exclude admin
-      const topQuery = query(collection(db,'users'), orderBy(orderField, 'desc'), limit(10));
-      const snap = await getDocs(topQuery);
+      let list = [];
+      // 1. Try direct leaderboard API (most reliable)
+      try{
+        const r = await fetch('/api/leaderboard/'+type+'?t='+Date.now(), {cache:'no-store'});
+        if(r.ok) list = await r.json();
+      }catch(e){}
+      // 2. Fallback to local cache
+      if(!list || list.length===0){
+        if(typeof leaderboardCache !== 'undefined' && leaderboardCache[type] && leaderboardCache[type].length>0) list = leaderboardCache[type];
+        else if(window.leaderboardCache && window.leaderboardCache[type]) list = window.leaderboardCache[type];
+      }
+      // 3. Fallback to Firestore query
+      if(!list || list.length===0){
+        try{
+          const topQuery = query(collection(db,'users'), orderBy(orderField, 'desc'), limit(10));
+          const snap = await getDocs(topQuery);
+          snap.forEach(d=>{ const dd=d.data(); list.push({id:d.id, ...dd}); });
+        }catch(e){}
+      }
+      // Pick winner: Prefer non-admin, but if only admin exists (test like Khalat), pick admin too
       let found = null;
-      snap.forEach(docSnap=>{
-        if(found) return;
-        const data = docSnap.data();
-        const isAdmin = data.isAdmin===true || data.role==='admin' || (data.usernameLower||'').toLowerCase()==='admin' || (data.username||'').toLowerCase()==='admin';
-        if(isAdmin) return;
-        // Found eligible
-        found = {id: docSnap.id, ...data};
-      });
-      
+      if(list && list.length>0){
+        // Find first with score > 0, prefer non-admin
+        for(const u of list){
+          const sc = u[orderField]||u.bestScore||u.score||0;
+          const isAdm = u.isAdmin===true || (u.usernameLower||'').toLowerCase()==='admin' || (u.username||'').toLowerCase()==='admin';
+          if(sc>0 && !isAdm){ found = u; break; }
+        }
+        if(!found){
+          for(const u of list){
+            const sc = u[orderField]||u.bestScore||u.score||0;
+            if(sc>0){ found = u; break; }
+          }
+        }
+        if(!found && list.length>0) found = list[0];
+      }
       if(found){
-        winnerName = found.username||found.displayName||found.name||found.id||'کەس نەبوو';
-        winnerScore = found[orderField]||found.bestScore||0;
-        winnerPhone = found.phoneNumber||'';
+        winnerName = found.username || found.displayName || found.name || found.id || 'کەس نەبوو';
+        // If username is empty but displayName has value, use it
+        if(!winnerName || winnerName==='undefined') winnerName = found.displayName || found.name || found.username || 'کەس نەبوو';
+        winnerScore = found[orderField]||found.bestScore||found.score||0;
+        winnerPhone = found.phoneNumber||found.phone||'';
         winnerId = found.id||found.usernameLower||'none';
         winnerPhoto = found.photoBase64||'';
-        console.log('🏆 CENTRAL WINNER FOUND:', winnerName, winnerScore, 'from Firebase');
-      } else {
-        // No eligible, pick first anyway
-        if(!snap.empty){
-          snap.forEach(d=>{
-            if(winnerName==='کەس نەبوو'){
-              const data=d.data();
-              winnerName = data.username||'کەس نەبوو';
-              winnerScore = data[orderField]||0;
-              winnerPhone = data.phoneNumber||'';
-              winnerId = d.id;
-            }
-          });
-        }
+        console.log('🏆 V46 WINNER FOUND:', winnerName, winnerScore, 'type', type);
       }
     }catch(e){
-      console.log('central query error', e);
-      // Fallback to local cache if Firebase query fails
-      if(typeof leaderboardCache !== 'undefined' && leaderboardCache[type] && leaderboardCache[type].length>0){
-        const list = leaderboardCache[type].filter(u=> !u.isAdmin);
-        const finalList = list.length>0 ? list : leaderboardCache[type];
-        const w = finalList[0];
-        winnerName = w.displayName||w.username||w.name||'کەس نەبوو';
-        winnerScore = w.bestScore||w.score||0;
-        winnerPhone = w.phoneNumber||'';
-        winnerId = w.id||w.docId||'none';
-      }
+      console.log('V46 winner query error', e);
     }
     
     const prize = type==='free'?proConfig.freePrize: type==='mobile'?proConfig.mobilePrize:proConfig.carPrize;
@@ -4034,6 +4035,8 @@ async function centralizedPickWinnerAsLeader(type, cycleId){
 }
 
 function showCentralWinner(type, winnerName, winnerScore, prize){
+  if(!winnerName || winnerName==='undefined') winnerName = 'کەس نەبوو';
+  if(winnerScore===undefined || winnerScore===null) winnerScore = 0;
   try{
     const icon = type==='free'?'💵': type==='mobile'?'📱':'🚗';
     proShowWinnerModal(winnerName, winnerScore, prize, icon, type);
@@ -4251,6 +4254,8 @@ async function proHandleWinner(type){
 async function autoResetRanking(type){
   try{
     console.log('Auto reset '+type+' to zero...');
+    // V46: Try server reset first (reliable, no batch bug)
+    try{ const rr = await fetch('/api/reset-ranking/'+type, {method:'POST'}); if(rr.ok){ const rd = await rr.json(); if(rd.newEnd){ const ne = new Date(rd.newEnd); if(type==='free') proConfig.freeEndAt=ne; else if(type==='mobile') proConfig.mobileEndAt=ne; else proConfig.carEndAt=ne; console.log('V46 server reset done', type, ne); return; } } }catch(e){}
     const usersSnap = await getDocs(collection(db,'users'));
     if(!usersSnap.empty){
       let currentBatch = writeBatch(db);
@@ -4297,7 +4302,7 @@ function proShowWinnerModal(name, score, prize, icon, type){
   modal.classList.remove('background-mode');
   modal.classList.remove('isBackground');
   
-  document.getElementById('winnerNamePRO').textContent = name || 'کەس نەبوو';
+  document.getElementById('winnerNamePRO').textContent = (name && name!=='undefined') ? name : 'کەس نەبوو';
   document.getElementById('winnerScorePRO').textContent = (score||0);
   document.getElementById('winnerPrizePRO').textContent = `🎁 ${prize} - ${type==='free'?'بەلاش': type==='mobile'?'ئایفون':'ترومبێل'}`;
   const iconEl = document.getElementById('winnerIconPRO');
@@ -4419,6 +4424,8 @@ async function proResetRanking(type){
     // FIX: Don't reset from client - only admin should reset to avoid permission issues
     // Client just shows winner, admin dashboard handles actual reset + locking
     // If you want client to also reset, fixed SDK bug: use existing writeBatch, not second import
+    // V46: Try server reset first (reliable, no batch bug)
+    try{ const rr = await fetch('/api/reset-ranking/'+type, {method:'POST'}); if(rr.ok){ const rd = await rr.json(); if(rd.newEnd){ const ne = new Date(rd.newEnd); if(type==='free') proConfig.freeEndAt=ne; else if(type==='mobile') proConfig.mobileEndAt=ne; else proConfig.carEndAt=ne; console.log('V46 server reset done', type, ne); return; } } }catch(e){}
     const usersSnap = await getDocs(collection(db,'users'));
     let currentBatch = writeBatch(db);
     let batchCount = 0;
@@ -7102,7 +7109,7 @@ async function updateWinnerBottomBar(){
           const top = cache[0];
           if(top && (top.score>0 || top.bestScore>0)){
             topWinner = {
-              displayName: top.name || top.displayName || top.username || '—',
+              displayName: top.name || top.displayName || top.username || top.winnerName || '—',
               bestScore: top.score || top.bestScore || 0,
               score: top.score || top.bestScore || 0,
               prize: activeMode==='free'?'100$':activeMode==='mobile'?'📱 ئایفون':'🚗 ترومبێل',
