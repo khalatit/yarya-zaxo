@@ -142,7 +142,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
     const collection = getCollection(col);
     let data = collection[id];
     let foundId = id;
-    // V35 FIX: If not found by ID, search by usernameLower/phoneNumber (for users)
+    // V36 FIX: If not found by ID, search by usernameLower/phoneNumber (for users)
     if(!data && col==='users'){
       const foundKey = Object.keys(collection).find(k=>{
         const u = collection[k];
@@ -162,7 +162,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
   }catch(e){ console.error('get doc error', e); res.status(500).json({error:e.message}); }
 });
 
-// POST create - V35 SYNTAX FIXED - NO MERGE - SAME NAME FORBIDDEN
+// POST create - V36 ADMIN PANEL - NO MERGE - SAME NAME FORBIDDEN
 app.post('/api/firestore/:col', (req,res)=>{
   try{
     const col = safeDecode(req.params.col);
@@ -290,6 +290,32 @@ app.post('/api/firestore-query', (req,res)=>{
   }catch(e){ console.error('query error', e); res.status(500).json({error:e.message}); }
 });
 
+
+// --- V36 ADMIN: List users ---
+app.get('/api/users', (req,res)=>{
+  try{
+    const col = getCollection('users');
+    const users = Object.entries(col).map(([id,u])=>({id, username: u.username, usernameLower: u.usernameLower, phoneNumber: u.phoneNumber, phone: u.phone, bestScore: u.bestScore||0, isAdmin: u.isAdmin||false, createdAt: u.createdAt}));
+    users.sort((a,b)=>(b.bestScore||0)-(a.bestScore||0));
+    res.json({users, total: users.length});
+  }catch(e){ res.status(500).json({error:e.message}); }
+});
+// --- V36 ADMIN: Set isAdmin ---
+app.post('/api/set-admin', (req,res)=>{
+  try{
+    const {usernameLower, isAdmin} = req.body;
+    const low = (usernameLower||'').toString().toLowerCase().trim();
+    if(!low) return res.status(400).json({error:'usernameLower required'});
+    const col = getCollection('users');
+    let foundId = Object.keys(col).find(k=> (col[k].usernameLower||col[k].username||'').toString().toLowerCase().trim()===low);
+    if(!foundId) return res.status(404).json({error:'user not found', message:'یوزەر نەهاتە دیتن'});
+    col[foundId].isAdmin = isAdmin===true;
+    saveDB();
+    console.log(`[ADMIN] ${low} isAdmin = ${col[foundId].isAdmin}`);
+    res.json({ok:true, message: isAdmin ? `✅ ${col[foundId].username} بوو ADMIN 👑` : `❌ ${col[foundId].username} ژ ADMIN هاتە برن`, user: col[foundId]});
+  }catch(e){ res.status(500).json({error:e.message}); }
+});
+
 app.get('/api/leaderboard', (req,res)=>{
   const col = getCollection('users');
   const arr = Object.values(col).sort((a,b)=>(b.bestScore||0)-(a.bestScore||0)).slice(0,100);
@@ -298,7 +324,7 @@ app.get('/api/leaderboard', (req,res)=>{
 app.get('/api/stats', (req,res)=>{
   const users = getCollection('users');
   const winners = getCollection('winners');
-  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V35 SYNTAX FIXED URI' });
+  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V36 ADMIN PANEL URI' });
 });
 app.post('/api/auth', (req,res)=>{
   const {username, phone, password}=req.body;
@@ -331,6 +357,6 @@ app.get('*', (req,res)=>{
   return res.sendFile(path.join(__dirname,'public','index.html'));
 });
 app.listen(PORT, '0.0.0.0', ()=>{
-  console.log('V35 SYNTAX FIXED - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
-  console.log(`V35 SYNTAX FIXED - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
+  console.log('V36 ADMIN PANEL - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
+  console.log(`V36 ADMIN PANEL - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
 });
