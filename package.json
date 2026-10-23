@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "41.0.0",
-  "description": "YARYA ZAXO PRO V41 FIX DUPLICATE - Fix initializeApp already declared - Original dashboard works - $0",
+  "version": "42.0.0",
+  "description": "YARYA ZAXO PRO V42 TIMER SYNC - Admin timer changes for players - 0 -> leaderboard resets - Fix _collectionId",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

@@ -898,9 +898,9 @@ async function resetRanking(type){
     let batch = writeBatch(db);
     let count=0;
     snap.forEach(d=>{
-      if(type==='free') batch.update(d.ref, {bestScoreFree:0, bestScore:0});
-      else if(type==='mobile') batch.update(d.ref, {bestScoreMobile:0, unlockedMobile:false, mobileUnlockedAt: null});
-      else batch.update(d.ref, {bestScoreCar:0, unlockedCar:false, carUnlockedAt: null});
+      if(type==='free') batch.update(d.ref || doc(db,'users', d.id), {bestScoreFree:0, bestScore:0});
+      else if(type==='mobile') batch.update(d.ref || doc(db,'users', d.id), {bestScoreMobile:0, unlockedMobile:false, mobileUnlockedAt: null});
+      else batch.update(d.ref || doc(db,'users', d.id), {bestScoreCar:0, unlockedCar:false, carUnlockedAt: null});
       count++;
       if(count>=400){ batch.commit(); batch = writeBatch(db); count=0; }
     });

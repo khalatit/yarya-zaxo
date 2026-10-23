@@ -48,10 +48,12 @@ export function query(colRef, ...constraints){
 }
 export function serverTimestamp(){ return new Date().toISOString(); }
 
-function makeDocSnapshot(id, fields){
+function makeDocSnapshot(id, fields, colId){
   const plain = toPlain(fields||{});
+  const ref = colId ? { _collectionId: colId, _docId: id, id: id, path: colId+'/'+id } : null;
   return {
     id,
+    ref,
     exists: ()=> true,
     data: ()=> plain,
     get: (field)=> plain[field]
@@ -77,7 +79,7 @@ export async function getDoc(docRef){
   try{
     const data = await fetchFirestore(`/${docRef._collectionId}/${encodeURIComponent(docRef._docId)}`);
     if(!data || !data.fields) return { exists: ()=> false, data: ()=> null, id: docRef._docId };
-    return makeDocSnapshot(docRef._docId, data.fields);
+    return makeDocSnapshot(docRef._docId, data.fields, docRef._collectionId);
   }catch(e){
     return { exists: ()=> false, data: ()=> null, id: docRef._docId };
   }
@@ -98,7 +100,7 @@ export async function getDocs(q){
     const data = await fetchFirestore(`/${colId}?pageSize=${limitN||50}`);
     const docs = (data.documents||[]).map(d=>{
       const id = d.name.split('/').pop();
-      return makeDocSnapshot(id, d.fields);
+      return makeDocSnapshot(id, d.fields, colId);
     });
     return makeQuerySnapshot(docs);
   }
@@ -121,7 +123,7 @@ export async function getDocs(q){
   const docs = (Array.isArray(arr)?arr:[]).map(item=>{
     const docData = item.document || item;
     const id = (docData.name||'').split('/').pop();
-    return makeDocSnapshot(id, docData.fields);
+    return makeDocSnapshot(id, docData.fields, colId);
   });
   return makeQuerySnapshot(docs);
 }
