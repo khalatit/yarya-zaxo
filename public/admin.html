@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>YARYA ZAXO - Admin</title>
+<title>👑 ئەدمین داشبورد - YARYA ZAXO PRO - V12 ULTIMATE</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -1116,8 +1116,6 @@ function renderPlayers(players){
         <div style="display:flex;flex-direction:column;gap:4px">
           <button onclick="resetPlayer('${u.id}','free')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:#fff;font-size:9px;cursor:pointer;font-weight:700">سفر بەلاش</button>
           ${isBlocked?`<button onclick="unblockPlayer('${u.id}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(0,255,136,0.3);background:rgba(0,255,136,0.15);color:#00ff99;font-size:9px;cursor:pointer;font-weight:800">🔓 ئازاد</button>`:`<button onclick="blockPlayerDevice('${u.id}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(212,16,31,0.3);background:rgba(212,16,31,0.15);color:#ff8a8a;font-size:9px;cursor:pointer;font-weight:800">⛔ بلوک جیهاز</button>`}
-          <button onclick="v53DeletePlayer('${u.id}','${escapeHtml(u.username||u.displayName||'').replace(/'/g, "\\'")}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(239,68,68,0.4);background:#ef4444;color:#fff;font-size:9px;cursor:pointer;font-weight:800">🗑️ ژێبە</button>
-          <button onclick="v53EditPlayer('${u.id}','${escapeHtml(u.username||u.displayName||'').replace(/'/g, "\\'")}','${escapeHtml((u.bio||'').replace(/'/g, "\\'"))}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(59,130,246,0.4);background:#3b82f6;color:#fff;font-size:9px;cursor:pointer;font-weight:800">✏️ گهورە</button>
         </div>
       </td>
     `;
@@ -1880,7 +1878,5 @@ window.loadWinners = async function(){
 init();
 
 </script>
-
 </body>
-
 </html>

@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 10000;
-const DB_FILE = process.env.DB_PATH || (fs.existsSync('/data') ? path.join('/data', 'db.json') : path.join(__dirname, 'db.json'));
+const DB_FILE = path.join(__dirname, 'db.json');
 let db = {};
 try { if(fs.existsSync(DB_FILE)){ db = JSON.parse(fs.readFileSync(DB_FILE,'utf8')); } } catch(e){ console.log('DB load error', e); }
 if(!db.users) db.users = {};
@@ -22,7 +22,7 @@ if(!db.settings) db.settings = {};
 if(!db.leaderboard) db.leaderboard = {};
 
 
-// --- V53: Admin NOT in code - Password from Environment Variable ONLY ---
+// --- V49: Admin NOT in code - Password from Environment Variable ONLY ---
 // Set in Render: Settings -> Environment -> ADMIN_PASSWORD = your secret
 // No hardcoded username/password in code - Safe
 function isAdminRequest(req){
@@ -111,56 +111,7 @@ function matchesFilter(docData, filter){
   return true;
 }
 
-
-// V53 ADMIN EDIT - Rate Limit + Cheat Check + Admin Protection
-const rateMap = new Map();
-function rateLimit(req,res,next){
-  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
-  const now = Date.now();
-  const key = ip + ':' + (req.path||'');
-  if(!rateMap.has(key)) rateMap.set(key, []);
-  const arr = rateMap.get(key).filter(t=> now - t < 60000);
-  arr.push(now);
-  rateMap.set(key, arr);
-  if(arr.length > 100){
-    return res.status(429).json({error:'RATE_LIMIT', message:'زێدە Request - 5 خولەک چاڤەرێ بکە'});
-  }
-  next();
-}
-// Blocked users map
-const blockedUsers = new Set();
-function checkCheatScore(req,res,next){
-  // Only for user score updates
-  if(req.method==='PATCH' && req.originalUrl.includes('/api/firestore/users')){
-    try{
-      const fields = req.body.fields || {};
-      const plain = toPlain(fields);
-  // V53: ID and code cannot be changed - remove them if trying to change
-  delete plain.id; delete plain.code; delete plain.userId;
-  // V53 duplicate name check on PATCH
-  try{ const dupId = checkDuplicateName(req.params.collection, plain, req.params.id); if(dupId){ return res.status(409).json({error:'DUPLICATE_NAME', message:'ئەڤ ناڤە هەیە - ناڤێ دی بکە'}); } }catch(e){}
-      const newScore = plain.bestScore || plain.bestScoreFree || plain.bestScoreMobile || plain.bestScoreCar || 0;
-      // If score jumps > 1000 in one request, it's cheat - reject
-      if(newScore > 10000){
-        return res.status(403).json({error:'CHEAT', message:'سکۆر گومان - Cheat'});
-      }
-    }catch(e){}
-  }
-  next();
-}
-// rateLimit after json - will be added after express.json
-// V53: Admin API already protected via isAdminRequest - ensure /api/users needs password
-// Also add unblock endpoint
-app.post('/api/unblock/:id', (req,res)=>{
-  if(!isAdminRequest(req)) return res.status(401).json({error:'UNAUTHORIZED'});
-  const id = req.params.id;
-  blockedUsers.delete(id);
-  res.json({ok:true, unblocked:id});
-});
-
 app.use(express.json({limit:'10mb'}));
-app.use(rateLimit);
-app.use(checkCheatScore);
 app.use(express.static(path.join(__dirname,'public')));
 
 // Helper to extract doc ID from original URL safely (handles / ? % chars)
@@ -203,7 +154,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
     const collection = getCollection(col);
     let data = collection[id];
     let foundId = id;
-    // V53 FIX: If not found by ID, search by usernameLower/phoneNumber (for users)
+    // V49 FIX: If not found by ID, search by usernameLower/phoneNumber (for users)
     if(!data && col==='users'){
       const foundKey = Object.keys(collection).find(k=>{
         const u = collection[k];
@@ -217,7 +168,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
       if(foundKey){
         return res.json(docToFirestore(col,foundKey,collection[foundKey]));
       }
-      // V53: For settings docs, return empty 200 instead of 404 - avoids console spam
+      // V49: For settings docs, return empty 200 instead of 404 - avoids console spam
       if(col==='settings' || col==='winners'){
         return res.json({name: `projects/yarya-zaxo/databases/(default)/documents/${col}/${encodeURIComponent(id)}`, fields: {}});
       }
@@ -227,7 +178,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
   }catch(e){ console.error('get doc error', e); res.status(500).json({error:e.message}); }
 });
 
-// POST create - V53 ADMIN EDIT - NO MERGE - SAME NAME FORBIDDEN
+// POST create - V49 ICON FIX - NO MERGE - SAME NAME FORBIDDEN
 app.post('/api/firestore/:col', (req,res)=>{
   try{
     const col = safeDecode(req.params.col);
@@ -278,7 +229,7 @@ app.get('/api/check-username/:low', (req,res)=>{
 // --- V32: PATCH strict - do not allow changing username to taken one ---
 // GET leaderboard - ensure each doc is separate, no merging
 
-// V53 ADMIN EDIT - Direct config endpoint - NO cache - for ALL players
+// V49 ICON FIX - Direct config endpoint - NO cache - for ALL players
 app.get('/api/config', (req,res)=>{
   try{
     const cfg = (db.settings && db.settings.config) || {};
@@ -292,7 +243,7 @@ app.get('/api/config-version', (req,res)=>{
 });
 
 
-// V53 ADMIN EDIT - Force reset ranking + new timer - server side (no batch bug)
+// V49 ICON FIX - Force reset ranking + new timer - server side (no batch bug)
 app.post('/api/reset-ranking/:type', (req,res)=>{
   try{
     const type = req.params.type;
@@ -331,7 +282,7 @@ app.get('/api/leaderboard/:type', (req,res)=>{
 });
 
 
-// V53 ADMIN EDIT - Pick winner = Highest score among ALL users, for ALL rankings
+// V49 ICON FIX - Pick winner = Highest score among ALL users, for ALL rankings
 app.post('/api/pick-winner/:type', (req,res)=>{
   try{
     const type = req.params.type;
@@ -468,7 +419,7 @@ app.post('/api/firestore-query', (req,res)=>{
 });
 
 
-// --- V53 ADMIN: List users ---
+// --- V49 ADMIN: List users ---
 app.get('/api/users', (req,res)=>{ if(!isAdminRequest(req)) return res.status(401).json({error:'UNAUTHORIZED', message:'Password پێویستە'});
   try{
     const col = getCollection('users');
@@ -477,7 +428,7 @@ app.get('/api/users', (req,res)=>{ if(!isAdminRequest(req)) return res.status(40
     res.json({users, total: users.length});
   }catch(e){ res.status(500).json({error:e.message}); }
 });
-// --- V53 ADMIN: Set isAdmin ---
+// --- V49 ADMIN: Set isAdmin ---
 app.post('/api/set-admin', (req,res)=>{ if(!isAdminRequest(req)) return res.status(401).json({error:'UNAUTHORIZED', message:'Password پێویستە'});
   try{
     const {usernameLower, isAdmin} = req.body;
@@ -501,7 +452,7 @@ app.get('/api/leaderboard', (req,res)=>{
 app.get('/api/stats', (req,res)=>{
   const users = getCollection('users');
   const winners = getCollection('winners');
-  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V53 ADMIN EDIT URI' });
+  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V49 ICON FIX URI' });
 });
 app.post('/api/auth', (req,res)=>{
   const {username, phone, password}=req.body;
@@ -534,6 +485,6 @@ app.get('*', (req,res)=>{
   return res.sendFile(path.join(__dirname,'public','index.html'));
 });
 app.listen(PORT, '0.0.0.0', ()=>{
-  console.log('V53 ADMIN EDIT - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
-  console.log(`V53 ADMIN EDIT - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
+  console.log('V49 ICON FIX - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
+  console.log(`V49 ICON FIX - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
 });
