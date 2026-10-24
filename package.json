@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "49.0.0",
-  "description": "YARYA ZAXO PRO V49 ICON FIX - Trophy Chick icon for PWA - $0",
+  "version": "57.0.0",
+  "description": "YARYA ZAXO SIMPLE - No PWA popup, Simple title",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
