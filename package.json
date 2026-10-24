@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "55.0.0",
-  "description": "V55 SIMPLE - Fix loadPlayers not defined - Simple buttons",
+  "version": "53.0.0",
+  "description": "YARYA ZAXO PRO V53 FIX - Real Delete/Edit buttons in admin table - Name unique block",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
