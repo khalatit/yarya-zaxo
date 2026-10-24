@@ -45,7 +45,7 @@ html, body { touch-action: manipulation !important; -webkit-touch-callout: none 
 canvas, #gameCanvas { touch-action: none !important; }
 input, textarea { font-size: 16px !important; }
 </style>
-<title>V30 - YARYA ZAXO PRO - هەفرکیا خێزانێ 🏆🐥 - V27 کێم-مەسرەف</title>
+<title>YARYA ZAXO</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@600;800;900&family=Inter:wght@800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -6367,7 +6367,7 @@ window.closeIOSModal=closeIOSModal;
 window.showAndroidModal=showAndroidModal;
 window.closeAndroidModal=closeAndroidModal;
 
-window.addEventListener('beforeinstallprompt', (e)=>{
+window.addEventListener('beforeinstallprompt-disabled', (e)=>{
   e.preventDefault();
   deferredPrompt=e;
   console.log('✅ V27 PWA installable - 73% cost saving banner');
@@ -6449,7 +6449,7 @@ window.addEventListener('appinstalled', ()=>{
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('/sw.js?v=v49-icon').then(r=>console.log('✅ SW V27 registered - کێم-مەسرەف', r.scope)).catch(e=>console.log('SW fail', e));
+    // disabled - SIMPLE - navigator.serviceWorker.register('/sw.js?v=v49-icon').then(r=>console.log('✅ SW V27 registered - کێم-مەسرەف', r.scope)).catch(e=>console.log('SW fail', e));
   });
 }
 
@@ -6575,8 +6575,8 @@ console.log('✅ V31 ALL FIXES APPLIED');
 
 
 <script>
-// V53 PLAYER EDIT - Player can change name/mobile/bio, NOT ID/code
-window.V53_PLAYER = {
+// YARYA ZAXO PLAYER EDIT - Player can change name/mobile/bio, NOT ID/code
+window.YARYA ZAXO_PLAYER = {
   async editProfile(){
     const current = window.currentUser || JSON.parse(localStorage.getItem('yarya_user')||'{}');
     if(!current.username){ alert('بەرێ خو تومار بکە'); return; }

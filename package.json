@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "55.0.0",
-  "description": "V55 SIMPLE - Fix loadPlayers not defined - Simple buttons",
+  "version": "57.0.0",
+  "description": "YARYA ZAXO SIMPLE - No PWA popup, Simple title",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
