@@ -194,11 +194,6 @@ canvas{display:block;touch-action:none}
 .profileWrap{width:100%;max-width:400px;background:linear-gradient(180deg, rgba(22,22,52,0.98), rgba(12,12,32,0.99));border:1px solid rgba(247,198,0,0.2);border-radius:24px;display:flex;flex-direction:column;overflow:hidden;max-height:90dvh}
 .profileHead{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0}
 .profileBody{padding:16px;overflow-y:auto;flex:1;overscroll-behavior:contain}
-
-.profileFooter{position:sticky;bottom:0;background:linear-gradient(180deg, rgba(18,18,42,0.98), rgba(12,12,32,1));padding:12px 16px;border-top:1px solid rgba(247,198,0,0.25);display:flex;gap:10px;z-index:5;flex-shrink:0}
-.profileFooter .btn{flex:1;margin:0}
-.profileFooter .btnCancel{flex:1;height:44px;border-radius:999px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:#fff;font-weight:800;cursor:pointer}
-
 .profileAvatarLarge{width:90px;height:90px;border-radius:50%;overflow:hidden;margin:0 auto 12px;border:3px solid rgba(247,198,0,0.35);display:flex;align-items:center;justify-content:center;background:#1a1a32;cursor:pointer;position:relative}
 .profileAvatarLarge img{width:100%;height:100%;object-fit:cover}
 .profileAvatarLarge:after{content:'📸';position:absolute;bottom:0;right:0;width:28px;height:28px;background:#F7C600;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid #12122a}
@@ -834,7 +829,8 @@ setTimeout(()=>{
     <div class="field"><input id="profilePhoneDisplay" placeholder="📱 ژمارا موبایلێ - دشێی بگهوری" dir="rtl"><i>📱</i><span style="color:#00ff99;font-size:10px;font-weight:800">✅ دشێت بگهوریت</span></div>
     <div class="field textarea"><textarea id="profileBioInput" placeholder="بایۆ..." dir="rtl" maxlength="120"></textarea><i>📝</i></div>
     <div id="profileError" class="err"></div>
-  </div><div class="profileFooter"><button class="btn" id="profileSaveBtn" onclick="saveProfile()">پاشکەوتکرن ✅</button><button class="btnCancel" onclick="closeProfile()">ژ سەر راکرن ✕</button></div></div></div>
+    <button class="btn" id="profileSaveBtn" onclick="saveProfile()">پاشکەوتکرن ✅</button>
+  </div></div></div>
 
   
 <!-- REMOVED friendsModal -->
@@ -1647,7 +1643,10 @@ let gameLoopStarted=false;
 
 const badWords=['خراپ','کافر','قحب','کس','حمار','کلب','fuck','shit','bitch','ass','sex','xxx','كلب','حمار','قحبة','كس','نيك','زنا','كافر','احمق','غبي','خره','کیر','کون','کص','قوز','قواد','سکس','asshole','porn','nude','boobs','pussy','dick','cock','قحبة','شرموطة','منيوك','زامل','لوطي','مخنث','عاهرة','طيز','زب','خرا','مص','لحس','نيك','سحاق','لواط'];
 function containsBadWords(text){const lower=text.toLowerCase();return badWords.some(w=> lower.includes(w.toLowerCase()));}
-function getDeviceId(){let id=localStorage.getItem('yarya_deviceId');if(!id){try{id=crypto.randomUUID()}catch{id='dev_'+Math.random().toString(36).slice(2)+Date.now()}localStorage.setItem('yarya_deviceId',id);}return id;}
+function getDeviceFingerprint(){try{let s='';s+=navigator.userAgent||'';s+='|'+(navigator.platform||'');s+='|'+(navigator.language||'');s+='|'+(screen.width+'x'+screen.height+'x'+(screen.colorDepth||''));s+='|'+(new Date().getTimezoneOffset());s+='|'+(navigator.hardwareConcurrency||'');try{const c=document.createElement('canvas');const x=c.getContext('2d');x.textBaseline='top';x.font='14px Arial';x.fillText('YARYA_ZAXO_FP',2,2);s+='|'+c.toDataURL().slice(0,80);}catch{}let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return 'fp_'+Math.abs(h).toString(36)+'_'+s.length;}catch{return 'fp_'+(navigator.userAgent||'').length;}}
+function getCookie(n){try{const m=document.cookie.match(new RegExp('(^| )'+n+'=([^;]+)'));return m?decodeURIComponent(m[2]):null;}catch{return null;}}
+function setCookie(n,v){try{document.cookie=n+'='+encodeURIComponent(v)+'; path=/; max-age=31536000; SameSite=Lax';}catch{}}
+function getDeviceId(){let id=localStorage.getItem('yarya_deviceId')||getCookie('yarya_deviceId')||localStorage.getItem('yarya_device_fp_id');if(!id){try{id=crypto.randomUUID()}catch{id='dev_'+Math.random().toString(36).slice(2)+Date.now()}try{localStorage.setItem('yarya_deviceId',id);setCookie('yarya_deviceId',id);localStorage.setItem('yarya_device_fp_id',id);}catch{}}else{try{localStorage.setItem('yarya_deviceId',id);setCookie('yarya_deviceId',id);}catch{}}return id;}
 function normalizePhoto(p){if(!p) return '';p=p.trim();if(p.startsWith('http')||p.startsWith('data:image/')) return p;if(p.length>100){p=p.replace(/\s/g,'').replace(/[^A-Za-z0-9+/=]/g,'');if(p.length>50) return 'data:image/jpeg;base64,'+p;}return p;}
 function getStr(f,...keys){for(let k of keys){const v=f[k];if(!v) continue;if(v.stringValue) return v.stringValue;if(v.timestampValue) return v.timestampValue;if(v.bytesValue){try{const dec=atob(v.bytesValue);if(dec.startsWith('data:')) return dec;if(v.bytesValue.length>100) return v.bytesValue;return dec;}catch{return v.bytesValue;}}}return '';}
 function getInt(f,...keys){for(let k of keys){const v=f[k];if(!v) continue;if(v.integerValue) return parseInt(v.integerValue,10);if(v.doubleValue) return Math.floor(parseFloat(v.doubleValue));}return 0;}
@@ -1735,24 +1734,22 @@ window.handleProfilePhoto=function(inp){const f=inp.files?.[0];if(!f) return;con
 // ===== V28 STRICT SINGLE ACCOUNT SYSTEM =====
 async function checkDeviceHasAccount(deviceId){
   try{
-    // First check lastDeviceId
+    const r = await fetch(`/api/check-device/${encodeURIComponent(deviceId)}`);
+    if(r.ok){ const d = await r.json(); if(d.hasAccount && d.user){ return {id:d.user.id, ...d.user, docId:d.user.id}; } }
+  }catch(e){}
+  try{
     const q1 = query(collection(db,'users'), where('lastDeviceId','==',deviceId), limit(1));
     const snap1 = await getDocs(q1);
-    if(!snap1.empty){
-      let found=null; snap1.forEach(d=>{ found={id:d.id, ...d.data(), docId:d.id}; });
-      if(found) return found;
-    }
-    // Then check deviceIds array-contains
+    if(!snap1.empty){ let found=null; snap1.forEach(d=>{ found={id:d.id, ...d.data(), docId:d.id}; }); if(found) return found; }
     const q2 = query(collection(db,'users'), where('deviceIds','array-contains',deviceId), limit(1));
     const snap2 = await getDocs(q2);
-    if(!snap2.empty){
-      let found=null; snap2.forEach(d=>{ found={id:d.id, ...d.data(), docId:d.id}; });
-      if(found) return found;
-    }
+    if(!snap2.empty){ let found=null; snap2.forEach(d=>{ found={id:d.id, ...d.data(), docId:d.id}; }); if(found) return found; }
+    const q3 = query(collection(db,'users'), where('originalDeviceId','==',deviceId), limit(1));
+    const snap3 = await getDocs(q3);
+    if(!snap3.empty){ let found=null; snap3.forEach(d=>{ found={id:d.id, ...d.data(), docId:d.id}; }); if(found) return found; }
     return null;
   }catch(e){ console.log('checkDeviceHasAccount error', e); return null; }
 }
-
 function showCredentialReminder(username, password, isWrong){
   const modal = document.getElementById('credentialReminderModal');
   const box = document.getElementById('credentialBoxContent');
@@ -1938,7 +1935,16 @@ window.handleAuth=async function(){
       // ===== REGISTER - STRICT SINGLE ACCOUNT PER DEVICE =====
       // 1. Check device already has account - BLOCK and return to original
       const existingDeviceAccount = await checkDeviceHasAccount(dev);
-      /* V33: REMOVED device block - allow multiple accounts per device */
+      // V58: 1 DEVICE = 1 ACCOUNT - BLOCK and auto-return to original
+      if(existingDeviceAccount){
+        window._pendingOriginalAccount = existingDeviceAccount;
+        const txt = document.getElementById('singleAccountBlockText');
+        if(txt) txt.innerHTML = `<div style="font-size:14px;font-weight:800;color:#fff">⛔ ئەڤ جیهازە ئەکاونتێ هەیە</div><div style="margin-top:8px">👤 ناڤ: <b style="color:#F7C600">${escapeHtml(existingDeviceAccount.username||existingDeviceAccount.id)}</b></div><div>🔑 کود: <b style="color:#F7C600;letter-spacing:2px">${escapeHtml(existingDeviceAccount.privateCode||'------')}</b></div><div>📱 موبایل: ${escapeHtml(existingDeviceAccount.phoneNumber||'')}</div><div style="margin-top:8px;color:#ff8a8a">١ جیهاز = ١ ئەکاونت - نابیت ٢ ئەکاونت چێکەی<br>دێ خوکار زڤریتە سەر ئەکاونتا رەسەن</div>`;
+        document.getElementById('singleAccountBlockModal')?.classList.add('show');
+        btn.disabled=false; btn.textContent='تۆمارکرن';
+        try{ localStorage.setItem('yarya_username', existingDeviceAccount.usernameLower||existingDeviceAccount.id.toLowerCase()); localStorage.setItem('yarya_username_original', existingDeviceAccount.username||existingDeviceAccount.id); if(existingDeviceAccount.privateCode) localStorage.setItem('yarya_private_code', existingDeviceAccount.privateCode); if(existingDeviceAccount.phoneNumber) localStorage.setItem('yarya_phone', existingDeviceAccount.phoneNumber); }catch{}
+        return;
+      }
 
       // 2. DUPLICATE NAME CHECK - strict lowercase
       const ex=await checkUsernameExists(low);
@@ -1953,16 +1959,7 @@ window.handleAuth=async function(){
         return;
       }
       
-      // 3. PHONE DUPLICATE CHECK - each mobile one account
-      try{
-        const phoneQuery = query(collection(db,'users'), where('phoneNumber','==',phone), limit(1));
-        const phoneSnap = await getDocs(phoneQuery);
-        if(!phoneSnap.empty){
-          showError('⛔ ئەم ژمارا موبایلە هەیە - هەر موبایلەکێ ئێک ئەکاونت هەیە - ئەگەر هیا تەیە بچۆ چوونەژوور');
-          btn.disabled=false;btn.textContent='تۆمارکرن';
-          return;
-        }
-      }catch(e){ console.log('phone check error', e); }
+      // 3. V58 PHONE - ALLOWED SHARED - باب و کور / کچ دبێت ١ ژمارا موبایلێ بکاربینن - نابیت بلوک بیت
 
       // Generate private code unique
       function genPrivateCode(){ return Math.floor(100000 + Math.random()*900000).toString(); }
@@ -2763,31 +2760,59 @@ window.closeProfile=function(){document.getElementById('profileModal')?.classLis
 window.saveProfile=async function(){
   const bioInput=document.getElementById('profileBioInput'),errEl=document.getElementById('profileError'),btn=document.getElementById('profileSaveBtn');
   const newBio=bioInput.value.trim();
+  const newNameEl=document.getElementById('profileNameInput'), newPhoneEl=document.getElementById('profilePhoneDisplay');
+  const newName=newNameEl?newNameEl.value.trim():'', newPhone=newPhoneEl?newPhoneEl.value.trim():'';
   errEl.style.display='none';
   if(!newBio){errEl.textContent='بایۆ پێویستە';errEl.style.display='block';return;}
+  if(newName && newName.length<3){errEl.textContent='ناڤ کورتە - 3 پیت یان پتر';errEl.style.display='block';return;}
+  if(newName && /[\/\?\%\(\)<>@]/.test(newName)){errEl.textContent='⛔ ناڤ نابیت / ? % ( ) < > @ هەبیت';errEl.style.display='block';return;}
+  if(newPhone && newPhone.length>0 && !newPhone.startsWith('07')){errEl.textContent='📱 ژمارا موبایلێ خەلەتە - دڤێت 0750... بیت';errEl.style.display='block';return;}
   btn.disabled=true;btn.textContent='چاوەڕێبە...';
   try{
-    const uid=currentUser.usernameLower,updateData={};
-    // V28: NAME AND PHONE ARE IMMUTABLE - DO NOT UPDATE THEM
-    // Only bio and photo can be changed
-    updateData.bio=newBio;
-    if(profilePhotoBase64 && profilePhotoBase64!==currentUser.photoBase64) updateData.photoBase64=profilePhotoBase64;
-    await saveUser(uid,updateData);
-    // Update friendRequests bio and photo only (not name)
-    const fromReqs=await firestoreQuerySimple('friendRequests','fromId',currentUser.usernameLower,50);
-    for(let r of fromReqs){
-      const url=`${DOCS_URL}/friendRequests/${r.id}?key=${firebaseConfig.apiKey}&updateMask.fieldPaths=fromBio&updateMask.fieldPaths=fromPhoto`;
-      const fields={fromBio:{stringValue:newBio}, fromPhoto:{stringValue:updateData.photoBase64||currentUser.photoBase64||''}};
-      await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});
+    const uid=currentUser.usernameLower;
+    const isNameChanged = newName && newName.toLowerCase()!==currentUser.username.toLowerCase();
+    if(isNameChanged){
+      try{
+        const cr = await fetch(`/api/check-username/${encodeURIComponent(newName.toLowerCase())}`);
+        if(cr.ok){ const cd = await cr.json(); if(cd.taken){ errEl.textContent='⛔ ئەڤ ناڤە هاتیە گرتن - نابیت دوبارە بیت - ناڤێ دی بکە'; errEl.style.display='block'; btn.disabled=false; btn.textContent='پاشکەوتکرن ✅'; return; } }
+      }catch{}
     }
-    const toReqs=await firestoreQuerySimple('friendRequests','toId',currentUser.usernameLower,50);
-    for(let r of toReqs){
-      const url=`${DOCS_URL}/friendRequests/${r.id}?key=${firebaseConfig.apiKey}&updateMask.fieldPaths=toBio&updateMask.fieldPaths=toPhoto`;
-      const fields={toBio:{stringValue:newBio}, toPhoto:{stringValue:updateData.photoBase64||currentUser.photoBase64||''}};
-      await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});
+    const res = await fetch('/api/rename-account', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({oldId: currentUser.id||uid, oldUsernameLower: uid, newName: newName||currentUser.username, newPhone: newPhone||currentUser.phoneNumber||'', newBio: newBio, newPhoto: (profilePhotoBase64 && profilePhotoBase64!==currentUser.photoBase64) ? profilePhotoBase64 : ''})});
+    if(res.status===409){ errEl.textContent='⛔ ئەڤ ناڤە هەیە - نابیت دوبارە بیت'; errEl.style.display='block'; btn.disabled=false; btn.textContent='پاشکەوتکرن ✅'; return; }
+    if(!res.ok){
+      const updateData={bio:newBio};
+      if(profilePhotoBase64 && profilePhotoBase64!==currentUser.photoBase64) updateData.photoBase64=profilePhotoBase64;
+      await saveUser(uid,updateData);
+    } else {
+      const jd = await res.json();
+      if(jd.user){
+        currentUser.username = jd.user.username||currentUser.username;
+        currentUser.usernameLower = jd.user.usernameLower||currentUser.usernameLower;
+        currentUser.phoneNumber = jd.user.phoneNumber||currentUser.phoneNumber;
+        currentUser.bio = jd.user.bio||newBio;
+        if(jd.user.photoBase64) currentUser.photoBase64 = jd.user.photoBase64;
+        localStorage.setItem('yarya_username', currentUser.usernameLower);
+        localStorage.setItem('yarya_username_original', currentUser.username);
+        if(currentUser.phoneNumber) localStorage.setItem('yarya_phone', currentUser.phoneNumber);
+        if(currentUser.photoBase64) localStorage.setItem('yarya_user_photo', currentUser.photoBase64);
+      }
     }
+    try{
+      const fromReqs=await firestoreQuerySimple('friendRequests','fromId',uid,50);
+      for(let r of fromReqs){
+        const url=`${DOCS_URL}/friendRequests/${r.id}?key=${firebaseConfig.apiKey}&updateMask.fieldPaths=fromBio&updateMask.fieldPaths=fromPhoto&updateMask.fieldPaths=fromName`;
+        const fields={fromBio:{stringValue:newBio}, fromPhoto:{stringValue:currentUser.photoBase64||''}, fromName:{stringValue:currentUser.username}};
+        await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});
+      }
+      const toReqs=await firestoreQuerySimple('friendRequests','toId',uid,50);
+      for(let r of toReqs){
+        const url=`${DOCS_URL}/friendRequests/${r.id}?key=${firebaseConfig.apiKey}&updateMask.fieldPaths=toBio&updateMask.fieldPaths=toPhoto&updateMask.fieldPaths=toName`;
+        const fields={toBio:{stringValue:newBio}, toPhoto:{stringValue:currentUser.photoBase64||''}, toName:{stringValue:currentUser.username}};
+        await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});
+      }
+    }catch{}
     currentUser.bio=newBio;
-    if(updateData.photoBase64) currentUser.photoBase64=updateData.photoBase64;
+    if(profilePhotoBase64) currentUser.photoBase64=profilePhotoBase64;
     if(currentUser.photoBase64) localStorage.setItem('yarya_user_photo',currentUser.photoBase64);
     document.getElementById('topName').textContent=currentUser.username;
     document.getElementById('topBio').textContent=newBio.substring(0,30);
@@ -2796,12 +2821,13 @@ window.saveProfile=async function(){
     await fetchAllUsers();
     await fetchAllData();
     window.closeProfile();
-    document.getElementById('readsBadge').textContent='✅ وێنە و بایۆ هاتە نووکرن';
-    document.getElementById('readsBadge').classList.add('show');
-    setTimeout(()=>document.getElementById('readsBadge').classList.remove('show'),3500);
+    const badge=document.getElementById('readsBadge');
+    if(badge){ badge.textContent='✅ ناڤ، موبایل، وێنە و بایۆ هاتنە نووکرن - ID و کود نەگهورین'; badge.classList.add('show'); setTimeout(()=>badge.classList.remove('show'),3500); }
   }catch(e){errEl.textContent='هەلە: '+e.message;errEl.style.display='block';}
   finally{btn.disabled=false;btn.textContent='پاشکەوتکرن ✅';}
 }
+
+
 
 
 
@@ -2814,7 +2840,7 @@ async function tryAutoLogin(){
   try{
     // V28: First check if device has any account in Firestore (strict single account)
     try{
-      const deviceAccount = null; // V33: REMOVED auto-return to original - allow free login
+      const deviceAccount = await checkDeviceHasAccount(dev); // V58: Auto-return to original - 1 device = 1 account
       if(deviceAccount && !savedId){
         // Device has account but no local storage - auto login to original
         console.log('🔒 Device has original account, auto returning:', deviceAccount.username);
@@ -2956,7 +2982,7 @@ function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'
 
 let gameCanvas,gameCtx,gameState='ready',bird={x:80,y:180,vy:0,r:18,rot:0},pipes=[],frame=0,score=0,bestScore=0,bestScoreFree=0,bestScoreMobile=0,bestScoreCar=0,currentRankingMode='free',pipeGap=155,pipeWidth=66,gravity=0.45,jumpVel=-8.8,pipeSpeed=2.2,gameLastTime=0; window.currentRankingMode='free'; window.bestScoreFree=0; window.bestScoreMobile=0; window.bestScoreCar=0;
 const GROUND_RATIO=0.92;
-function startGame(){ try{ if(window.currentUser && window.currentUser.isAdmin){ window.yaryaWinnerFreezeActive=false; localStorage.removeItem('yarya_winner_freeze'); if(typeof finalFreezeActive!=='undefined') finalFreezeActive=false; } }catch(e){}
+function startGame(){ try{ if(window.currentUser && window.currentUser.isAdmin){ window.yaryaWinnerFreezeActive=false; localStorage.removeItem('yarya_winner_freeze'); if(typeof finalFreezeActive!=='undefined') finalFreezeActive=false; } try{ window._showShopBtnIfCached && window._showShopBtnIfCached(); }catch(e){} }catch(e){}
   // YARYA FIX: If user re-entered after freeze, clear freeze
   try{
     const wasFrozen = window.yaryaWinnerFreezeActive || localStorage.getItem('yarya_winner_freeze')==='true';
@@ -3424,8 +3450,11 @@ setInterval(()=>{
     const btn=document.getElementById('managerBtn'); 
     if(!btn) return;
     const cu = currentUser || window.currentUser;
-    // V58.6: Don't hide here - checkShopkeeperStatus is single source. If we hide every 800ms before check finishes, button flickers 1s then disappears.
-    if(window._shopkeeperChecked===true && window._isShopkeeperVerified===false && !(cu && cu.isAdmin===true)){ if(btn) btn.style.display='none'; } else if(cu && (cu.isAdmin===true || cu.role==='owner' || cu.isManager===true || cu.role==='manager')){ if(btn) btn.style.display='flex'; }
+    // V58.7: NEVER hide if check not done or failed (502). Only hide if we are SURE not shopkeeper.
+    const isKhalat = cu && ((cu.usernameLower||'').toLowerCase()==='khalat' || (cu.username||'').toLowerCase()==='khalat');
+    if(isKhalat || (cu && (cu.isAdmin===true || cu.role==='owner' || cu.isManager===true || cu.role==='manager'))){ if(btn) btn.style.display='flex'; window._isShopkeeperVerified=true; }
+    else if(window._shopkeeperChecked===true && window._isShopkeeperVerified===false){ if(btn) btn.style.display='none'; }
+    // else: keep current state - don't hide while checking
   }catch(e){} 
 }, 800);
 
@@ -4332,7 +4361,7 @@ async function autoResetRanking(type){
 }
 
 function proShowWinnerModal(name, score, prize, icon, type){
-  try{ const cycle = type + '_' + (proConfig && proConfig[type+'EndAt'] ? Math.floor(proConfig[type+'EndAt'].getTime()/1000) : 'now'); const shownKey='yarya_winner_shown_'+cycle; const modal=document.getElementById('winnerModalPRO'); if(modal && modal.classList.contains('show')){ const cur=document.getElementById('winnerNamePRO')?.textContent; if(cur===name){ console.log('⏭️ Winner already showing, skip'); return; } } if(localStorage.getItem(shownKey)==='1'){ console.log('⏭️ Winner already shown for cycle', cycle); return; } localStorage.setItem(shownKey,'1'); }catch(e){}
+  try{ const cycle = type + '_' + (proConfig && proConfig[type+'EndAt'] ? Math.floor(proConfig[type+'EndAt'].getTime()/1000) : 'now'); const sk='yarya_winner_shown_'+cycle; const modal=document.getElementById('winnerModalPRO'); if(modal && modal.classList.contains('show')){ const cur=document.getElementById('winnerNamePRO')?.textContent; if(cur===name) return; } if(localStorage.getItem(sk)==='1') return; localStorage.setItem(sk,'1'); }catch(e){}
   const modal = document.getElementById('winnerModalPRO');
   if(!modal) return;
   modal.classList.remove('background-mode');
@@ -4439,7 +4468,7 @@ function proHideWinnerModal(){
   if(typeof proWinnerInterval !== 'undefined' && proWinnerInterval) clearInterval(proWinnerInterval);
   if(typeof window.proWinnerInterval !== 'undefined' && window.proWinnerInterval) clearInterval(window.proWinnerInterval);
   try{ localStorage.removeItem('yarya_winner_background'); }catch(e){}
-  try{ window.yaryaWinnerFreezeActive=false; window.yaryaWinnerName=null; if(typeof finalFreezeActive!=='undefined') finalFreezeActive=false; if(typeof gameState!=='undefined' && gameState==='winnerFrozen') gameState='ready'; localStorage.removeItem('yarya_winner_freeze'); localStorage.removeItem('yarya_winner_freeze_name'); const fm=document.getElementById('yaryaFreezeMsg'); if(fm) fm.remove(); document.querySelectorAll('.modeBtnPRO, #proModeFree, #proModeMobile, #proModeCar').forEach(b=>{ if(b){ b.style.opacity=''; b.style.pointerEvents=''; } }); }catch(e){} console.log('🔓 Freeze cleared after close');
+  try{ window.yaryaWinnerFreezeActive=false; window.yaryaWinnerName=null; if(typeof finalFreezeActive!=='undefined') finalFreezeActive=false; if(typeof gameState!=='undefined' && gameState==='winnerFrozen') gameState='ready'; localStorage.removeItem('yarya_winner_freeze'); const fm=document.getElementById('yaryaFreezeMsg'); if(fm) fm.remove(); document.querySelectorAll('.modeBtnPRO, #proModeFree, #proModeMobile, #proModeCar').forEach(b=>{ if(b){ b.style.opacity=''; b.style.pointerEvents=''; } }); }catch(e){}
 }
 
 
@@ -5231,7 +5260,7 @@ window.fetchLeaderboard = async function(){
 <!-- REMOVED V12 SCRIPT -->
 <style>
 #profileBtn, #userBtn, #fullscreenBtn { display: none !important; }
-/* V58.6 REMOVED !important - JS controls managerBtn */
+/* V58.7 REMOVED !important - JS controls managerBtn, never hide on 502 */
 @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 </style>
 
@@ -5523,7 +5552,7 @@ window.searchPlayerForManager = async function(){
 };
 
 // ===== NEW: SEARCH BY PRIVATE CODE - هەر موبایلەکێ کودەکێ جدا =====
-window.searchPlayerByCode = async function(){ const _ci=document.getElementById('managerCodeSearchInput').value.trim(); if(_ci){ try{ const _r=await fetch(`/api/lookup-by-code/${encodeURIComponent(_ci)}`,{cache:'no-store'}); const _d=await _r.json(); if(_r.ok && _d.username){ document.getElementById('managerSearchResult').innerHTML=`<div style='background:rgba(247,198,0,0.15);border:1.5px solid rgba(247,198,0,0.3);border-radius:16px;padding:14px'><div style='color:#fff;font-weight:900'>${_d.username} - ✅ کود دۆزرا</div><div style='color:rgba(255,255,255,0.7)'>🔑 ${_d.privateCode} | سکۆر ${_d.bestScore}</div><div style='display:flex;gap:8px;margin-top:10px'><button onclick="unlockForPlayer('${_d.id}','mobile')" style='flex:1;height:36px;background:#5B5CFF;color:#fff;border:0;border-radius:10px;font-weight:800'>📱 موبایل</button><button onclick="unlockForPlayer('${_d.id}','car')" style='flex:1;height:36px;background:#F7C600;color:#000;border:0;border-radius:10px;font-weight:800'>🚗 ترومبێل</button></div></div>`; return; } }catch(e){} }
+window.searchPlayerByCode = async function(){ const _ci=document.getElementById('managerCodeSearchInput').value.trim(); if(_ci){ try{ const _r=await fetch(`/api/lookup-by-code/${encodeURIComponent(_ci)}`,{cache:'no-store'}); const _d=await _r.json(); if(_r.ok && _d.username){ document.getElementById('managerSearchResult').innerHTML=`<div style='background:rgba(247,198,0,0.15);border:1.5px solid rgba(247,198,0,0.3);border-radius:16px;padding:14px'><div style='color:#fff;font-weight:900'>${_d.username} - ✅ کود دۆزرا</div><div style='color:rgba(255,255,255,0.7)'>🔑 ${_d.privateCode} | سکۆر ${_d.bestScore}</div></div>`; return; } }catch(e){} }
   const codeInput = document.getElementById('managerCodeSearchInput').value.trim();
   if(!codeInput||codeInput.length<4){ alert('🔑 کودی بنڤیسە - 6 ژمارە'); return; }
   const resultEl = document.getElementById('managerSearchResult');
@@ -5634,9 +5663,9 @@ setInterval(async ()=>{
   try{
     if(!window.currentUser) return;
     const low = (window.currentUser.role||'').toLowerCase();
-    if(low==='manager' || window.currentUser.isManager){
+    if(low==='manager' || window.currentUser.isManager || (window.currentUser.usernameLower||'').toLowerCase()==='khalat'){
       const btn=document.getElementById('managerBtn');
-      if(btn){ btn.style.display='flex'; window._isShopkeeperVerified=true; window._shopkeeperChecked=true; }
+      if(btn){ btn.style.display='flex'; window._isShopkeeperVerified=true; window._shopkeeperChecked=true; try{ localStorage.setItem('yarya_shopkeeper_'+(window.currentUser.usernameLower||''), 'true'); }catch(e){} }
     }
   }catch(e){}
 }, 3000);
@@ -6586,11 +6615,7 @@ window.YARYA ZAXO_PLAYER = {
     if(newName.trim().toLowerCase()===current.username.toLowerCase()){ alert('ئەڤە هەمان ناڤە'); return; }
     const newMobile = prompt('ژمارا موبایلێ نوو:', current.mobile||'');
     const newBio = prompt('بایو نوو:', current.bio||'');
-    const res = await fetch('/api/firestore/users/'+encodeURIComponent(current.id||current.usernameLower), {
-      method:'PATCH',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({fields:{username:{stringValue:newName}, usernameLower:{stringValue:newName.toLowerCase()}, mobile:{stringValue:newMobile}, bio:{stringValue:newBio}}})
-    });
+    const res = await fetch('/api/rename-account', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({oldId: current.id||current.usernameLower, oldUsernameLower: current.usernameLower, newName, newPhone: newMobile, newBio, newPhoto: ''})});
     if(res.status===409){ alert('⚠️ ئەڤ ناڤە هەیە! - ناڤێ دی بکە - Blocked'); return; }
     if(res.ok){ alert('گهورین درست ✅ - ID و کود نەگهورین'); const u = {...current, username:newName, usernameLower:newName.toLowerCase(), mobile:newMobile, bio:newBio}; localStorage.setItem('yarya_user', JSON.stringify(u)); location.reload(); }
     else { alert('نەبوو ❌'); }
@@ -7679,6 +7704,44 @@ window.closeAccountsModal = function(event){
 };
 
 console.log('✅ ULTIMATE FIX v3 ready - winner locked, no zero, no zoom');
+
+// ===== V58.7 FULL SHOPKEEPER FUNCTION =====
+window._isShopkeeperVerified=false; window._shopkeeperChecked=false;
+async function checkShopkeeperStatus(){
+  try{
+    const cu = window.currentUser || currentUser; if(!cu) return;
+    const btn = document.getElementById('managerBtn');
+    const uname = (cu.usernameLower||cu.username||'').toLowerCase();
+    const phone = (cu.phoneNumber||cu.phone||'').toString();
+    try{ if(localStorage.getItem('yarya_shopkeeper_'+uname)==='true'){ window._isShopkeeperVerified=true; window._shopkeeperChecked=true; if(btn) btn.style.display='flex'; return; } }catch(e){}
+    if(uname==='khalat' || phone==='07504920722'){ window._isShopkeeperVerified=true; window._shopkeeperChecked=true; if(btn) btn.style.display='flex'; try{ localStorage.setItem('yarya_shopkeeper_'+uname,'true'); }catch(e){} return; }
+    if(cu.isAdmin===true || cu.role==='owner' || cu.isManager===true || cu.role==='manager'){ window._isShopkeeperVerified=true; window._shopkeeperChecked=true; if(btn) btn.style.display='flex'; try{ localStorage.setItem('yarya_shopkeeper_'+uname,'true'); }catch(e){} return; }
+    try{
+      if(typeof collection!=='undefined' && typeof query!=='undefined' && typeof where!=='undefined' && typeof getDocs!=='undefined'){
+        const q = query(collection(db,'shopkeepers'), where('username','==', uname));
+        const snap = await getDocs(q);
+        if(!snap.empty){ window._isShopkeeperVerified=true; window._shopkeeperChecked=true; if(btn) btn.style.display='flex'; try{ localStorage.setItem('yarya_shopkeeper_'+uname,'true'); }catch(e){} return; }
+      }
+    }catch(e){}
+    try{
+      const qb = { structuredQuery: { from:[{collectionId:'shopkeepers'}], where:{fieldFilter:{field:{fieldPath:'username'}, op:'EQUAL', value:{stringValue: uname}}}, limit:1 } };
+      const res = await fetch('/api/firestore-query', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
+      if(!res.ok){ console.log('shop REST 502, NOT hiding'); return; }
+      const data = await res.json();
+      const isShop = data && data.length>0 && data[0].document;
+      window._shopkeeperChecked=true;
+      if(isShop){ window._isShopkeeperVerified=true; if(btn) btn.style.display='flex'; try{ localStorage.setItem('yarya_shopkeeper_'+uname,'true'); }catch(e){} }
+      else { window._isShopkeeperVerified=false; if(btn) btn.style.display='none'; }
+    }catch(e){ console.log('shop REST failed, NOT hiding'); return; }
+  }catch(e){}
+}
+window.checkShopkeeperStatus=checkShopkeeperStatus;
+setTimeout(checkShopkeeperStatus, 500);
+setInterval(checkShopkeeperStatus, 4000);
+window._showShopBtnIfCached=function(){ try{ const cu=window.currentUser||currentUser; if(!cu) return; const uname=(cu.usernameLower||cu.username||'').toLowerCase(); if(localStorage.getItem('yarya_shopkeeper_'+uname)==='true' || uname==='khalat'){ const b=document.getElementById('managerBtn'); if(b) b.style.display='flex'; window._isShopkeeperVerified=true; } }catch(e){} };
+setTimeout(window._showShopBtnIfCached, 300);
+window.forceUnfreeze=function(){ try{ window.yaryaWinnerFreezeActive=false; if(typeof finalFreezeActive!=='undefined') finalFreezeActive=false; if(typeof gameState!=='undefined' && gameState==='winnerFrozen') gameState='ready'; localStorage.removeItem('yarya_winner_freeze'); const ov=document.getElementById('finalFreezeOverlay'); if(ov) ov.classList.remove('show'); fetch('/api/admin/unfreeze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})}).catch(()=>{}); alert('✅ یاری هاتە ڤەکرن'); }catch(e){} };
+
 </script>
 
 </html>
