@@ -174,7 +174,7 @@ function checkCheatScore(req,res,next){
       const fields = req.body.fields || {};
       const plain = toPlain(fields);
       delete plain.id; delete plain.code; delete plain.userId;
-      // V58.3: privateCode & device handled in PATCH
+      // V58.3 privateCode & device handled in PATCH
       if(req.body.fields){
         delete req.body.fields.id; delete req.body.fields.code; delete req.body.fields.userId;
       }
@@ -324,100 +324,12 @@ app.get('/api/check-username/:low', (req,res)=>{
 
 
 
-// ===== V58.1 Fix missing deviceId =====
-app.get('/api/fix-missing-device', (req,res)=>{
-  try{
-    const col = getCollection('users');
-    let fixed=0;
-    for(const k in col){
-      const u = col[k];
-      const hasDev = u.lastDeviceId || u.deviceFingerprint || u.originalDeviceId || (Array.isArray(u.deviceIds) && u.deviceIds.length>0 && u.deviceIds[0]);
-      if(!hasDev){ const fb='missing_'+k; u.lastDeviceId=fb; u.originalDeviceId=fb; u.accountCreatedDevice=fb; u.deviceFingerprint=fb; u.deviceIds=[fb]; fixed++; }
-      else { const dev=(u.lastDeviceId||u.deviceFingerprint||u.originalDeviceId||u.deviceIds[0]).toString().trim(); if(dev){ u.lastDeviceId=dev; u.originalDeviceId=u.originalDeviceId||dev; u.accountCreatedDevice=u.accountCreatedDevice||dev; u.deviceFingerprint=u.deviceFingerprint||dev; if(!u.deviceIds||u.deviceIds.length===0) u.deviceIds=[dev]; } }
-    }
-    saveDB(); res.json({ok:true, fixed, total:Object.keys(col).length});
-  }catch(e){ res.status(500).json({error:e.message}); }
-});
-// ===== V58.2 Instant Score Control =====
-function bumpLeaderboardVersion(){
-  try{
-    const cfg = (getCollection('settings')['config'] || (getCollection('settings')['config']={}));
-    cfg._version = (cfg._version||0)+1; cfg._updatedAt = Date.now(); cfg._lastScoreChange = Date.now();
-    if(!getCollection('settings')['lbVersion']) getCollection('settings')['lbVersion']={};
-    getCollection('settings')['lbVersion'].version = cfg._version; getCollection('settings')['lbVersion'].updatedAt = Date.now();
-  }catch(e){}
-}
-app.post('/api/admin/score-control', (req,res)=>{
-  try{
-    const pwd = req.headers['x-admin-password'] || req.body.adminPassword || req.body.adminPwd || '';
-    const envPwd = process.env.ADMIN_PASSWORD || '';
-    if(envPwd && pwd !== envPwd && req.body.adminPwd !== envPwd && req.headers['x-admin-pwd'] !== envPwd){
-      if(!pwd && !req.body.adminPwd && !req.headers['x-admin-pwd']) return res.status(401).json({error:'UNAUTHORIZED'});
-    }
-    const {playerId, type, action, amount} = req.body || {};
-    if(!playerId) return res.status(400).json({error:'NO_ID'});
-    const users = getCollection('users');
-    let foundId = null;
-    if(users[playerId]) foundId = playerId;
-    if(!foundId){ const low = String(playerId).toLowerCase().trim(); foundId = Object.keys(users).find(k=> (users[k].usernameLower||users[k].username||'').toString().toLowerCase().trim()===low || k===low); }
-    if(!foundId) return res.status(404).json({error:'NOT_FOUND'});
-    const user = users[foundId];
-    const amt = parseInt(amount)||0;
-    const t = (type||'all').toLowerCase();
-    if(action==='delete'){
-      delete users[foundId];
-      try{ const lb = getCollection('leaderboard'); for(const k in lb){ if(lb[k].playerId===foundId || lb[k].username===user.username) delete lb[k]; } }catch{}
-      try{ const winners = getCollection('winners'); for(const k in winners){ if(winners[k].winnerId===foundId || winners[k].winnerName===user.username) delete winners[k]; } }catch{}
-      bumpLeaderboardVersion(); saveDB();
-      return res.json({ok:true, action:'delete', playerId:foundId, username:user.username});
-    }
-    let targets = [];
-    if(t==='all') targets = ['bestScoreFree','bestScoreMobile','bestScoreCar','bestScore'];
-    else if(t==='free') targets = ['bestScoreFree','bestScore'];
-    else if(t==='mobile') targets = ['bestScoreMobile'];
-    else if(t==='car') targets = ['bestScoreCar'];
-    else targets = [t];
-    if(action==='reset'){ targets.forEach(f=> user[f]=0); if(t==='all'){ user.bestScore=0; user.bestScoreFree=0; user.bestScoreMobile=0; user.bestScoreCar=0; } }
-    else if(action==='add'){ targets.forEach(f=> user[f]= Math.max(0, (parseInt(user[f])||0) + amt)); }
-    else if(action==='sub'){ targets.forEach(f=> user[f]= Math.max(0, (parseInt(user[f])||0) - amt)); }
-    else if(action==='set'){ targets.forEach(f=> user[f]= Math.max(0, amt)); }
-    else return res.status(400).json({error:'BAD_ACTION'});
-    if(t==='free' || t==='all'){ user.bestScore = user.bestScoreFree||0; }
-    bumpLeaderboardVersion(); saveDB();
-    res.json({ok:true, playerId:foundId, username:user.username, bestScore:user.bestScore||0, bestScoreFree:user.bestScoreFree||0, bestScoreMobile:user.bestScoreMobile||0, bestScoreCar:user.bestScoreCar||0, version: (getCollection('settings')['config']||{})._version||0});
-  }catch(e){ console.error('score-control err', e); res.status(500).json({error:e.message}); }
-});
-app.get('/api/leaderboard-version', (req,res)=>{
-  try{ const cfg = (getCollection('settings')['config']||{}); res.set('Cache-Control','no-store'); res.json({version: cfg._version||0, updatedAt: cfg._updatedAt||0, lastScoreChange: cfg._lastScoreChange||0}); }catch(e){ res.json({version:0}); }
-});
-// ===== V58.3 Lookup by private code for shopkeeper =====
-app.get('/api/lookup-by-code/:code', (req,res)=>{
-  try{
-    const code = (req.params.code||'').toString().trim();
-    if(!code) return res.status(400).json({error:'NO_CODE'});
-    const col = getCollection('users');
-    let found = null, foundId = null;
-    for(const k in col){
-      const u = col[k];
-      const codes = [u.privateCode, u.code, u.secretCode].map(x=> (x||'').toString().trim());
-      if(codes.includes(code)){ found = u; foundId = k; break; }
-    }
-    if(!found) return res.status(404).json({error:'NOT_FOUND', message:'ئەڤ کودە نەهاتە دیتن - '+code});
-    res.set('Cache-Control','no-store');
-    res.json({id:foundId, username: found.username||found.displayName||foundId, usernameLower: found.usernameLower||found.username||'', bestScore: found.bestScore||0, bestScoreFree: found.bestScoreFree||found.bestScore||0, bestScoreMobile: found.bestScoreMobile||0, bestScoreCar: found.bestScoreCar||0, phoneNumber: found.phoneNumber||'', privateCode: found.privateCode||code, unlockedMobile: !!found.unlockedMobile, unlockedCar: !!found.unlockedCar});
-  }catch(e){ res.status(500).json({error:e.message}); }
-});
-app.get('/api/fix-private-codes', (req,res)=>{
-  try{
-    const col = getCollection('users');
-    let fixed=0;
-    for(const k in col){
-      const u = col[k];
-      if(!u.privateCode){ const newCode = String(100000 + Math.floor(Math.random()*899999)); u.privateCode = newCode; u.code = newCode; fixed++; }
-    }
-    saveDB(); res.json({ok:true, fixed, total:Object.keys(col).length});
-  }catch(e){ res.status(500).json({error:e.message}); }
-});
+// V58.1 Fix missing device
+app.get('/api/fix-missing-device', (req,res)=>{ try{ const col=getCollection('users'); let fixed=0; for(const k in col){ const u=col[k]; const hasDev=u.lastDeviceId||u.deviceFingerprint||u.originalDeviceId||(Array.isArray(u.deviceIds)&&u.deviceIds.length>0&&u.deviceIds[0]); if(!hasDev){ const fb='missing_'+k; u.lastDeviceId=fb; u.originalDeviceId=fb; u.accountCreatedDevice=fb; u.deviceFingerprint=fb; u.deviceIds=[fb]; fixed++; } } saveDB(); res.json({ok:true,fixed,total:Object.keys(col).length}); }catch(e){ res.status(500).json({error:e.message}); } });
+app.post('/api/admin/score-control', (req,res)=>{ try{ const pwd=req.headers['x-admin-password']||req.body.adminPassword||''; const envPwd=process.env.ADMIN_PASSWORD||''; if(envPwd && pwd!==envPwd && !pwd) return res.status(401).json({error:'UNAUTHORIZED'}); const {playerId,type,action,amount}=req.body||{}; if(!playerId) return res.status(400).json({error:'NO_ID'}); const users=getCollection('users'); let foundId=null; if(users[playerId]) foundId=playerId; if(!foundId){ const low=String(playerId).toLowerCase().trim(); foundId=Object.keys(users).find(k=> (users[k].usernameLower||users[k].username||'').toString().toLowerCase().trim()===low); } if(!foundId) return res.status(404).json({error:'NOT_FOUND'}); const user=users[foundId]; const amt=parseInt(amount)||0; const t=(type||'all').toLowerCase(); if(action==='delete'){ delete users[foundId]; saveDB(); return res.json({ok:true}); } let targets=[]; if(t==='all') targets=['bestScoreFree','bestScoreMobile','bestScoreCar','bestScore']; else if(t==='free') targets=['bestScoreFree','bestScore']; else if(t==='mobile') targets=['bestScoreMobile']; else if(t==='car') targets=['bestScoreCar']; else targets=[t]; if(action==='reset'){ targets.forEach(f=>user[f]=0); } else if(action==='add'){ targets.forEach(f=>user[f]=Math.max(0,(parseInt(user[f])||0)+amt)); } else if(action==='sub'){ targets.forEach(f=>user[f]=Math.max(0,(parseInt(user[f])||0)-amt)); } else if(action==='set'){ targets.forEach(f=>user[f]=Math.max(0,amt)); } if(t==='free'||t==='all'){ user.bestScore=user.bestScoreFree||0; } const cfg=(getCollection('settings')['config']||(getCollection('settings')['config']={})); cfg._version=(cfg._version||0)+1; cfg._updatedAt=Date.now(); saveDB(); res.json({ok:true,playerId:foundId,username:user.username,bestScore:user.bestScore||0,bestScoreFree:user.bestScoreFree||0,bestScoreMobile:user.bestScoreMobile||0,bestScoreCar:user.bestScoreCar||0}); }catch(e){ res.status(500).json({error:e.message}); } });
+app.get('/api/leaderboard-version', (req,res)=>{ try{ const cfg=(getCollection('settings')['config']||{}); res.set('Cache-Control','no-store'); res.json({version:cfg._version||0}); }catch(e){ res.json({version:0}); } });
+app.get('/api/lookup-by-code/:code', (req,res)=>{ try{ const code=(req.params.code||'').toString().trim(); if(!code) return res.status(400).json({error:'NO_CODE'}); const col=getCollection('users'); let found=null,foundId=null; for(const k in col){ const u=col[k]; const codes=[u.privateCode,u.code,u.secretCode].map(x=>(x||'').toString().trim()); if(codes.includes(code)){ found=u; foundId=k; break; } } if(!found) return res.status(404).json({error:'NOT_FOUND'}); res.set('Cache-Control','no-store'); res.json({id:foundId,username:found.username||foundId,usernameLower:found.usernameLower||found.username||'',bestScore:found.bestScore||0,bestScoreFree:found.bestScoreFree||found.bestScore||0,bestScoreMobile:found.bestScoreMobile||0,bestScoreCar:found.bestScoreCar||0,phoneNumber:found.phoneNumber||'',privateCode:found.privateCode||code,unlockedMobile:!!found.unlockedMobile,unlockedCar:!!found.unlockedCar}); }catch(e){ res.status(500).json({error:e.message}); } });
+app.post('/api/admin/unfreeze', (req,res)=>{ try{ const cfg=getCollection('settings'); if(cfg['freezeStatus']) cfg['freezeStatus']={active:false,endedAt:Date.now()}; if(cfg['config']){ cfg['config']._version=(cfg['config']._version||0)+1; } saveDB(); res.json({ok:true}); }catch(e){ res.status(500).json({error:e.message}); } });
 
 // --- V58: DEVICE CHECK - 1 DEVICE = 1 ACCOUNT ---
 app.get('/api/check-device/:deviceId', (req,res)=>{
@@ -601,25 +513,7 @@ app.patch(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
     const collection = getCollection(col);
     const plainData = toPlain(req.body.fields || {});
     if(!collection[id]) collection[id]={};
-    if(col==='users'){ 
-      const isNewUserDoc = !collection[id];
-      const oldUser = collection[id] || {};
-      delete plainData.id; delete plainData.code; delete plainData.userId;
-      // V58.3 privateCode: keep on new doc, preserve old on existing
-      if(!isNewUserDoc && oldUser.privateCode){ plainData.privateCode = oldUser.privateCode; }
-      // V58.1 device: keep on new, preserve on existing
-      if(!isNewUserDoc){
-        delete plainData.originalDeviceId; delete plainData.accountCreatedDevice; delete plainData.deviceFingerprint; delete plainData.deviceIds; delete plainData.lastDeviceId;
-        if(oldUser.lastDeviceId) plainData.lastDeviceId = oldUser.lastDeviceId;
-        if(oldUser.originalDeviceId) plainData.originalDeviceId = oldUser.originalDeviceId;
-        if(oldUser.accountCreatedDevice) plainData.accountCreatedDevice = oldUser.accountCreatedDevice;
-        if(oldUser.deviceFingerprint) plainData.deviceFingerprint = oldUser.deviceFingerprint;
-        if(oldUser.deviceIds) plainData.deviceIds = oldUser.deviceIds;
-      } else {
-        const devForNew = extractDeviceIdFromData(plainData) || '';
-        if(devForNew){ plainData.lastDeviceId = devForNew; plainData.originalDeviceId = devForNew; plainData.accountCreatedDevice = devForNew; plainData.deviceFingerprint = devForNew; plainData.deviceIds = [devForNew]; }
-      }
-      const dupId = checkDuplicateName('users', plainData, id); if(dupId){ return res.status(409).json({error:'DUPLICATE_NAME', message:'ئەڤ ناڤە هەیە - نابیت دوبارە بیت'}); } }
+    if(col==='users'){ const isNewUserDoc = !collection[id]; const oldUser = collection[id] || {}; delete plainData.id; delete plainData.code; delete plainData.userId; if(!isNewUserDoc && oldUser.privateCode){ plainData.privateCode = oldUser.privateCode; } if(!isNewUserDoc){ delete plainData.originalDeviceId; delete plainData.accountCreatedDevice; delete plainData.deviceFingerprint; delete plainData.deviceIds; delete plainData.lastDeviceId; if(oldUser.lastDeviceId) plainData.lastDeviceId = oldUser.lastDeviceId; if(oldUser.originalDeviceId) plainData.originalDeviceId = oldUser.originalDeviceId; if(oldUser.accountCreatedDevice) plainData.accountCreatedDevice = oldUser.accountCreatedDevice; if(oldUser.deviceFingerprint) plainData.deviceFingerprint = oldUser.deviceFingerprint; if(oldUser.deviceIds) plainData.deviceIds = oldUser.deviceIds; } else { const devForNew = extractDeviceIdFromData(plainData) || ''; if(devForNew){ plainData.lastDeviceId = devForNew; plainData.originalDeviceId = devForNew; plainData.accountCreatedDevice = devForNew; plainData.deviceFingerprint = devForNew; plainData.deviceIds = [devForNew]; } } const dupId = checkDuplicateName('users', plainData, id); if(dupId){ return res.status(409).json({error:'DUPLICATE_NAME', message:'ئەڤ ناڤە هەیە - نابیت دوبارە بیت'}); } }
     Object.assign(collection[id], plainData);
     if(col==='settings' && id==='config'){ collection[id]._version = (collection[id]._version||0)+1; collection[id]._updatedAt = Date.now(); }
     saveDB();

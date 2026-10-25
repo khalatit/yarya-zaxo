@@ -1116,10 +1116,7 @@ function renderPlayers(players){
       <td>${online?'<span style="background:rgba(0,255,100,0.15);color:#00ff99;padding:5px 10px;border-radius:999px;font-size:10px;font-weight:800;border:1px solid rgba(0,255,100,0.2)">🟢 ئونلاین</span>':'<span style="background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.5);padding:5px 10px;border-radius:999px;font-size:10px">⚫ ئوفلاین</span>'}<br><span style="font-size:10px;color:rgba(255,255,255,0.4)">${lastSeen?lastSeen.toLocaleString('ku-IQ'):''}</span><br><span style="font-size:9px;color:rgba(255,255,255,0.3)">${escapeHtml((u.platform||'').substring(0,20))}</span></td>
       <td>
         <div style="display:flex;flex-direction:column;gap:4px">
-          <div style="display:flex;gap:4px;flex-wrap:wrap"><button onclick="adminScoreControl('${u.id}','free','add',10)" style="height:26px;padding:0 7px;border-radius:7px;border:1px solid rgba(0,255,136,0.3);background:rgba(0,255,136,0.12);color:#00ff99;font-size:10px;cursor:pointer;font-weight:800">🆓 +10</button><button onclick="adminScoreControl('${u.id}','free','sub',10)" style="height:26px;padding:0 7px;border-radius:7px;border:1px solid rgba(255,170,0,0.3);background:rgba(255,170,0,0.12);color:#ffaa00;font-size:10px;cursor:pointer;font-weight:800">🆓 -10</button></div>
-          <button onclick="adminScoreControl('${u.id}','all','reset',0)" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:#fff;font-size:9px;cursor:pointer;font-weight:700">سفر هەمی 0 🔄</button>
-          <button onclick="adminScoreControl('${u.id}','all','set',0)" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(59,130,246,0.4);background:#3b82f6;color:#fff;font-size:9px;cursor:pointer;font-weight:800">✏️ سکۆر دانێ</button>
-          <button onclick="resetPlayer('${u.id}','free')" style="height:26px;padding:0 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:#fff;font-size:9px;cursor:pointer;font-weight:700">سفر بەلاش</button>
+          <button onclick="resetPlayer('${u.id}','free')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:#fff;font-size:9px;cursor:pointer;font-weight:700">سفر بەلاش</button>
           ${isBlocked?`<button onclick="unblockPlayer('${u.id}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(0,255,136,0.3);background:rgba(0,255,136,0.15);color:#00ff99;font-size:9px;cursor:pointer;font-weight:800">🔓 ئازاد</button>`:`<button onclick="blockPlayerDevice('${u.id}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(212,16,31,0.3);background:rgba(212,16,31,0.15);color:#ff8a8a;font-size:9px;cursor:pointer;font-weight:800">⛔ بلوک جیهاز</button>`}
           <button onclick="v53DeletePlayer('${u.id}','${escapeHtml(u.username||u.displayName||'').replace(/'/g, "\\'")}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(239,68,68,0.4);background:#ef4444;color:#fff;font-size:9px;cursor:pointer;font-weight:800">🗑️ ژێبە</button>
           <button onclick="v53EditPlayer('${u.id}','${escapeHtml(u.username||u.displayName||'').replace(/'/g, "\\'")}','${escapeHtml((u.bio||'').replace(/'/g, "\\'"))}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(59,130,246,0.4);background:#3b82f6;color:#fff;font-size:9px;cursor:pointer;font-weight:800">✏️ گهورە</button>
@@ -1885,29 +1882,9 @@ window.loadWinners = async function(){
 init();
 
 
-
 // ===== V58.2 INSTANT SCORE CONTROL =====
-window.adminScoreControl = async function(playerId, type, action, amount){
-  const pwd = window._adminPwd || localStorage.getItem('adminPwd') || '';
-  let amt = amount;
-  if(action==='set'){ const v = prompt('سکۆرێ نوو بنڤیسە بۆ ' + type + ':', '0'); if(v===null) return; amt = parseInt(v)||0; }
-  else if(action==='add' || action==='sub'){ if(!amt) amt = 10; }
-  if(action==='reset' && !confirm('دڵنیای سکۆرێ '+type+' سفر بکەی؟')) return;
-  if(action==='delete' && !confirm('دڵنیای دێ یاریکەری ژێبی؟')) return;
-  try{
-    const res = await fetch('/api/admin/score-control', {method:'POST', headers:{'Content-Type':'application/json','x-admin-password': pwd}, body: JSON.stringify({playerId, type, action, amount: amt, adminPassword: pwd, adminPwd: pwd})});
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.message||data.error||'هەلە');
-    const p = allPlayers.find(x=>x.id===playerId);
-    if(p && action!=='delete'){ p.bestScore=data.bestScore; p.bestScoreFree=data.bestScoreFree; p.bestScoreMobile=data.bestScoreMobile; p.bestScoreCar=data.bestScoreCar; }
-    if(action==='delete'){ allPlayers = allPlayers.filter(x=>x.id!==playerId); }
-    renderPlayers(allPlayers);
-    alert('✅ '+ (action==='delete' ? 'یاریکەر ژێبرا' : 'سکۆر یەکسەر گهورا'));
-  }catch(e){ alert('❌ '+e.message); }
-};
+window.adminScoreControl = async function(playerId, type, action, amount){ const pwd = window._adminPwd || localStorage.getItem('adminPwd') || ''; let amt = amount; if(action==='set'){ const v = prompt('سکۆرێ نوو:', '0'); if(v===null) return; amt = parseInt(v)||0; } if(action==='reset' && !confirm('سفر بکەی؟')) return; if(action==='delete' && !confirm('ژێبی؟')) return; try{ const res = await fetch('/api/admin/score-control', {method:'POST', headers:{'Content-Type':'application/json','x-admin-password': pwd}, body: JSON.stringify({playerId, type, action, amount: amt, adminPassword: pwd})}); const data = await res.json(); if(!res.ok) throw new Error(data.error); const p = allPlayers.find(x=>x.id===playerId); if(p && action!=='delete'){ p.bestScore=data.bestScore; p.bestScoreFree=data.bestScoreFree; p.bestScoreMobile=data.bestScoreMobile; p.bestScoreCar=data.bestScoreCar; } if(action==='delete'){ allPlayers = allPlayers.filter(x=>x.id!==playerId); } renderPlayers(allPlayers); alert('✅'); }catch(e){ alert('❌ '+e.message); } };
 window.resetPlayer = async function(id, type){ return window.adminScoreControl(id, type, 'reset', 0); };
-window.deletePlayerInstant = async function(id){ return window.adminScoreControl(id, 'all', 'delete', 0); };
-
 // ===== V58 FIX - Buttons that were not defined =====
 window.v53EditPlayer = async function(id, username, bio){
   const newName = prompt('ناڤێ نوو (ID و کود ناهێتە گهورین):', username||'');
