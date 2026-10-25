@@ -1642,7 +1642,10 @@ let gameLoopStarted=false;
 
 const badWords=['خراپ','کافر','قحب','کس','حمار','کلب','fuck','shit','bitch','ass','sex','xxx','كلب','حمار','قحبة','كس','نيك','زنا','كافر','احمق','غبي','خره','کیر','کون','کص','قوز','قواد','سکس','asshole','porn','nude','boobs','pussy','dick','cock','قحبة','شرموطة','منيوك','زامل','لوطي','مخنث','عاهرة','طيز','زب','خرا','مص','لحس','نيك','سحاق','لواط'];
 function containsBadWords(text){const lower=text.toLowerCase();return badWords.some(w=> lower.includes(w.toLowerCase()));}
-function getDeviceId(){let id=localStorage.getItem('yarya_deviceId');if(!id){try{id=crypto.randomUUID()}catch{id='dev_'+Math.random().toString(36).slice(2)+Date.now()}localStorage.setItem('yarya_deviceId',id);}return id;}
+function getDeviceFingerprint(){try{let s='';s+=navigator.userAgent||'';s+='|'+(navigator.platform||'');s+='|'+(navigator.language||'');s+='|'+(screen.width+'x'+screen.height+'x'+(screen.colorDepth||''));s+='|'+(new Date().getTimezoneOffset());s+='|'+(navigator.hardwareConcurrency||'');try{const c=document.createElement('canvas');const x=c.getContext('2d');x.textBaseline='top';x.font='14px Arial';x.fillText('YARYA_ZAXO_FP',2,2);s+='|'+c.toDataURL().slice(0,80);}catch{}let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return 'fp_'+Math.abs(h).toString(36)+'_'+s.length;}catch{return 'fp_'+(navigator.userAgent||'').length;}}
+function getCookie(n){try{const m=document.cookie.match(new RegExp('(^| )'+n+'=([^;]+)'));return m?decodeURIComponent(m[2]):null;}catch{return null;}}
+function setCookie(n,v){try{document.cookie=n+'='+encodeURIComponent(v)+'; path=/; max-age=31536000; SameSite=Lax';}catch{}}
+function getDeviceId(){let id=localStorage.getItem('yarya_deviceId')||getCookie('yarya_deviceId')||localStorage.getItem('yarya_device_fp_id');if(!id){try{id=crypto.randomUUID()}catch{id='dev_'+Math.random().toString(36).slice(2)+Date.now()}try{localStorage.setItem('yarya_deviceId',id);setCookie('yarya_deviceId',id);localStorage.setItem('yarya_device_fp_id',id);}catch{}}else{try{localStorage.setItem('yarya_deviceId',id);setCookie('yarya_deviceId',id);}catch{}}return id;}
 function normalizePhoto(p){if(!p) return '';p=p.trim();if(p.startsWith('http')||p.startsWith('data:image/')) return p;if(p.length>100){p=p.replace(/\s/g,'').replace(/[^A-Za-z0-9+/=]/g,'');if(p.length>50) return 'data:image/jpeg;base64,'+p;}return p;}
 function getStr(f,...keys){for(let k of keys){const v=f[k];if(!v) continue;if(v.stringValue) return v.stringValue;if(v.timestampValue) return v.timestampValue;if(v.bytesValue){try{const dec=atob(v.bytesValue);if(dec.startsWith('data:')) return dec;if(v.bytesValue.length>100) return v.bytesValue;return dec;}catch{return v.bytesValue;}}}return '';}
 function getInt(f,...keys){for(let k of keys){const v=f[k];if(!v) continue;if(v.integerValue) return parseInt(v.integerValue,10);if(v.doubleValue) return Math.floor(parseFloat(v.doubleValue));}return 0;}
@@ -1730,24 +1733,22 @@ window.handleProfilePhoto=function(inp){const f=inp.files?.[0];if(!f) return;con
 // ===== V28 STRICT SINGLE ACCOUNT SYSTEM =====
 async function checkDeviceHasAccount(deviceId){
   try{
-    // First check lastDeviceId
+    const r = await fetch(`/api/check-device/${encodeURIComponent(deviceId)}`);
+    if(r.ok){ const d = await r.json(); if(d.hasAccount && d.user){ return {id:d.user.id, ...d.user, docId:d.user.id}; } }
+  }catch(e){}
+  try{
     const q1 = query(collection(db,'users'), where('lastDeviceId','==',deviceId), limit(1));
     const snap1 = await getDocs(q1);
-    if(!snap1.empty){
-      let found=null; snap1.forEach(d=>{ found={id:d.id, ...d.data(), docId:d.id}; });
-      if(found) return found;
-    }
-    // Then check deviceIds array-contains
+    if(!snap1.empty){ let found=null; snap1.forEach(d=>{ found={id:d.id, ...d.data(), docId:d.id}; }); if(found) return found; }
     const q2 = query(collection(db,'users'), where('deviceIds','array-contains',deviceId), limit(1));
     const snap2 = await getDocs(q2);
-    if(!snap2.empty){
-      let found=null; snap2.forEach(d=>{ found={id:d.id, ...d.data(), docId:d.id}; });
-      if(found) return found;
-    }
+    if(!snap2.empty){ let found=null; snap2.forEach(d=>{ found={id:d.id, ...d.data(), docId:d.id}; }); if(found) return found; }
+    const q3 = query(collection(db,'users'), where('originalDeviceId','==',deviceId), limit(1));
+    const snap3 = await getDocs(q3);
+    if(!snap3.empty){ let found=null; snap3.forEach(d=>{ found={id:d.id, ...d.data(), docId:d.id}; }); if(found) return found; }
     return null;
   }catch(e){ console.log('checkDeviceHasAccount error', e); return null; }
 }
-
 function showCredentialReminder(username, password, isWrong){
   const modal = document.getElementById('credentialReminderModal');
   const box = document.getElementById('credentialBoxContent');
@@ -1933,7 +1934,16 @@ window.handleAuth=async function(){
       // ===== REGISTER - STRICT SINGLE ACCOUNT PER DEVICE =====
       // 1. Check device already has account - BLOCK and return to original
       const existingDeviceAccount = await checkDeviceHasAccount(dev);
-      /* V33: REMOVED device block - allow multiple accounts per device */
+      // V58: 1 DEVICE = 1 ACCOUNT - BLOCK and auto-return to original
+      if(existingDeviceAccount){
+        window._pendingOriginalAccount = existingDeviceAccount;
+        const txt = document.getElementById('singleAccountBlockText');
+        if(txt) txt.innerHTML = `<div style="font-size:14px;font-weight:800;color:#fff">⛔ ئەڤ جیهازە ئەکاونتێ هەیە</div><div style="margin-top:8px">👤 ناڤ: <b style="color:#F7C600">${escapeHtml(existingDeviceAccount.username||existingDeviceAccount.id)}</b></div><div>🔑 کود: <b style="color:#F7C600;letter-spacing:2px">${escapeHtml(existingDeviceAccount.privateCode||'------')}</b></div><div>📱 موبایل: ${escapeHtml(existingDeviceAccount.phoneNumber||'')}</div><div style="margin-top:8px;color:#ff8a8a">١ جیهاز = ١ ئەکاونت - نابیت ٢ ئەکاونت چێکەی<br>دێ خوکار زڤریتە سەر ئەکاونتا رەسەن</div>`;
+        document.getElementById('singleAccountBlockModal')?.classList.add('show');
+        btn.disabled=false; btn.textContent='تۆمارکرن';
+        try{ localStorage.setItem('yarya_username', existingDeviceAccount.usernameLower||existingDeviceAccount.id.toLowerCase()); localStorage.setItem('yarya_username_original', existingDeviceAccount.username||existingDeviceAccount.id); if(existingDeviceAccount.privateCode) localStorage.setItem('yarya_private_code', existingDeviceAccount.privateCode); if(existingDeviceAccount.phoneNumber) localStorage.setItem('yarya_phone', existingDeviceAccount.phoneNumber); }catch{}
+        return;
+      }
 
       // 2. DUPLICATE NAME CHECK - strict lowercase
       const ex=await checkUsernameExists(low);
@@ -1948,16 +1958,7 @@ window.handleAuth=async function(){
         return;
       }
       
-      // 3. PHONE DUPLICATE CHECK - each mobile one account
-      try{
-        const phoneQuery = query(collection(db,'users'), where('phoneNumber','==',phone), limit(1));
-        const phoneSnap = await getDocs(phoneQuery);
-        if(!phoneSnap.empty){
-          showError('⛔ ئەم ژمارا موبایلە هەیە - هەر موبایلەکێ ئێک ئەکاونت هەیە - ئەگەر هیا تەیە بچۆ چوونەژوور');
-          btn.disabled=false;btn.textContent='تۆمارکرن';
-          return;
-        }
-      }catch(e){ console.log('phone check error', e); }
+      // 3. V58 PHONE - ALLOWED SHARED - باب و کور / کچ دبێت ١ ژمارا موبایلێ بکاربینن - نابیت بلوک بیت
 
       // Generate private code unique
       function genPrivateCode(){ return Math.floor(100000 + Math.random()*900000).toString(); }
@@ -2758,31 +2759,59 @@ window.closeProfile=function(){document.getElementById('profileModal')?.classLis
 window.saveProfile=async function(){
   const bioInput=document.getElementById('profileBioInput'),errEl=document.getElementById('profileError'),btn=document.getElementById('profileSaveBtn');
   const newBio=bioInput.value.trim();
+  const newNameEl=document.getElementById('profileNameInput'), newPhoneEl=document.getElementById('profilePhoneDisplay');
+  const newName=newNameEl?newNameEl.value.trim():'', newPhone=newPhoneEl?newPhoneEl.value.trim():'';
   errEl.style.display='none';
   if(!newBio){errEl.textContent='بایۆ پێویستە';errEl.style.display='block';return;}
+  if(newName && newName.length<3){errEl.textContent='ناڤ کورتە - 3 پیت یان پتر';errEl.style.display='block';return;}
+  if(newName && /[\/\?\%\(\)<>@]/.test(newName)){errEl.textContent='⛔ ناڤ نابیت / ? % ( ) < > @ هەبیت';errEl.style.display='block';return;}
+  if(newPhone && newPhone.length>0 && !newPhone.startsWith('07')){errEl.textContent='📱 ژمارا موبایلێ خەلەتە - دڤێت 0750... بیت';errEl.style.display='block';return;}
   btn.disabled=true;btn.textContent='چاوەڕێبە...';
   try{
-    const uid=currentUser.usernameLower,updateData={};
-    // V28: NAME AND PHONE ARE IMMUTABLE - DO NOT UPDATE THEM
-    // Only bio and photo can be changed
-    updateData.bio=newBio;
-    if(profilePhotoBase64 && profilePhotoBase64!==currentUser.photoBase64) updateData.photoBase64=profilePhotoBase64;
-    await saveUser(uid,updateData);
-    // Update friendRequests bio and photo only (not name)
-    const fromReqs=await firestoreQuerySimple('friendRequests','fromId',currentUser.usernameLower,50);
-    for(let r of fromReqs){
-      const url=`${DOCS_URL}/friendRequests/${r.id}?key=${firebaseConfig.apiKey}&updateMask.fieldPaths=fromBio&updateMask.fieldPaths=fromPhoto`;
-      const fields={fromBio:{stringValue:newBio}, fromPhoto:{stringValue:updateData.photoBase64||currentUser.photoBase64||''}};
-      await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});
+    const uid=currentUser.usernameLower;
+    const isNameChanged = newName && newName.toLowerCase()!==currentUser.username.toLowerCase();
+    if(isNameChanged){
+      try{
+        const cr = await fetch(`/api/check-username/${encodeURIComponent(newName.toLowerCase())}`);
+        if(cr.ok){ const cd = await cr.json(); if(cd.taken){ errEl.textContent='⛔ ئەڤ ناڤە هاتیە گرتن - نابیت دوبارە بیت - ناڤێ دی بکە'; errEl.style.display='block'; btn.disabled=false; btn.textContent='پاشکەوتکرن ✅'; return; } }
+      }catch{}
     }
-    const toReqs=await firestoreQuerySimple('friendRequests','toId',currentUser.usernameLower,50);
-    for(let r of toReqs){
-      const url=`${DOCS_URL}/friendRequests/${r.id}?key=${firebaseConfig.apiKey}&updateMask.fieldPaths=toBio&updateMask.fieldPaths=toPhoto`;
-      const fields={toBio:{stringValue:newBio}, toPhoto:{stringValue:updateData.photoBase64||currentUser.photoBase64||''}};
-      await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});
+    const res = await fetch('/api/rename-account', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({oldId: currentUser.id||uid, oldUsernameLower: uid, newName: newName||currentUser.username, newPhone: newPhone||currentUser.phoneNumber||'', newBio: newBio, newPhoto: (profilePhotoBase64 && profilePhotoBase64!==currentUser.photoBase64) ? profilePhotoBase64 : ''})});
+    if(res.status===409){ errEl.textContent='⛔ ئەڤ ناڤە هەیە - نابیت دوبارە بیت'; errEl.style.display='block'; btn.disabled=false; btn.textContent='پاشکەوتکرن ✅'; return; }
+    if(!res.ok){
+      const updateData={bio:newBio};
+      if(profilePhotoBase64 && profilePhotoBase64!==currentUser.photoBase64) updateData.photoBase64=profilePhotoBase64;
+      await saveUser(uid,updateData);
+    } else {
+      const jd = await res.json();
+      if(jd.user){
+        currentUser.username = jd.user.username||currentUser.username;
+        currentUser.usernameLower = jd.user.usernameLower||currentUser.usernameLower;
+        currentUser.phoneNumber = jd.user.phoneNumber||currentUser.phoneNumber;
+        currentUser.bio = jd.user.bio||newBio;
+        if(jd.user.photoBase64) currentUser.photoBase64 = jd.user.photoBase64;
+        localStorage.setItem('yarya_username', currentUser.usernameLower);
+        localStorage.setItem('yarya_username_original', currentUser.username);
+        if(currentUser.phoneNumber) localStorage.setItem('yarya_phone', currentUser.phoneNumber);
+        if(currentUser.photoBase64) localStorage.setItem('yarya_user_photo', currentUser.photoBase64);
+      }
     }
+    try{
+      const fromReqs=await firestoreQuerySimple('friendRequests','fromId',uid,50);
+      for(let r of fromReqs){
+        const url=`${DOCS_URL}/friendRequests/${r.id}?key=${firebaseConfig.apiKey}&updateMask.fieldPaths=fromBio&updateMask.fieldPaths=fromPhoto&updateMask.fieldPaths=fromName`;
+        const fields={fromBio:{stringValue:newBio}, fromPhoto:{stringValue:currentUser.photoBase64||''}, fromName:{stringValue:currentUser.username}};
+        await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});
+      }
+      const toReqs=await firestoreQuerySimple('friendRequests','toId',uid,50);
+      for(let r of toReqs){
+        const url=`${DOCS_URL}/friendRequests/${r.id}?key=${firebaseConfig.apiKey}&updateMask.fieldPaths=toBio&updateMask.fieldPaths=toPhoto&updateMask.fieldPaths=toName`;
+        const fields={toBio:{stringValue:newBio}, toPhoto:{stringValue:currentUser.photoBase64||''}, toName:{stringValue:currentUser.username}};
+        await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});
+      }
+    }catch{}
     currentUser.bio=newBio;
-    if(updateData.photoBase64) currentUser.photoBase64=updateData.photoBase64;
+    if(profilePhotoBase64) currentUser.photoBase64=profilePhotoBase64;
     if(currentUser.photoBase64) localStorage.setItem('yarya_user_photo',currentUser.photoBase64);
     document.getElementById('topName').textContent=currentUser.username;
     document.getElementById('topBio').textContent=newBio.substring(0,30);
@@ -2791,12 +2820,13 @@ window.saveProfile=async function(){
     await fetchAllUsers();
     await fetchAllData();
     window.closeProfile();
-    document.getElementById('readsBadge').textContent='✅ وێنە و بایۆ هاتە نووکرن';
-    document.getElementById('readsBadge').classList.add('show');
-    setTimeout(()=>document.getElementById('readsBadge').classList.remove('show'),3500);
+    const badge=document.getElementById('readsBadge');
+    if(badge){ badge.textContent='✅ ناڤ، موبایل، وێنە و بایۆ هاتنە نووکرن - ID و کود نەگهورین'; badge.classList.add('show'); setTimeout(()=>badge.classList.remove('show'),3500); }
   }catch(e){errEl.textContent='هەلە: '+e.message;errEl.style.display='block';}
   finally{btn.disabled=false;btn.textContent='پاشکەوتکرن ✅';}
 }
+
+
 
 
 
@@ -2809,7 +2839,7 @@ async function tryAutoLogin(){
   try{
     // V28: First check if device has any account in Firestore (strict single account)
     try{
-      const deviceAccount = null; // V33: REMOVED auto-return to original - allow free login
+      const deviceAccount = await checkDeviceHasAccount(dev); // V58: Auto-return to original - 1 device = 1 account
       if(deviceAccount && !savedId){
         // Device has account but no local storage - auto login to original
         console.log('🔒 Device has original account, auto returning:', deviceAccount.username);
@@ -6449,7 +6479,7 @@ window.addEventListener('appinstalled', ()=>{
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
-    // disabled - SIMPLE - navigator.serviceWorker.register('/sw.js?v=v49-icon').then(r=>console.log('✅ SW V27 registered - کێم-مەسرەف', r.scope)).catch(e=>console.log('SW fail', e));
+    navigator.serviceWorker.register('/sw.js?v=v58').then(r=>console.log('✅ SW V58 registered', r.scope)).catch(e=>console.log('SW fail',e));
   });
 }
 
@@ -6585,11 +6615,7 @@ window.YARYA ZAXO_PLAYER = {
     if(newName.trim().toLowerCase()===current.username.toLowerCase()){ alert('ئەڤە هەمان ناڤە'); return; }
     const newMobile = prompt('ژمارا موبایلێ نوو:', current.mobile||'');
     const newBio = prompt('بایو نوو:', current.bio||'');
-    const res = await fetch('/api/firestore/users/'+encodeURIComponent(current.id||current.usernameLower), {
-      method:'PATCH',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({fields:{username:{stringValue:newName}, usernameLower:{stringValue:newName.toLowerCase()}, mobile:{stringValue:newMobile}, bio:{stringValue:newBio}}})
-    });
+    const res = await fetch('/api/rename-account', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({oldId: current.id||current.usernameLower, oldUsernameLower: current.usernameLower, newName, newPhone: newMobile, newBio, newPhoto: ''})});
     if(res.status===409){ alert('⚠️ ئەڤ ناڤە هەیە! - ناڤێ دی بکە - Blocked'); return; }
     if(res.ok){ alert('گهورین درست ✅ - ID و کود نەگهورین'); const u = {...current, username:newName, usernameLower:newName.toLowerCase(), mobile:newMobile, bio:newBio}; localStorage.setItem('yarya_user', JSON.stringify(u)); location.reload(); }
     else { alert('نەبوو ❌'); }

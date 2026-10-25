@@ -1,37 +1,18 @@
-# WAY 1 - HYBRID - YARYA ZAXO + BAZ ل سەر Contabo
-
-ئەڤە رێکا 1 یا دووماهیێ یە - یادیا بەری ژبیر بکە!
-
-## چی دکەت؟
-- YARYA ZAXO PRO V27 ل سەر Contabo (frontend)
-- Firebase Firestore هەر دمینیت (database)
-- BAZ BADINAN ژی ل گەل ل /baz/
-- هیچ کۆدێ Firebase ناهێتە گهورین!
-
-## بۆچی WAY 1؟
-- 5 دەقە دانی
-- 0 ریسک - داتابەیسا تە هەر Firebase یە
-- Hosting cost 90% کێم دبیت (Firebase Hosting گرانە)
-
-## چەوا دانی سەر Contabo؟
-
-### 1. ZIP ڤەکە
-unzip yarya-way1-final.zip -d yarya-way1
-cd yarya-way1
-
-### 2. ل سەر Contabo VPS
-apt update && apt install nodejs npm docker.io docker-compose -y
-npm install
-docker-compose up -d --build
-
-### 3. تاقی بکە
-http://IP-YA-TE:3000/        -> YARYA ZAXO
-http://IP-YA-TE:3000/admin.html -> Admin
-http://IP-YA-TE:3000/baz/    -> BAZ
-
-## تێبینی
-- firebaseConfig ل ناڤ index.html هەر وەکی خۆ مایە، دێ هەر بچیتە yarya-zaxo.firebaseapp.com
-- تەنیا hosting گواستیتە سەر Contabo
-- ئەگەر بێژیت "FULL" دێ Firebase ژی راکەین
-
-ئامادەیە! 🦅👑
+# YARYA ZAXO - V58 - ١ جیهاز = ١ ئەکاونت
+## یاسایێن نوو - V58
+- ١ جیهاز = ١ ئەکاونت - هەر جیهازەکێ تنێ ١ ئەکاونت هەیە، ٢ نابیت
+- هەر چەند هەولا ئەکاوەنتەکا نو بکەی - نابیت، خوکار دزڤریتە سەر ئەکاونتا رەسەن
+- ژمارا موبایلێ دبێت هەڤپشک بیت - باب و کور یان کچ دبێن ١ ژمارا موبایلێ بکاربینن - ئازایە
+- ناڤ نابیت دوبارە بیت - وەک ئێک ناڤ قەدەغەیە
+- ١ ئایدی، ١ کود - ناگهوریت
+- دشێی بگهوری: ناڤ، ژمارا موبایلێ، وێنە، بایۆ
+- ناشێی بگهوری: ئایدی، کود، جیهاز
+## چاوا بکاربینیت
+1. npm install
+2. npm start
+3. http://localhost:10000
+## فایل
+- server.js - سێرڤەر + یاسا
+- public/index.html - یاری
+- public/admin.html - ئەدمین
+- public/manifest.json + sw.js - PWA

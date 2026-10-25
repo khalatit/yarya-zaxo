@@ -83,7 +83,46 @@ function getCollection(col){
   }
   return db[col];
 }
+
+// ===== V58 - 1 DEVICE = 1 ACCOUNT - HELPERS =====
+function checkDuplicateName(colName, plain, currentId){
+  if(colName!=='users') return null;
+  const low = (plain.usernameLower || plain.username || '').toString().toLowerCase().trim();
+  if(!low) return null;
+  const col = getCollection('users');
+  for(const k in col){
+    if(currentId && String(k)===String(currentId)) continue;
+    const u = col[k];
+    const uLow = (u.usernameLower || u.username || '').toString().toLowerCase().trim();
+    if(uLow===low) return k;
+  }
+  return null;
+}
+function findAccountByDevice(deviceId){
+  if(!deviceId) return null;
+  const did = String(deviceId).trim();
+  if(!did) return null;
+  const col = getCollection('users');
+  for(const k in col){
+    const u = col[k];
+    if(!u) continue;
+    const last = (u.lastDeviceId||'').toString().trim();
+    const orig = (u.originalDeviceId||'').toString().trim();
+    const acc = (u.accountCreatedDevice||'').toString().trim();
+    const fp = (u.deviceFingerprint||'').toString().trim();
+    const arr = Array.isArray(u.deviceIds) ? u.deviceIds.map(x=>String(x).trim()) : [];
+    if(last===did || orig===did || acc===did || fp===did || arr.includes(did)){
+      return { id: k, ...u };
+    }
+  }
+  return null;
+}
+function extractDeviceIdFromData(d){
+  if(!d) return '';
+  return (d.lastDeviceId || d.deviceId || d.originalDeviceId || d.accountCreatedDevice || d.deviceFingerprint || (Array.isArray(d.deviceIds) && d.deviceIds[0]) || '').toString().trim();
+}
 function docToFirestore(col, id, data){
+
   return { name: `projects/yarya-zaxo/databases/(default)/documents/${col}/${encodeURIComponent(id)}`, fields: toFirestoreFields(data) };
 }
 function matchesFilter(docData, filter){
@@ -130,20 +169,22 @@ function rateLimit(req,res,next){
 // Blocked users map
 const blockedUsers = new Set();
 function checkCheatScore(req,res,next){
-  // Only for user score updates
   if(req.method==='PATCH' && req.originalUrl.includes('/api/firestore/users')){
     try{
       const fields = req.body.fields || {};
       const plain = toPlain(fields);
-  // V53: ID and code cannot be changed - remove them if trying to change
-  delete plain.id; delete plain.code; delete plain.userId;
-  // V53 duplicate name check on PATCH
-  try{ const dupId = checkDuplicateName(req.params.collection, plain, req.params.id); if(dupId){ return res.status(409).json({error:'DUPLICATE_NAME', message:'ئەڤ ناڤە هەیە - ناڤێ دی بکە'}); } }catch(e){}
-      const newScore = plain.bestScore || plain.bestScoreFree || plain.bestScoreMobile || plain.bestScoreCar || 0;
-      // If score jumps > 1000 in one request, it's cheat - reject
-      if(newScore > 10000){
-        return res.status(403).json({error:'CHEAT', message:'سکۆر گومان - Cheat'});
+      delete plain.id; delete plain.code; delete plain.userId;
+      delete plain.privateCode; delete plain.originalDeviceId; delete plain.accountCreatedDevice; delete plain.deviceFingerprint; delete plain.deviceIds; delete plain.lastDeviceId;
+      if(req.body.fields){
+        delete req.body.fields.id; delete req.body.fields.code; delete req.body.fields.userId;
+        delete req.body.fields.privateCode; delete req.body.fields.originalDeviceId; delete req.body.fields.accountCreatedDevice; delete req.body.fields.deviceFingerprint; delete req.body.fields.deviceIds; delete req.body.fields.lastDeviceId;
       }
+      let curId = null;
+      try{ const ex = extractId(req); curId = ex.id; }catch{}
+      const dupId = checkDuplicateName('users', plain, curId);
+      if(dupId){ return res.status(409).json({error:'DUPLICATE_NAME', message:'ئەڤ ناڤە هەیە - ناڤێ دی بکە - نابیت دوبارە بیت'}); }
+      const newScore = plain.bestScore || plain.bestScoreFree || plain.bestScoreMobile || plain.bestScoreCar || 0;
+      if(newScore > 10000){ return res.status(403).json({error:'CHEAT', message:'سکۆر گومان - Cheat'}); }
     }catch(e){}
   }
   next();
@@ -245,15 +286,22 @@ app.post('/api/firestore/:col', (req,res)=>{
           console.log(`[STRICT] REJECTED duplicate username: ${low} - QeDexeye!`);
           return res.status(409).json({error:'USERNAME_TAKEN', message:'ئەم ناڤە هاتیە گرتن - قەدەغەیە - ناڤەکێ دی هەلبژێرە'});
         }
-        if(phone && phone.length>=7 && uPhone===phone){
-          console.log(`[STRICT] REJECTED duplicate phone: ${phone}`);
-          return res.status(409).json({error:'PHONE_TAKEN', message:'ئەم ژمارا موبایلێ هاتیە گرتن - قەدەغەیە'});
+        /* V58: PHONE ALLOWED SHARED - باب و کور/کچ دبێت ١ ژمارا موبایلێ بکاربینن */
+      }
+      // V58: DEVICE CHECK - 1 DEVICE = 1 ACCOUNT
+      const devId = extractDeviceIdFromData(plainData);
+      if(devId){
+        const existing = findAccountByDevice(devId);
+        if(existing){
+          console.log(`[V58] BLOCKED new account on device ${devId} - already has ${existing.username}`);
+          return res.status(409).json({error:'DEVICE_ALREADY_HAS_ACCOUNT', message:'⛔ ئەڤ جیهازە ئەکاونتێ هەیە - ١ جیهاز = ١ ئەکاونت - دێ زڤریتە سەر یا رەسەن', existingId: existing.id, existingUsername: existing.username, existingUsernameLower: existing.usernameLower, existingCode: existing.privateCode || '', existingPhone: existing.phoneNumber || '', existingPhoto: existing.photoBase64 || ''});
         }
       }
       // Each account is PRIVATE - Random ID so scores are separate, not shared
       const id = 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
       // Store usernameLower as unique key but keep ID separate - so 1 name cannot be reused
-      collection[id]= {...plainData, usernameLower: low};
+      const finalDev = extractDeviceIdFromData(plainData) || '';
+      collection[id]= {...plainData, usernameLower: low, lastDeviceId: finalDev, originalDeviceId: finalDev, accountCreatedDevice: finalDev, deviceFingerprint: finalDev, deviceIds: finalDev ? [finalDev] : [], isOriginal: true};
       saveDB();
       console.log(`[STRICT] New PRIVATE account: ${low} ID=${id} - Score separate`);
       return res.json(docToFirestore(col,id,collection[id]));
@@ -272,6 +320,57 @@ app.get('/api/check-username/:low', (req,res)=>{
     const col = getCollection('users');
     const exists = Object.values(col).some(u=> (u.usernameLower||u.username||'').toString().toLowerCase().trim()===low);
     res.json({available: !exists, taken: exists, message: exists ? 'ئەم ناڤە هاتیە گرتن - قەدەغەیە' : 'ئەم ناڤە ئازایە'});
+  }catch(e){ res.status(500).json({error:e.message}); }
+});
+
+
+// --- V58: DEVICE CHECK - 1 DEVICE = 1 ACCOUNT ---
+app.get('/api/check-device/:deviceId', (req,res)=>{
+  try{
+    const dev = safeDecode(req.params.deviceId).trim();
+    const existing = findAccountByDevice(dev);
+    if(existing){
+      return res.json({hasAccount:true, taken:true, exists:true, user:{id:existing.id, username:existing.username, usernameLower:existing.usernameLower, privateCode:existing.privateCode||'', phoneNumber:existing.phoneNumber||'', photoBase64:existing.photoBase64||'', bio:existing.bio||'', bestScore:existing.bestScore||0, bestScoreFree:existing.bestScoreFree||0, bestScoreMobile:existing.bestScoreMobile||0, bestScoreCar:existing.bestScoreCar||0, deviceIds:existing.deviceIds||[], lastDeviceId:existing.lastDeviceId||'', isAdmin:existing.isAdmin||false}, message:'ئەڤ جیهازە ئەکاونتێ هەیە'});
+    }
+    return res.json({hasAccount:false, taken:false, exists:false});
+  }catch(e){ res.status(500).json({error:e.message}); }
+});
+app.get('/api/device-account/:deviceId', (req,res)=>{
+  try{
+    const dev = safeDecode(req.params.deviceId).trim();
+    const existing = findAccountByDevice(dev);
+    if(!existing) return res.status(404).json({hasAccount:false, message:'ئەڤ جیهازە ئەکاونت نینە'});
+    return res.json({hasAccount:true, user:existing});
+  }catch(e){ res.status(500).json({error:e.message}); }
+});
+app.get('/api/check-phone/:phone', (req,res)=>{
+  return res.json({available:true, taken:false, allowed:true, message:'ژمارا موبایلێ دبێت باب و کور بکاربینن - ئازایە'});
+});
+app.post('/api/rename-account', (req,res)=>{
+  try{
+    const {oldId, oldUsernameLower, newName, newPhone, newBio, newPhoto} = req.body || {};
+    const col = getCollection('users');
+    const searchLow = (oldUsernameLower || oldId || '').toString().toLowerCase().trim();
+    let foundId = null;
+    if(oldId && col[oldId]) foundId = oldId;
+    if(!foundId){ foundId = Object.keys(col).find(k=> (col[k].usernameLower||col[k].username||'').toString().toLowerCase().trim()===searchLow); }
+    if(!foundId) return res.status(404).json({error:'NOT_FOUND', message:'ئەکاونت نەهاتە دیتن'});
+    const user = col[foundId];
+    if(newName && newName.trim()){
+      const newLow = newName.trim().toLowerCase();
+      const oldLow = (user.usernameLower||user.username||'').toString().toLowerCase().trim();
+      if(newLow!==oldLow){
+        const dup = Object.keys(col).find(k=> k!==foundId && (col[k].usernameLower||col[k].username||'').toString().toLowerCase().trim()===newLow);
+        if(dup) return res.status(409).json({error:'USERNAME_TAKEN', message:'ئەڤ ناڤە هاتیە گرتن - قەدەغەیە - ناڤێ دی بکە'});
+        user.username = newName.trim();
+        user.usernameLower = newLow;
+      }
+    }
+    if(newPhone!==undefined) user.phoneNumber = newPhone ? String(newPhone).trim() : user.phoneNumber;
+    if(newBio!==undefined) user.bio = newBio;
+    if(newPhoto) user.photoBase64 = newPhoto;
+    saveDB();
+    return res.json({ok:true, user});
   }catch(e){ res.status(500).json({error:e.message}); }
 });
 
@@ -407,6 +506,7 @@ app.patch(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
     const collection = getCollection(col);
     const plainData = toPlain(req.body.fields || {});
     if(!collection[id]) collection[id]={};
+    if(col==='users'){ delete plainData.privateCode; delete plainData.originalDeviceId; delete plainData.accountCreatedDevice; delete plainData.deviceFingerprint; delete plainData.deviceIds; delete plainData.lastDeviceId; delete plainData.id; delete plainData.code; delete plainData.userId; const dupId = checkDuplicateName('users', plainData, id); if(dupId){ return res.status(409).json({error:'DUPLICATE_NAME', message:'ئەڤ ناڤە هەیە - نابیت دوبارە بیت'}); } }
     Object.assign(collection[id], plainData);
     if(col==='settings' && id==='config'){ collection[id]._version = (collection[id]._version||0)+1; collection[id]._updatedAt = Date.now(); }
     saveDB();
