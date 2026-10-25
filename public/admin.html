@@ -1879,43 +1879,6 @@ window.loadWinners = async function(){
 
 init();
 
-
-// ===== V58 FIX - Buttons that were not defined - 2 buttons in Players + Shop =====
-window.v53EditPlayer = async function(id, username, bio){
-  const newName = prompt('ناڤێ نوو (ID و کود ناهێتە گهورین):', username||'');
-  if(newName===null) return;
-  const newBio = prompt('بایو نوو:', bio||'');
-  if(newBio===null) return;
-  try{
-    await updateDoc(doc(db,'users',id), {username:newName.trim(), usernameLower:newName.trim().toLowerCase(), bio:newBio});
-    alert('✅ گهورا');
-    if(typeof loadPlayers==='function') loadPlayers();
-  }catch(e){ alert('❌ '+e.message); }
-};
-window.v53DeletePlayer = async function(id, username){
-  if(!confirm('دڵنیای دێ یاریکەرێ '+ (username||id) + ' ژێبی؟ - ئەڤە ناهێتە ڤەگەراندن')) return;
-  try{
-    await deleteDoc(doc(db,'users',id));
-    alert('✅ ژێبرا');
-    if(typeof loadPlayers==='function') loadPlayers();
-  }catch(e){ alert('❌ '+e.message); }
-};
-// Aliases for old names - so old cached buttons also work
-window.editPlayer = window.v53EditPlayer;
-window.deletePlayer = window.v53DeletePlayer;
-window.showPlayer = function(id){
-  const u = (window.allPlayers||[]).find(p=>p.id===id) || (typeof allPlayers!=='undefined' ? allPlayers.find(p=>p.id===id) : null);
-  if(u) alert('👤 '+ (u.username||u.displayName||id) + '\n📱 ' + (u.phoneNumber||u.phone||'') + '\n🏆 ' + (u.bestScore||0) + '\n📝 ' + (u.bio||''));
-  else alert('یاریکەر: '+id);
-};
-window.openShop = function(id){
-  const s = (typeof allShops!=='undefined' ? allShops.find(x=>x.id===id) : null);
-  if(s) alert('🏪 '+ (s.shopName||id) + '\n👤 ' + (s.ownerName||'') + '\n📱 ' + (s.phone||''));
-  else { if(typeof switchTab==='function') switchTab('shops'); }
-};
-window.loadPlayers = loadPlayers;
-window.loadSocialLinksAdmin = loadSocialLinksAdmin;
-
 </script>
 
 </body>
