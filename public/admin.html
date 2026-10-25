@@ -1083,6 +1083,7 @@ window.deleteShop = async function(id){
 };
 
 async function loadPlayers(){
+  try{ await fetch('/api/fix-missing-device'); }catch{}
   const tbody=document.getElementById('playersTable');
   tbody.innerHTML='<tr><td colspan="7" class="loading">بار دبیت</td></tr>';
   try{
@@ -1102,12 +1103,13 @@ function renderPlayers(players){
     else if(u.lastSeen?.seconds) lastSeen=new Date(u.lastSeen.seconds*1000);
     else if(u.lastLogin?.toDate) lastSeen=u.lastLogin.toDate();
     const online = lastSeen && (new Date()-lastSeen)<10*60*1000;
-    const deviceId = u.lastDeviceId || u.deviceFingerprint || (u.deviceIds && u.deviceIds[0]) || 'نەدیار';
+    const deviceId = u.lastDeviceId || u.deviceFingerprint || u.originalDeviceId || u.accountCreatedDevice || u.deviceId || (u.deviceIds && u.deviceIds[0]) || u.id || 'نەدیار';
+    const docIdShow = u.id || '';
     const isBlocked = u.isBlocked===true;
     const tr=document.createElement('tr');
     tr.style.background = isBlocked ? 'rgba(212,16,31,0.08)' : '';
     tr.innerHTML=`
-      <td><div style="display:flex;gap:10px;align-items:center"><div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1a1a3a,#2a2a5a);overflow:hidden;display:flex;align-items:center;justify-content:center;border:2px solid ${isBlocked?'#D4101F':'rgba(247,198,0,0.2)'};position:relative">${u.photoURL?`<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover">`:(u.displayName||u.username||'👤').charAt(0).toUpperCase()}${isBlocked?'<span style="position:absolute;bottom:-4px;right:-4px;background:#D4101F;color:#fff;font-size:8px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid #000">⛔</span>':''}</div><div><div style="font-weight:800;display:flex;align-items:center;gap:6px">${escapeHtml(u.displayName||u.username||'بێ ناڤ')} ${isBlocked?'<span style="background:#D4101F;color:#fff;padding:2px 6px;border-radius:999px;font-size:8px">بلوک</span>':''}</div><div style="font-size:10px;color:rgba(255,255,255,0.5)">@${u.username||''}</div><div style="font-size:9px;color:rgba(255,255,255,0.35);margin-top:2px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${deviceId}">📱 ${deviceId.substring(0,18)}</div></div></div></td>
+      <td><div style="display:flex;gap:10px;align-items:center"><div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1a1a3a,#2a2a5a);overflow:hidden;display:flex;align-items:center;justify-content:center;border:2px solid ${isBlocked?'#D4101F':'rgba(247,198,0,0.2)'};position:relative">${u.photoURL?`<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover">`:(u.displayName||u.username||'👤').charAt(0).toUpperCase()}${isBlocked?'<span style="position:absolute;bottom:-4px;right:-4px;background:#D4101F;color:#fff;font-size:8px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid #000">⛔</span>':''}</div><div><div style="font-weight:800;display:flex;align-items:center;gap:6px">${escapeHtml(u.displayName||u.username||'بێ ناڤ')} ${isBlocked?'<span style="background:#D4101F;color:#fff;padding:2px 6px;border-radius:999px;font-size:8px">بلوک</span>':''}</div><div style="font-size:10px;color:rgba(255,255,255,0.5)">@${u.username||''}</div><div style="font-size:9px;color:rgba(255,255,255,0.35);margin-top:2px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${deviceId}">📱 ${deviceId.substring(0,22)}</div><div style="font-size:8px;color:#F7C600;margin-top:2px">🆔 ${docIdShow}</div></div></div></td>
       <td style="color:#7CFC9A;font-weight:800">${u.bestScoreFree||u.bestScore||0}</td>
       <td style="color:#8b8cff;font-weight:800">${u.bestScoreMobile||0} ${u.unlockedMobile?'✅':''}</td>
       <td style="color:#F7C600;font-weight:800">${u.bestScoreCar||0} ${u.unlockedCar?'✅':''}</td>
@@ -1231,10 +1233,15 @@ window.deleteBlockedDevice = async function(deviceId){
 window.blockPlayerDevice = async function(playerId){
   const player = allPlayers.find(p=>p.id===playerId);
   if(!player){ alert('یاریکەر نەهاتە دیتن'); return; }
-  const deviceId = player.lastDeviceId || player.deviceFingerprint || (player.deviceIds && player.deviceIds[0]) || '';
+  const deviceId = player.lastDeviceId || player.deviceFingerprint || player.originalDeviceId || player.accountCreatedDevice || player.deviceId || (player.deviceIds && player.deviceIds[0]) || player.id || '';
   if(!deviceId){
-    const manualId = prompt(`ئایدیێ جیهازێ یاریکەرێ ${player.username||player.id} نەهاتە دیتن\nئایدیێ ب دەست بنڤیسە (ژ Firestore users->lastDeviceId):`);
-    if(!manualId) return;
+    const manualId = prompt(`ئایدیێ جیهازێ یاریکەرێ ${player.username||player.id} نەهاتە دیتن\nئایدیێ ب دەست بنڤیسە (ژ Firestore users->lastDeviceId) - یان Enter بکە بۆ بلوک ب ناڤی:`);
+    if(!manualId){
+      // V58.1: No device ID - block by username/ID directly
+      if(!confirm(`دڵنیای دێ ${player.username} بلوک کەی بێ جیهاز؟\nدێ isBlocked=true بیت`)) return;
+      try{ await updateDoc(doc(db,'users',playerId), {isBlocked:true, blockedAt: serverTimestamp()}); alert('✅ '+player.username+' هاتە بلوک کرن (بێ جیهاز)'); loadPlayers(); }catch(e){ alert('❌ '+e.message); }
+      return;
+    }
     // Use manual
     if(!confirm(`دڵنیای دێ یاریکەرێ ${player.username} بلوک کەی؟\nجیهاز: ${manualId}\n⛔ دائێدی کار ناکەت`)) return;
     try{
@@ -1878,43 +1885,6 @@ window.loadWinners = async function(){
 
 
 init();
-
-
-// ===== V58 FIX - Buttons that were not defined - 2 buttons in Players + Shop =====
-window.v53EditPlayer = async function(id, username, bio){
-  const newName = prompt('ناڤێ نوو (ID و کود ناهێتە گهورین):', username||'');
-  if(newName===null) return;
-  const newBio = prompt('بایو نوو:', bio||'');
-  if(newBio===null) return;
-  try{
-    await updateDoc(doc(db,'users',id), {username:newName.trim(), usernameLower:newName.trim().toLowerCase(), bio:newBio});
-    alert('✅ گهورا');
-    if(typeof loadPlayers==='function') loadPlayers();
-  }catch(e){ alert('❌ '+e.message); }
-};
-window.v53DeletePlayer = async function(id, username){
-  if(!confirm('دڵنیای دێ یاریکەرێ '+ (username||id) + ' ژێبی؟ - ئەڤە ناهێتە ڤەگەراندن')) return;
-  try{
-    await deleteDoc(doc(db,'users',id));
-    alert('✅ ژێبرا');
-    if(typeof loadPlayers==='function') loadPlayers();
-  }catch(e){ alert('❌ '+e.message); }
-};
-// Aliases for old names - so old cached buttons also work
-window.editPlayer = window.v53EditPlayer;
-window.deletePlayer = window.v53DeletePlayer;
-window.showPlayer = function(id){
-  const u = (window.allPlayers||[]).find(p=>p.id===id) || (typeof allPlayers!=='undefined' ? allPlayers.find(p=>p.id===id) : null);
-  if(u) alert('👤 '+ (u.username||u.displayName||id) + '\n📱 ' + (u.phoneNumber||u.phone||'') + '\n🏆 ' + (u.bestScore||0) + '\n📝 ' + (u.bio||''));
-  else alert('یاریکەر: '+id);
-};
-window.openShop = function(id){
-  const s = (typeof allShops!=='undefined' ? allShops.find(x=>x.id===id) : null);
-  if(s) alert('🏪 '+ (s.shopName||id) + '\n👤 ' + (s.ownerName||'') + '\n📱 ' + (s.phone||''));
-  else { if(typeof switchTab==='function') switchTab('shops'); }
-};
-window.loadPlayers = loadPlayers;
-window.loadSocialLinksAdmin = loadSocialLinksAdmin;
 
 </script>
 
