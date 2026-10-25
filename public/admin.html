@@ -1882,6 +1882,9 @@ window.loadWinners = async function(){
 init();
 
 
+// ===== V58.2 INSTANT =====
+window.adminScoreControl = async function(pid, type, action, amount){ const pwd=window._adminPwd||localStorage.getItem('adminPwd')||''; let amt=amount; if(action==='set'){ const v=prompt('سکۆرێ نوو:', '0'); if(v===null) return; amt=parseInt(v)||0; } if(action==='reset' && !confirm('سفر بکەی؟')) return; if(action==='delete' && !confirm('ژێبی؟')) return; try{ const res=await fetch('/api/admin/score-control',{method:'POST',headers:{'Content-Type':'application/json','x-admin-password':pwd},body:JSON.stringify({playerId:pid,type,action,amount:amt})}); const d=await res.json(); if(!res.ok) throw new Error(d.error); const p=allPlayers.find(x=>x.id===pid); if(p && action!=='delete'){ p.bestScore=d.bestScore; p.bestScoreFree=d.bestScoreFree; p.bestScoreMobile=d.bestScoreMobile; p.bestScoreCar=d.bestScoreCar; } if(action==='delete') allPlayers=allPlayers.filter(x=>x.id!==pid); renderPlayers(allPlayers); alert('✅'); }catch(e){ alert('❌ '+e.message); } };
+window.resetPlayer=async function(id,t){ return window.adminScoreControl(id,t,'reset',0); };
 // ===== V58 FIX - Buttons that were not defined =====
 window.v53EditPlayer = async function(id, username, bio){
   const newName = prompt('ناڤێ نوو (ID و کود ناهێتە گهورین):', username||'');

@@ -2956,7 +2956,7 @@ function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'
 
 let gameCanvas,gameCtx,gameState='ready',bird={x:80,y:180,vy:0,r:18,rot:0},pipes=[],frame=0,score=0,bestScore=0,bestScoreFree=0,bestScoreMobile=0,bestScoreCar=0,currentRankingMode='free',pipeGap=155,pipeWidth=66,gravity=0.45,jumpVel=-8.8,pipeSpeed=2.2,gameLastTime=0; window.currentRankingMode='free'; window.bestScoreFree=0; window.bestScoreMobile=0; window.bestScoreCar=0;
 const GROUND_RATIO=0.92;
-function startGame(){
+function startGame(){ try{ if(window.currentUser && window.currentUser.isAdmin){ window.yaryaWinnerFreezeActive=false; localStorage.removeItem('yarya_winner_freeze'); if(typeof finalFreezeActive!=='undefined') finalFreezeActive=false; } }catch(e){}
   // YARYA FIX: If user re-entered after freeze, clear freeze
   try{
     const wasFrozen = window.yaryaWinnerFreezeActive || localStorage.getItem('yarya_winner_freeze')==='true';
@@ -3424,11 +3424,8 @@ setInterval(()=>{
     const btn=document.getElementById('managerBtn'); 
     if(!btn) return;
     const cu = currentUser || window.currentUser;
-    if(cu && (cu.role==='manager' || cu.isManager===true || cu.role==='owner')){
-      btn.style.display='flex'; 
-    } else {
-      if(btn) btn.style.display='none';
-    }
+    // V58.6: Don't hide here - checkShopkeeperStatus is single source. If we hide every 800ms before check finishes, button flickers 1s then disappears.
+    if(window._shopkeeperChecked===true && window._isShopkeeperVerified===false && !(cu && cu.isAdmin===true)){ if(btn) btn.style.display='none'; } else if(cu && (cu.isAdmin===true || cu.role==='owner' || cu.isManager===true || cu.role==='manager')){ if(btn) btn.style.display='flex'; }
   }catch(e){} 
 }, 800);
 
@@ -3665,9 +3662,10 @@ async function proCheckWinners(){
   try{
     const lastHandled = localStorage.getItem('yarya_last_handled_free');
     const lastEnd = localStorage.getItem('yarya_last_end_free');
-    // V58.5: If we already handled this exact endAt (same cycle), never handle again until endAt changes
-    if(lastHandled && proConfig.freeEndAt && lastEnd === proConfig.freeEndAt.toString()){
-      return;
+    if(lastHandled && (Date.now() - parseInt(lastHandled)) < 120000){
+      if(proConfig.freeEndAt && lastEnd === proConfig.freeEndAt.toString()){
+        return;
+      }
     }
   }catch(e){}
   const checkFreeze = (endAt, type)=>{
@@ -3865,13 +3863,9 @@ async function centralizedPickWinner(type){
       const winnerRef = doc(db, 'winners', cycleId);
       const existingSnap = await getDoc(winnerRef);
       if(existingSnap.exists()){
+        console.log('🏆 Winner already exists for cycle', cycleId, '- showing existing');
         const data = existingSnap.data();
-        // V58.5: Only show existing winner if not already shown for this cycle
-        if(localStorage.getItem('yarya_winner_shown_' + cycleId)==='1'){
-          console.log('⏭️ Winner already shown for cycle', cycleId, 'skip');
-          return;
-        }
-        console.log('🏆 Winner already exists for cycle', cycleId, '- showing once');
+        // Show existing winner for all
         showCentralWinner(data.type||type, data.winnerName, data.winnerScore, data.prize||proConfig[type+'Prize']);
         return;
       }
@@ -4114,12 +4108,7 @@ function startCentralWinnerListener(){
       const diff = now - updatedAt;
       // Only auto-show if very recent and not already shown
       const lastShown = localStorage.getItem('yarya_last_central_shown_'+lastType);
-      if(lastShown && (now - parseInt(lastShown)) < 60000) return;
-      // V58.5: If this cycle already shown, skip
-      try{
-        const cycleC = lastType + '_' + (proConfig && proConfig[lastType+'EndAt'] ? Math.floor(proConfig[lastType+'EndAt'].getTime()/1000) : '');
-        if(cycleC && localStorage.getItem('yarya_winner_shown_' + cycleC)==='1') { console.log('⏭️ Central winner already shown for cycle', cycleC); return; }
-      }catch(e){}
+      if(lastShown && (now - parseInt(lastShown)) < 30000) return;
       if(diff < 15000 && diff > 0){
         const winner = data[lastType];
         if(winner && winner.name){
@@ -4343,24 +4332,7 @@ async function autoResetRanking(type){
 }
 
 function proShowWinnerModal(name, score, prize, icon, type){
-  // V58.5: Don't repeat same winner for same cycle
-  try{
-    const cycle = type + '_' + (proConfig && proConfig[type+'EndAt'] ? Math.floor(proConfig[type+'EndAt'].getTime()/1000) : 'now');
-    const shownKey = 'yarya_winner_shown_' + cycle;
-    const modal = document.getElementById('winnerModalPRO');
-    // If modal already open with same name, don't re-show
-    if(modal && modal.classList.contains('show')){
-      const cur = document.getElementById('winnerNamePRO')?.textContent;
-      if(cur === name){ console.log('⏭️ Winner already showing, skip repeat:', name); return; }
-    }
-    // If we already showed this cycle and user closed it, don't show again until next cycle
-    if(localStorage.getItem(shownKey) === '1' && !window._forceShowWinner){
-      console.log('⏭️ Winner already shown for cycle', cycle, 'skip repeat:', name); return;
-    }
-    localStorage.setItem(shownKey, '1');
-    localStorage.setItem('yarya_winner_last_cycle', cycle);
-    window._lastWinnerCycle = cycle;
-  }catch(e){}
+  try{ const cycle = type + '_' + (proConfig && proConfig[type+'EndAt'] ? Math.floor(proConfig[type+'EndAt'].getTime()/1000) : 'now'); const shownKey='yarya_winner_shown_'+cycle; const modal=document.getElementById('winnerModalPRO'); if(modal && modal.classList.contains('show')){ const cur=document.getElementById('winnerNamePRO')?.textContent; if(cur===name){ console.log('⏭️ Winner already showing, skip'); return; } } if(localStorage.getItem(shownKey)==='1'){ console.log('⏭️ Winner already shown for cycle', cycle); return; } localStorage.setItem(shownKey,'1'); }catch(e){}
   const modal = document.getElementById('winnerModalPRO');
   if(!modal) return;
   modal.classList.remove('background-mode');
@@ -4377,14 +4349,10 @@ function proShowWinnerModal(name, score, prize, icon, type){
 
   // ===== YARYA ZAXO FIX: FREEZE GAME FOR ALL WHEN WINNER SHOWN (original func) =====
   try{
-    // V58.5: Admin never frozen
-    const _isAdminW = window.currentUser && window.currentUser.isAdmin===true;
-    if(!_isAdminW){
-      window.yaryaWinnerFreezeActive = true;
-      window.yaryaWinnerFreezeType = type;
-      window.yaryaWinnerName = name;
-      localStorage.setItem('yarya_winner_freeze', 'true');
-    }
+    window.yaryaWinnerFreezeActive = true;
+    window.yaryaWinnerFreezeType = type;
+    window.yaryaWinnerName = name;
+    localStorage.setItem('yarya_winner_freeze', 'true');
     localStorage.setItem('yarya_winner_freeze_ts', Date.now().toString());
     localStorage.setItem('yarya_winner_freeze_name', name);
     if(typeof gameState !== 'undefined'){
@@ -4459,7 +4427,7 @@ function proRestoreFromBackground(){
 }
 
 function proHideWinnerModal(){
-  console.log('X clicked - hiding winner modal + UNFREEZE V58.5');
+  console.log('X clicked - hiding winner modal but KEEPING FREEZE');
   const modal = document.getElementById('winnerModalPRO');
   if(modal){
     modal.classList.remove('show');
@@ -4471,17 +4439,7 @@ function proHideWinnerModal(){
   if(typeof proWinnerInterval !== 'undefined' && proWinnerInterval) clearInterval(proWinnerInterval);
   if(typeof window.proWinnerInterval !== 'undefined' && window.proWinnerInterval) clearInterval(window.proWinnerInterval);
   try{ localStorage.removeItem('yarya_winner_background'); }catch(e){}
-  // V58.5: Clear freeze when user closes winner modal - game can be played again
-  try{
-    window.yaryaWinnerFreezeActive = false; window.yaryaWinnerName = null;
-    if(typeof finalFreezeActive !== 'undefined') finalFreezeActive = false;
-    if(typeof gameState !== 'undefined' && gameState==='winnerFrozen') gameState='ready';
-    localStorage.removeItem('yarya_winner_freeze'); localStorage.removeItem('yarya_winner_freeze_name'); localStorage.removeItem('yarya_winner_freeze_score');
-    const fm = document.getElementById('yaryaFreezeMsg'); if(fm) fm.remove();
-    document.querySelectorAll('.modeBtnPRO, #proModeFree, #proModeMobile, #proModeCar').forEach(b=>{ if(b){ b.style.opacity=''; b.style.pointerEvents=''; } });
-    console.log('✅ Freeze cleared after closing winner modal - game playable');
-  }catch(e){}
-  console.log('🔓 Freeze cleared:', window.yaryaWinnerFreezeActive);
+  try{ window.yaryaWinnerFreezeActive=false; window.yaryaWinnerName=null; if(typeof finalFreezeActive!=='undefined') finalFreezeActive=false; if(typeof gameState!=='undefined' && gameState==='winnerFrozen') gameState='ready'; localStorage.removeItem('yarya_winner_freeze'); localStorage.removeItem('yarya_winner_freeze_name'); const fm=document.getElementById('yaryaFreezeMsg'); if(fm) fm.remove(); document.querySelectorAll('.modeBtnPRO, #proModeFree, #proModeMobile, #proModeCar').forEach(b=>{ if(b){ b.style.opacity=''; b.style.pointerEvents=''; } }); }catch(e){} console.log('🔓 Freeze cleared after close');
 }
 
 
@@ -5273,7 +5231,7 @@ window.fetchLeaderboard = async function(){
 <!-- REMOVED V12 SCRIPT -->
 <style>
 #profileBtn, #userBtn, #fullscreenBtn { display: none !important; }
-#managerBtn { order: -1; display: none; } /* V58.4 JS controls */
+/* V58.6 REMOVED !important - JS controls managerBtn */
 @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 </style>
 
@@ -5565,7 +5523,7 @@ window.searchPlayerForManager = async function(){
 };
 
 // ===== NEW: SEARCH BY PRIVATE CODE - هەر موبایلەکێ کودەکێ جدا =====
-window.searchPlayerByCode = async function(){ const _ci=document.getElementById('managerCodeSearchInput').value.trim(); if(_ci){ try{ const _r=await fetch(`/api/lookup-by-code/${encodeURIComponent(_ci)}`,{cache:'no-store'}); const _d=await _r.json(); if(_r.ok && _d.username){ document.getElementById('managerSearchResult').innerHTML=`<div style='background:rgba(247,198,0,0.15);padding:14px;border-radius:16px'><div style='color:#fff;font-weight:900'>${_d.username} - ✅ کود دۆزرا</div></div>`; return; } }catch(e){} }
+window.searchPlayerByCode = async function(){ const _ci=document.getElementById('managerCodeSearchInput').value.trim(); if(_ci){ try{ const _r=await fetch(`/api/lookup-by-code/${encodeURIComponent(_ci)}`,{cache:'no-store'}); const _d=await _r.json(); if(_r.ok && _d.username){ document.getElementById('managerSearchResult').innerHTML=`<div style='background:rgba(247,198,0,0.15);border:1.5px solid rgba(247,198,0,0.3);border-radius:16px;padding:14px'><div style='color:#fff;font-weight:900'>${_d.username} - ✅ کود دۆزرا</div><div style='color:rgba(255,255,255,0.7)'>🔑 ${_d.privateCode} | سکۆر ${_d.bestScore}</div><div style='display:flex;gap:8px;margin-top:10px'><button onclick="unlockForPlayer('${_d.id}','mobile')" style='flex:1;height:36px;background:#5B5CFF;color:#fff;border:0;border-radius:10px;font-weight:800'>📱 موبایل</button><button onclick="unlockForPlayer('${_d.id}','car')" style='flex:1;height:36px;background:#F7C600;color:#000;border:0;border-radius:10px;font-weight:800'>🚗 ترومبێل</button></div></div>`; return; } }catch(e){} }
   const codeInput = document.getElementById('managerCodeSearchInput').value.trim();
   if(!codeInput||codeInput.length<4){ alert('🔑 کودی بنڤیسە - 6 ژمارە'); return; }
   const resultEl = document.getElementById('managerSearchResult');
@@ -5678,7 +5636,7 @@ setInterval(async ()=>{
     const low = (window.currentUser.role||'').toLowerCase();
     if(low==='manager' || window.currentUser.isManager){
       const btn=document.getElementById('managerBtn');
-      if(btn) btn.style.display='flex';
+      if(btn){ btn.style.display='flex'; window._isShopkeeperVerified=true; window._shopkeeperChecked=true; }
     }
   }catch(e){}
 }, 3000);
@@ -7721,13 +7679,6 @@ window.closeAccountsModal = function(event){
 };
 
 console.log('✅ ULTIMATE FIX v3 ready - winner locked, no zero, no zoom');
-
-// V58.4 shopkeeper + unfreeze
-window._isShopkeeperVerified=false; window._shopkeeperChecked=false; window._freezeStartedAt=0;
-async function checkShopkeeperStatus(){ try{ const cu=window.currentUser||currentUser; if(!cu) return; const btn=document.getElementById('managerBtn'); if(cu.isAdmin===true || cu.role==='owner' || (cu.usernameLower||'').toLowerCase()==='khalat'){ window._isShopkeeperVerified=true; window._shopkeeperChecked=true; if(btn) btn.style.display='flex'; return; } if(cu.isManager===true || cu.role==='manager'){ window._isShopkeeperVerified=true; window._shopkeeperChecked=true; if(btn) btn.style.display='flex'; return; } try{ const qb={structuredQuery:{from:[{collectionId:'shopkeepers'}],where:{fieldFilter:{field:{fieldPath:'username'},op:'EQUAL',value:{stringValue:(cu.usernameLower||cu.username||'').toLowerCase()}}},limit:1}}; const res=await fetch('/api/firestore-query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(qb)}); const data=await res.json(); const isShop=data&&data.length>0&&data[0].document; window._shopkeeperChecked=true; if(isShop){ window._isShopkeeperVerified=true; if(btn) btn.style.display='flex'; } else { window._isShopkeeperVerified=false; if(btn) btn.style.display='none'; } }catch(e){} }catch(e){} }
-window.checkShopkeeperStatus=checkShopkeeperStatus; setTimeout(checkShopkeeperStatus,1200); setInterval(checkShopkeeperStatus,6000);
-window.forceUnfreeze=function(){ try{ window.yaryaWinnerFreezeActive=false; if(typeof finalFreezeActive!=='undefined') finalFreezeActive=false; if(typeof gameState!=='undefined' && gameState==='winnerFrozen') gameState='ready'; localStorage.removeItem('yarya_winner_freeze'); const ov=document.getElementById('finalFreezeOverlay'); if(ov) ov.classList.remove('show'); fetch('/api/admin/unfreeze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})}).catch(()=>{}); alert('✅ یاری هاتە ڤەکرن'); }catch(e){} };
-
 </script>
 
 </html>
