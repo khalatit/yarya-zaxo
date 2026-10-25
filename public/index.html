@@ -3423,8 +3423,14 @@ setInterval(()=>{
     const btn=document.getElementById('managerBtn'); 
     if(!btn) return;
     const cu = currentUser || window.currentUser;
-    if(cu && (cu.role==='manager' || cu.isManager===true || cu.role==='owner')){
-      btn.style.display='flex'; 
+    // V58.3: Strict - only show for shopkeepers verified via shopkeepers collection or isManager+role, and hide for normal players
+    if(cu && (cu.isAdmin===true || cu.role==='owner')){
+      // Admin/Owner can also see shop button to test
+      btn.style.display='flex';
+    } else if(cu && (cu.role==='manager' || cu.isManager===true)){
+      // Check if shopkeeper doc exists - if we haven't verified yet, keep hidden until verified by checkShopkeeperStatus
+      if(window._isShopkeeperVerified===true) btn.style.display='flex';
+      else btn.style.display='none';
     } else {
       if(btn) btn.style.display='none';
     }
@@ -5234,7 +5240,7 @@ window.fetchLeaderboard = async function(){
 <!-- REMOVED V12 SCRIPT -->
 <style>
 #profileBtn, #userBtn, #fullscreenBtn { display: none !important; }
-#managerBtn { order: -1 !important; display: flex !important; }
+#managerBtn { order: -1; display: none; } /* V58.3: Only shopkeepers see it - JS controls display */
 @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 </style>
 
@@ -5485,7 +5491,8 @@ window.loadMyShopInfoNew = async function(){
       }
     }catch(e){}
     const mgrBtn = document.getElementById('managerBtn');
-    if(mgrBtn) mgrBtn.style.display='flex';
+    // V58.3: Only show if this user is actually a shopkeeper (doc exists) - not for everyone
+    if(mgrBtn) mgrBtn.style.display='flex'; // This line only runs if we already found shop doc above - loadMyShopInfoNew already checked shopkeepers collection
   }catch(e){ console.error(e); document.getElementById('myShopInfo').innerHTML='<div style="color:#ff8a8a">❌ '+e.message+'</div>'; }
 };
 
@@ -5532,16 +5539,11 @@ window.searchPlayerByCode = async function(){
   const resultEl = document.getElementById('managerSearchResult');
   resultEl.innerHTML='<div style="text-align:center;padding:10px;color:#F7C600">⏳ گەڕان ب کودی '+codeInput+'...</div>';
   try{
-    const qUrl = `/api/firestore-query`;
-    const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'privateCode'}, op:'EQUAL', value:{stringValue: codeInput}}}, limit:5 } };
-    const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
-    const data = await res.json();
-    if(!data || data.length===0 || !data[0].document){ resultEl.innerHTML='<div style="color:#ff8a8a;text-align:center;padding:10px;background:rgba(212,16,31,0.1);border-radius:10px">❌ ئەڤ کودە نەهاتە دیتن<br><small>کودا '+codeInput+' نینە</small></div>'; return; }
-    const doc = data[0].document;
-    const f = doc.fields||{};
-    const getStr = (k)=> f[k]?.stringValue||'';
-    const getBool = (k)=> f[k]?.booleanValue||false;
-    const player = { id: doc.name.split('/').pop(), username: getStr('username'), usernameLower: getStr('usernameLower'), bestScore: parseInt(f.bestScore?.integerValue||'0'), bestScoreFree: parseInt(f.bestScoreFree?.integerValue||'0'), bestScoreMobile: parseInt(f.bestScoreMobile?.integerValue||'0'), bestScoreCar: parseInt(f.bestScoreCar?.integerValue||'0'), phoneNumber: getStr('phoneNumber'), privateCode: getStr('privateCode'), unlockedMobile: getBool('unlockedMobile'), unlockedCar: getBool('unlockedCar') };
+    // V58.3: Use dedicated lookup endpoint - works even if field name differs
+    const res = await fetch(`/api/lookup-by-code/${encodeURIComponent(codeInput)}`, {cache:'no-store'});
+    const playerData = await res.json();
+    if(!res.ok || !playerData || !playerData.username){ resultEl.innerHTML='<div style="color:#ff8a8a;text-align:center;padding:10px;background:rgba(212,16,31,0.1);border-radius:10px">❌ ئەڤ کودە نەهاتە دیتن<br><small>کودا '+codeInput+' نینە - یاریکەر کودا خۆ ژ پروفایلێ ببینیت</small></div>'; return; }
+    const player = { id: playerData.id, username: playerData.username, usernameLower: playerData.usernameLower, bestScore: playerData.bestScore||0, bestScoreFree: playerData.bestScoreFree||0, bestScoreMobile: playerData.bestScoreMobile||0, bestScoreCar: playerData.bestScoreCar||0, phoneNumber: playerData.phoneNumber||'', privateCode: playerData.privateCode||codeInput, unlockedMobile: !!playerData.unlockedMobile, unlockedCar: !!playerData.unlockedCar };
     const isMobileLockedByAdmin = (typeof proConfig !== 'undefined' && proConfig.mobileLocked);
     const isCarLockedByAdmin = (typeof proConfig !== 'undefined' && proConfig.carLocked);
     const canMobile = !player.unlockedMobile && myShopkeeperDoc && myShopkeeperDoc.mobileQuota>0 && !myShopkeeperDoc.isLocked && !isMobileLockedByAdmin;
@@ -5637,7 +5639,7 @@ setInterval(async ()=>{
   try{
     if(!window.currentUser) return;
     const low = (window.currentUser.role||'').toLowerCase();
-    if(low==='manager' || window.currentUser.isManager){
+    if((low==='manager' || window.currentUser.isManager) && window._isShopkeeperVerified===true){
       const btn=document.getElementById('managerBtn');
       if(btn) btn.style.display='flex';
     }
@@ -7682,6 +7684,22 @@ window.closeAccountsModal = function(event){
 };
 
 console.log('✅ ULTIMATE FIX v3 ready - winner locked, no zero, no zoom');
+
+// ===== V58.2 INSTANT LEADERBOARD =====
+let _lbVersion = 0;
+async function checkLbVersion(){
+  try{
+    const r = await fetch('/api/leaderboard-version', {cache:'no-store'});
+    const d = await r.json();
+    if(d.version && d.version !== _lbVersion){
+      if(_lbVersion!==0){ if(typeof loadLeaderboard==='function') loadLeaderboard(); if(typeof fetchLeaderboard==='function') fetchLeaderboard(); }
+      _lbVersion = d.version;
+    }
+  }catch{}
+}
+setInterval(checkLbVersion, 4000);
+checkLbVersion();
+
 </script>
 
 </html>
