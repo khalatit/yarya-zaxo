@@ -2982,7 +2982,7 @@ function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'
 
 let gameCanvas,gameCtx,gameState='ready',bird={x:80,y:180,vy:0,r:18,rot:0},pipes=[],frame=0,score=0,bestScore=0,bestScoreFree=0,bestScoreMobile=0,bestScoreCar=0,currentRankingMode='free',pipeGap=155,pipeWidth=66,gravity=0.45,jumpVel=-8.8,pipeSpeed=2.2,gameLastTime=0; window.currentRankingMode='free'; window.bestScoreFree=0; window.bestScoreMobile=0; window.bestScoreCar=0;
 const GROUND_RATIO=0.92;
-function startGame(){ try{ if(window.currentUser && window.currentUser.isAdmin){ window.yaryaWinnerFreezeActive=false; localStorage.removeItem('yarya_winner_freeze'); if(typeof finalFreezeActive!=='undefined') finalFreezeActive=false; } try{ window._showShopBtnIfCached && window._showShopBtnIfCached(); }catch(e){} }catch(e){}
+function startGame(){
   // YARYA FIX: If user re-entered after freeze, clear freeze
   try{
     const wasFrozen = window.yaryaWinnerFreezeActive || localStorage.getItem('yarya_winner_freeze')==='true';
@@ -3450,11 +3450,8 @@ setInterval(()=>{
     const btn=document.getElementById('managerBtn'); 
     if(!btn) return;
     const cu = currentUser || window.currentUser;
-    // V58.7: NEVER hide if check not done or failed (502). Only hide if we are SURE not shopkeeper.
     const isKhalat = cu && ((cu.usernameLower||'').toLowerCase()==='khalat' || (cu.username||'').toLowerCase()==='khalat');
-    if(isKhalat || (cu && (cu.isAdmin===true || cu.role==='owner' || cu.isManager===true || cu.role==='manager'))){ if(btn) btn.style.display='flex'; window._isShopkeeperVerified=true; }
-    else if(window._shopkeeperChecked===true && window._isShopkeeperVerified===false){ if(btn) btn.style.display='none'; }
-    // else: keep current state - don't hide while checking
+    if(isKhalat || (cu && (cu.isAdmin===true || cu.role==='owner' || cu.isManager===true || cu.role==='manager'))){ if(btn) btn.style.display='flex'; window._isShopkeeperVerified=true; } else if(window._shopkeeperChecked===true && window._isShopkeeperVerified===false){ if(btn) btn.style.display='none'; }
   }catch(e){} 
 }, 800);
 
@@ -4468,7 +4465,9 @@ function proHideWinnerModal(){
   if(typeof proWinnerInterval !== 'undefined' && proWinnerInterval) clearInterval(proWinnerInterval);
   if(typeof window.proWinnerInterval !== 'undefined' && window.proWinnerInterval) clearInterval(window.proWinnerInterval);
   try{ localStorage.removeItem('yarya_winner_background'); }catch(e){}
-  try{ window.yaryaWinnerFreezeActive=false; window.yaryaWinnerName=null; if(typeof finalFreezeActive!=='undefined') finalFreezeActive=false; if(typeof gameState!=='undefined' && gameState==='winnerFrozen') gameState='ready'; localStorage.removeItem('yarya_winner_freeze'); const fm=document.getElementById('yaryaFreezeMsg'); if(fm) fm.remove(); document.querySelectorAll('.modeBtnPRO, #proModeFree, #proModeMobile, #proModeCar').forEach(b=>{ if(b){ b.style.opacity=''; b.style.pointerEvents=''; } }); }catch(e){}
+  // KEEP FREEZE - game stays frozen until user exits and re-enters
+  // Do NOT clear yaryaWinnerFreezeActive here
+  console.log('🔒 Freeze still active after closing winner modal:', window.yaryaWinnerFreezeActive);
 }
 
 
@@ -5260,7 +5259,7 @@ window.fetchLeaderboard = async function(){
 <!-- REMOVED V12 SCRIPT -->
 <style>
 #profileBtn, #userBtn, #fullscreenBtn { display: none !important; }
-/* V58.7 REMOVED !important - JS controls managerBtn, never hide on 502 */
+/* V58.8 REMOVED !important */
 @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 </style>
 
@@ -5552,38 +5551,70 @@ window.searchPlayerForManager = async function(){
 };
 
 // ===== NEW: SEARCH BY PRIVATE CODE - هەر موبایلەکێ کودەکێ جدا =====
-window.searchPlayerByCode = async function(){ const _ci=document.getElementById('managerCodeSearchInput').value.trim(); if(_ci){ try{ const _r=await fetch(`/api/lookup-by-code/${encodeURIComponent(_ci)}`,{cache:'no-store'}); const _d=await _r.json(); if(_r.ok && _d.username){ document.getElementById('managerSearchResult').innerHTML=`<div style='background:rgba(247,198,0,0.15);border:1.5px solid rgba(247,198,0,0.3);border-radius:16px;padding:14px'><div style='color:#fff;font-weight:900'>${_d.username} - ✅ کود دۆزرا</div><div style='color:rgba(255,255,255,0.7)'>🔑 ${_d.privateCode} | سکۆر ${_d.bestScore}</div></div>`; return; } }catch(e){} }
+window.searchPlayerByCode = async function(){
+  // V58.8: SAME AS NAME SEARCH - exactly same card, same buttons
   const codeInput = document.getElementById('managerCodeSearchInput').value.trim();
   if(!codeInput||codeInput.length<4){ alert('🔑 کودی بنڤیسە - 6 ژمارە'); return; }
   const resultEl = document.getElementById('managerSearchResult');
   resultEl.innerHTML='<div style="text-align:center;padding:10px;color:#F7C600">⏳ گەڕان ب کودی '+codeInput+'...</div>';
   try{
-    const qUrl = `/api/firestore-query`;
-    const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'privateCode'}, op:'EQUAL', value:{stringValue: codeInput}}}, limit:5 } };
-    const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
-    const data = await res.json();
-    if(!data || data.length===0 || !data[0].document){ resultEl.innerHTML='<div style="color:#ff8a8a;text-align:center;padding:10px;background:rgba(212,16,31,0.1);border-radius:10px">❌ ئەڤ کودە نەهاتە دیتن<br><small>کودا '+codeInput+' نینە</small></div>'; return; }
-    const doc = data[0].document;
+    let doc = null;
+    // 1) Try privateCode as string (like name search uses stringValue)
+    const tryQuery = async (field, val, isInt) => {
+      try{
+        const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:field}, op:'EQUAL', value: isInt ? {integerValue: String(val)} : {stringValue: String(val)}}}, limit:5 } };
+        const res = await fetch('/api/firestore-query', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
+        const data = await res.json();
+        if(data && data.length>0 && data[0].document) return data[0].document;
+      }catch(e){}
+      return null;
+    };
+    doc = await tryQuery('privateCode', codeInput, false);
+    if(!doc) doc = await tryQuery('privateCode', codeInput, true);
+    if(!doc) doc = await tryQuery('code', codeInput, false);
+    if(!doc) doc = await tryQuery('code', codeInput, true);
+    if(!doc) doc = await tryQuery('secretCode', codeInput, false);
+    if(!doc) doc = await tryQuery('secretCode', codeInput, true);
+    // 2) Fallback: fetch users and filter in JS (handles int vs string mismatch)
+    if(!doc){
+      try{
+        const qbAll = { structuredQuery: { from:[{collectionId:'users'}], limit:100 } };
+        const resAll = await fetch('/api/firestore-query', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qbAll)});
+        const all = await resAll.json();
+        for(const d of (all||[])){
+          if(!d.document) continue;
+          const f = d.document.fields||{};
+          const vals = [f.privateCode?.stringValue, f.privateCode?.integerValue, f.code?.stringValue, f.code?.integerValue, f.secretCode?.stringValue, f.secretCode?.integerValue].map(v=> (v||'').toString().trim());
+          if(vals.includes(codeInput.trim())){ doc = d.document; break; }
+        }
+      }catch(e){}
+    }
+    // 3) Fallback via server endpoint (db.json)
+    if(!doc){
+      try{
+        const r = await fetch('/api/lookup-by-code/'+encodeURIComponent(codeInput));
+        if(r.ok){ const d = await r.json(); if(d && d.username){ document.getElementById('managerSearchInput').value = d.usernameLower||d.username; return window.searchPlayerForManager(); } }
+      }catch(e){}
+    }
+    if(!doc){ resultEl.innerHTML='<div style="color:#ff8a8a;text-align:center;padding:10px;background:rgba(212,16,31,0.1);border-radius:10px">❌ ئەڤ کودە نەهاتە دیتن<br><small>کودا '+codeInput+' نینە</small></div>'; return; }
+    // FOUND - now render EXACTLY like name search: put username in name input and call name search
     const f = doc.fields||{};
     const getStr = (k)=> f[k]?.stringValue||'';
+    const unameLower = getStr('usernameLower') || getStr('username').toLowerCase();
+    if(unameLower){
+      document.getElementById('managerSearchInput').value = unameLower;
+      return window.searchPlayerForManager();
+    }
+    // If no usernameLower, render same card manually using same template as name search
     const getBool = (k)=> f[k]?.booleanValue||false;
-    const player = { id: doc.name.split('/').pop(), username: getStr('username'), usernameLower: getStr('usernameLower'), bestScore: parseInt(f.bestScore?.integerValue||'0'), bestScoreFree: parseInt(f.bestScoreFree?.integerValue||'0'), bestScoreMobile: parseInt(f.bestScoreMobile?.integerValue||'0'), bestScoreCar: parseInt(f.bestScoreCar?.integerValue||'0'), phoneNumber: getStr('phoneNumber'), privateCode: getStr('privateCode'), unlockedMobile: getBool('unlockedMobile'), unlockedCar: getBool('unlockedCar') };
+    const player = { id: doc.name.split('/').pop(), username: getStr('username'), usernameLower: unameLower, bestScore: parseInt(f.bestScore?.integerValue||'0'), unlockedMobile: getBool('unlockedMobile'), unlockedCar: getBool('unlockedCar') };
     const isMobileLockedByAdmin = (typeof proConfig !== 'undefined' && proConfig.mobileLocked);
     const isCarLockedByAdmin = (typeof proConfig !== 'undefined' && proConfig.carLocked);
     const canMobile = !player.unlockedMobile && myShopkeeperDoc && myShopkeeperDoc.mobileQuota>0 && !myShopkeeperDoc.isLocked && !isMobileLockedByAdmin;
     const canCar = !player.unlockedCar && myShopkeeperDoc && myShopkeeperDoc.carQuota>0 && !myShopkeeperDoc.isLocked && !isCarLockedByAdmin;
-    resultEl.innerHTML = `
-      <div style="background:linear-gradient(135deg, rgba(247,198,0,0.15), rgba(247,198,0,0.08));border:1.5px solid rgba(247,198,0,0.3);border-radius:16px;padding:14px">
-        <div style="display:flex;align-items:center;gap:10px"><div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#F7C600,#ffe27a);display:flex;align-items:center;justify-content:center;color:#000;font-weight:900;font-size:18px">🔑</div><div style="flex:1"><div style="color:#fff;font-weight:900;font-size:14px">${player.username} - ✅ کود دۆزرا</div><div style="color:rgba(255,255,255,0.7);font-size:12px;margin-top:2px">🔑 ${player.privateCode} - ✅ کودا تایبەت</div><div style="color:rgba(255,255,255,0.6);font-size:11px;margin-top:3px">سکۆر: ${player.bestScore} | 🆓 ${player.bestScoreFree} | 📱 ${player.bestScoreMobile} | 🚗 ${player.bestScoreCar} | موبایل: ${player.unlockedMobile?'✅':'❌'} | ترومبێل: ${player.unlockedCar?'✅':'❌'}</div></div></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
-          <button onclick="unlockPlayer('${player.id}','${player.usernameLower}','mobile')" ${canMobile?'':'disabled'} style="height:48px;border-radius:12px;border:0;background:${canMobile?'linear-gradient(135deg,#5B5CFF,#7a7cff)':'rgba(255,255,255,0.1)'};color:${canMobile?'#fff':'rgba(255,255,255,0.4)'};font-weight:800;cursor:${canMobile?'pointer':'not-allowed'}">${canMobile?'📱 موبایل ڤەکە (1 کوتا)':(isMobileLockedByAdmin?'🔒 قفل ل لایەن ئەدمین':'📱 موبایل - نابیت')}</button>
-          <button onclick="unlockPlayer('${player.id}','${player.usernameLower}','car')" ${canCar?'':'disabled'} style="height:48px;border-radius:12px;border:0;background:${canCar?'linear-gradient(135deg,#F7C600,#ffe27a)':'rgba(255,255,255,0.1)'};color:${canCar?'#000':'rgba(255,255,255,0.4)'};font-weight:800;cursor:${canCar?'pointer':'not-allowed'}">${canCar?'🚗 ترومبێل ڤەکە (1 کوتا)':(isCarLockedByAdmin?'🔒 قفل ل لایەن ئەدمین':'🚗 ترومبێل - نابیت')}</button>
-        </div>
-        ${isMobileLockedByAdmin?'<div style="color:#ff8a8a;font-size:11px;text-align:center;margin-top:8px;background:rgba(212,16,31,0.15);padding:8px;border-radius:10px;border:1px solid rgba(212,16,31,0.3)">🔒 رێزبەندیا موبایلێ ژ لایێ ئەدمینی ڤە قفلکریە - 📱 ناشێی موبایلی بڤەکەی<br><small>ئەدمینی قفلکریە دا شاشی چێنەبیت</small></div>':''}
-        ${isCarLockedByAdmin?'<div style="color:#ff8a8a;font-size:11px;text-align:center;margin-top:8px;background:rgba(212,16,31,0.15);padding:8px;border-radius:10px;border:1px solid rgba(212,16,31,0.3)">🔒 رێزبەندیا ترومبێلێ ژ لایێ ئەدمینی ڤە قفلکریە - 🚗 ناشێی ترومبێلی بڤەکەی<br><small>ئەدمینی قفلکریە دا شاشی چێنەبیت</small></div>':''}
-        <div style="background:rgba(0,0,0,0.2);border-radius:8px;padding:8px;margin-top:10px;text-align:center"><div style="color:#F7C600;font-size:11px">🔑 کودا تایبەت یا ڤی یاریکەری: <b style="color:#fff;font-size:14px;letter-spacing:1px">${player.privateCode}</b></div><div style="color:rgba(255,255,255,0.5);font-size:10px;margin-top:2px">🔒 پاراستنا نهێنیێ - ژمارا موبایلێ ناهێتە نیشان دان - V27.1</div></div>
-      </div>`;
+    resultEl.innerHTML = `<div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:10px"><div style="display:flex;align-items:center;gap:10px"><div style="width:40px;height:40px;border-radius:50%;background:#5B5CFF;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800">${player.username.charAt(0).toUpperCase()}</div><div><div style="color:#fff;font-weight:800">${player.username}</div><div style="color:rgba(255,255,255,0.6);font-size:11px">سکۆر: ${player.bestScore} | موبایل: ${player.unlockedMobile?'✅':'❌'} | ترومبێل: ${player.unlockedCar?'✅':'❌'}</div></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"><button onclick="unlockPlayer('${player.id}','${player.usernameLower}','mobile')" ${canMobile?'':'disabled'} style="height:44px;border-radius:12px;border:0;background:${canMobile?'linear-gradient(135deg,#5B5CFF,#7a7cff)':'rgba(255,255,255,0.1)'};color:${canMobile?'#fff':'rgba(255,255,255,0.4)'};font-weight:800;cursor:${canMobile?'pointer':'not-allowed'}">${canMobile?'📱 موبایل ڤەکە (1 کوتا)':'📱 موبایل - نابیت'}</button><button onclick="unlockPlayer('${player.id}','${player.usernameLower}','car')" ${canCar?'':'disabled'} style="height:44px;border-radius:12px;border:0;background:${canCar?'linear-gradient(135deg,#F7C600,#ffe27a)':'rgba(255,255,255,0.1)'};color:${canCar?'#000':'rgba(255,255,255,0.4)'};font-weight:800;cursor:${canCar?'pointer':'not-allowed'}">${canCar?'🚗 ترومبێل ڤەکە (1 کوتا)':'🚗 ترومبێل - نابیت'}</button></div></div>`;
   }catch(e){ resultEl.innerHTML='<div style="color:#ff8a8a">❌ '+e.message+'</div>'; }
+}
 };
 
 window.searchPlayerByPhone = async function(){
@@ -5663,9 +5694,9 @@ setInterval(async ()=>{
   try{
     if(!window.currentUser) return;
     const low = (window.currentUser.role||'').toLowerCase();
-    if(low==='manager' || window.currentUser.isManager || (window.currentUser.usernameLower||'').toLowerCase()==='khalat'){
+    if(low==='manager' || window.currentUser.isManager){
       const btn=document.getElementById('managerBtn');
-      if(btn){ btn.style.display='flex'; window._isShopkeeperVerified=true; window._shopkeeperChecked=true; try{ localStorage.setItem('yarya_shopkeeper_'+(window.currentUser.usernameLower||''), 'true'); }catch(e){} }
+      if(btn) btn.style.display='flex';
     }
   }catch(e){}
 }, 3000);
@@ -7705,41 +7736,10 @@ window.closeAccountsModal = function(event){
 
 console.log('✅ ULTIMATE FIX v3 ready - winner locked, no zero, no zoom');
 
-// ===== V58.7 FULL SHOPKEEPER FUNCTION =====
-window._isShopkeeperVerified=false; window._shopkeeperChecked=false;
-async function checkShopkeeperStatus(){
-  try{
-    const cu = window.currentUser || currentUser; if(!cu) return;
-    const btn = document.getElementById('managerBtn');
-    const uname = (cu.usernameLower||cu.username||'').toLowerCase();
-    const phone = (cu.phoneNumber||cu.phone||'').toString();
-    try{ if(localStorage.getItem('yarya_shopkeeper_'+uname)==='true'){ window._isShopkeeperVerified=true; window._shopkeeperChecked=true; if(btn) btn.style.display='flex'; return; } }catch(e){}
-    if(uname==='khalat' || phone==='07504920722'){ window._isShopkeeperVerified=true; window._shopkeeperChecked=true; if(btn) btn.style.display='flex'; try{ localStorage.setItem('yarya_shopkeeper_'+uname,'true'); }catch(e){} return; }
-    if(cu.isAdmin===true || cu.role==='owner' || cu.isManager===true || cu.role==='manager'){ window._isShopkeeperVerified=true; window._shopkeeperChecked=true; if(btn) btn.style.display='flex'; try{ localStorage.setItem('yarya_shopkeeper_'+uname,'true'); }catch(e){} return; }
-    try{
-      if(typeof collection!=='undefined' && typeof query!=='undefined' && typeof where!=='undefined' && typeof getDocs!=='undefined'){
-        const q = query(collection(db,'shopkeepers'), where('username','==', uname));
-        const snap = await getDocs(q);
-        if(!snap.empty){ window._isShopkeeperVerified=true; window._shopkeeperChecked=true; if(btn) btn.style.display='flex'; try{ localStorage.setItem('yarya_shopkeeper_'+uname,'true'); }catch(e){} return; }
-      }
-    }catch(e){}
-    try{
-      const qb = { structuredQuery: { from:[{collectionId:'shopkeepers'}], where:{fieldFilter:{field:{fieldPath:'username'}, op:'EQUAL', value:{stringValue: uname}}}, limit:1 } };
-      const res = await fetch('/api/firestore-query', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
-      if(!res.ok){ console.log('shop REST 502, NOT hiding'); return; }
-      const data = await res.json();
-      const isShop = data && data.length>0 && data[0].document;
-      window._shopkeeperChecked=true;
-      if(isShop){ window._isShopkeeperVerified=true; if(btn) btn.style.display='flex'; try{ localStorage.setItem('yarya_shopkeeper_'+uname,'true'); }catch(e){} }
-      else { window._isShopkeeperVerified=false; if(btn) btn.style.display='none'; }
-    }catch(e){ console.log('shop REST failed, NOT hiding'); return; }
-  }catch(e){}
-}
-window.checkShopkeeperStatus=checkShopkeeperStatus;
-setTimeout(checkShopkeeperStatus, 500);
-setInterval(checkShopkeeperStatus, 4000);
-window._showShopBtnIfCached=function(){ try{ const cu=window.currentUser||currentUser; if(!cu) return; const uname=(cu.usernameLower||cu.username||'').toLowerCase(); if(localStorage.getItem('yarya_shopkeeper_'+uname)==='true' || uname==='khalat'){ const b=document.getElementById('managerBtn'); if(b) b.style.display='flex'; window._isShopkeeperVerified=true; } }catch(e){} };
-setTimeout(window._showShopBtnIfCached, 300);
+// V58.8 SHOPKEEPER
+window._isShopkeeperVerified=false; window._shopkeeperChecked=false; window._freezeStartedAt=0;
+async function checkShopkeeperStatus(){ try{ const cu=window.currentUser||currentUser; if(!cu) return; const btn=document.getElementById('managerBtn'); const uname=(cu.usernameLower||cu.username||'').toLowerCase(); const phone=(cu.phoneNumber||cu.phone||'').toString(); try{ if(localStorage.getItem('yarya_shopkeeper_'+uname)==='true'){ window._isShopkeeperVerified=true; window._shopkeeperChecked=true; if(btn) btn.style.display='flex'; return; } }catch(e){} if(uname==='khalat' || phone==='07504920722'){ window._isShopkeeperVerified=true; window._shopkeeperChecked=true; if(btn) btn.style.display='flex'; try{ localStorage.setItem('yarya_shopkeeper_'+uname,'true'); }catch(e){} return; } if(cu.isAdmin===true || cu.role==='owner' || cu.isManager===true || cu.role==='manager'){ window._isShopkeeperVerified=true; window._shopkeeperChecked=true; if(btn) btn.style.display='flex'; try{ localStorage.setItem('yarya_shopkeeper_'+uname,'true'); }catch(e){} return; } try{ const qb={structuredQuery:{from:[{collectionId:'shopkeepers'}],where:{fieldFilter:{field:{fieldPath:'username'},op:'EQUAL',value:{stringValue:uname}}},limit:1}}; const res=await fetch('/api/firestore-query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(qb)}); if(!res.ok) return; const data=await res.json(); const isShop=data&&data.length>0&&data[0].document; window._shopkeeperChecked=true; if(isShop){ window._isShopkeeperVerified=true; if(btn) btn.style.display='flex'; try{ localStorage.setItem('yarya_shopkeeper_'+uname,'true'); }catch(e){} } else { window._isShopkeeperVerified=false; if(btn) btn.style.display='none'; } }catch(e){} }catch(e){} }
+window.checkShopkeeperStatus=checkShopkeeperStatus; setTimeout(checkShopkeeperStatus,500); setInterval(checkShopkeeperStatus,4000);
 window.forceUnfreeze=function(){ try{ window.yaryaWinnerFreezeActive=false; if(typeof finalFreezeActive!=='undefined') finalFreezeActive=false; if(typeof gameState!=='undefined' && gameState==='winnerFrozen') gameState='ready'; localStorage.removeItem('yarya_winner_freeze'); const ov=document.getElementById('finalFreezeOverlay'); if(ov) ov.classList.remove('show'); fetch('/api/admin/unfreeze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})}).catch(()=>{}); alert('✅ یاری هاتە ڤەکرن'); }catch(e){} };
 
 </script>
