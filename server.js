@@ -174,10 +174,10 @@ function checkCheatScore(req,res,next){
       const fields = req.body.fields || {};
       const plain = toPlain(fields);
       delete plain.id; delete plain.code; delete plain.userId;
-      delete plain.privateCode; // V58.1: keep device fields for new account creation - PATCH will guard change
+      delete plain.privateCode; delete plain.originalDeviceId; delete plain.accountCreatedDevice; delete plain.deviceFingerprint; delete plain.deviceIds; delete plain.lastDeviceId;
       if(req.body.fields){
         delete req.body.fields.id; delete req.body.fields.code; delete req.body.fields.userId;
-        delete req.body.fields.privateCode;
+        delete req.body.fields.privateCode; delete req.body.fields.originalDeviceId; delete req.body.fields.accountCreatedDevice; delete req.body.fields.deviceFingerprint; delete req.body.fields.deviceIds; delete req.body.fields.lastDeviceId;
       }
       let curId = null;
       try{ const ex = extractId(req); curId = ex.id; }catch{}
@@ -323,38 +323,6 @@ app.get('/api/check-username/:low', (req,res)=>{
   }catch(e){ res.status(500).json({error:e.message}); }
 });
 
-
-
-// V58.1: Fix missing deviceId for existing users like Khalat
-app.get('/api/fix-missing-device', (req,res)=>{
-  try{
-    const col = getCollection('users');
-    let fixed=0;
-    for(const k in col){
-      const u = col[k];
-      const hasDev = u.lastDeviceId || u.deviceFingerprint || u.originalDeviceId || (Array.isArray(u.deviceIds) && u.deviceIds.length>0 && u.deviceIds[0]);
-      if(!hasDev){
-        // Use doc ID as fallback device identifier so admin can block by ID
-        const fallback = 'missing_'+k;
-        u.lastDeviceId = fallback; u.originalDeviceId = fallback; u.accountCreatedDevice = fallback; u.deviceFingerprint = fallback; u.deviceIds = [fallback];
-        fixed++;
-      } else {
-        // Normalize: ensure all fields exist
-        const dev = (u.lastDeviceId || u.deviceFingerprint || u.originalDeviceId || u.deviceIds[0]).toString().trim();
-        if(dev){ u.lastDeviceId = dev; u.originalDeviceId = u.originalDeviceId||dev; u.accountCreatedDevice = u.accountCreatedDevice||dev; u.deviceFingerprint = u.deviceFingerprint||dev; if(!u.deviceIds || u.deviceIds.length===0) u.deviceIds=[dev]; }
-      }
-    }
-    saveDB();
-    res.json({ok:true, fixed, total:Object.keys(col).length});
-  }catch(e){ res.status(500).json({error:e.message}); }
-});
-app.get('/api/users-with-device', (req,res)=>{
-  try{
-    const col = getCollection('users');
-    const out = Object.entries(col).map(([id,u])=>({id, username:u.username, usernameLower:u.usernameLower, deviceId: u.lastDeviceId || u.deviceFingerprint || (u.deviceIds&&u.deviceIds[0]) || '', deviceIds: u.deviceIds||[], isBlocked: !!u.isBlocked, phoneNumber: u.phoneNumber||'', bestScore: u.bestScore||0}));
-    res.json(out);
-  }catch(e){ res.status(500).json({error:e.message}); }
-});
 
 // --- V58: DEVICE CHECK - 1 DEVICE = 1 ACCOUNT ---
 app.get('/api/check-device/:deviceId', (req,res)=>{
@@ -538,31 +506,7 @@ app.patch(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
     const collection = getCollection(col);
     const plainData = toPlain(req.body.fields || {});
     if(!collection[id]) collection[id]={};
-    if(col==='users'){ 
-      const isNewUserDoc = !collection[id];
-      const oldUser = collection[id] || {};
-      delete plainData.privateCode; delete plainData.id; delete plainData.code; delete plainData.userId;
-      if(!isNewUserDoc){
-        // V58.1: Existing user - DO NOT allow device change - keep original
-        delete plainData.originalDeviceId; delete plainData.accountCreatedDevice; delete plainData.deviceFingerprint; delete plainData.deviceIds; delete plainData.lastDeviceId;
-        // But keep old device fields in doc
-        if(oldUser.lastDeviceId) plainData.lastDeviceId = oldUser.lastDeviceId;
-        if(oldUser.originalDeviceId) plainData.originalDeviceId = oldUser.originalDeviceId;
-        if(oldUser.accountCreatedDevice) plainData.accountCreatedDevice = oldUser.accountCreatedDevice;
-        if(oldUser.deviceFingerprint) plainData.deviceFingerprint = oldUser.deviceFingerprint;
-        if(oldUser.deviceIds) plainData.deviceIds = oldUser.deviceIds;
-      } else {
-        // New doc - allow device fields, normalize them
-        const devForNew = extractDeviceIdFromData(plainData) || '';
-        if(devForNew){
-          plainData.lastDeviceId = devForNew;
-          plainData.originalDeviceId = devForNew;
-          plainData.accountCreatedDevice = devForNew;
-          plainData.deviceFingerprint = devForNew;
-          plainData.deviceIds = [devForNew];
-        }
-      }
-      const dupId = checkDuplicateName('users', plainData, id); if(dupId){ return res.status(409).json({error:'DUPLICATE_NAME', message:'ئەڤ ناڤە هەیە - نابیت دوبارە بیت'}); } }
+    if(col==='users'){ delete plainData.privateCode; delete plainData.originalDeviceId; delete plainData.accountCreatedDevice; delete plainData.deviceFingerprint; delete plainData.deviceIds; delete plainData.lastDeviceId; delete plainData.id; delete plainData.code; delete plainData.userId; const dupId = checkDuplicateName('users', plainData, id); if(dupId){ return res.status(409).json({error:'DUPLICATE_NAME', message:'ئەڤ ناڤە هەیە - نابیت دوبارە بیت'}); } }
     Object.assign(collection[id], plainData);
     if(col==='settings' && id==='config'){ collection[id]._version = (collection[id]._version||0)+1; collection[id]._updatedAt = Date.now(); }
     saveDB();

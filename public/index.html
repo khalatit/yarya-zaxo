@@ -194,11 +194,6 @@ canvas{display:block;touch-action:none}
 .profileWrap{width:100%;max-width:400px;background:linear-gradient(180deg, rgba(22,22,52,0.98), rgba(12,12,32,0.99));border:1px solid rgba(247,198,0,0.2);border-radius:24px;display:flex;flex-direction:column;overflow:hidden;max-height:90dvh}
 .profileHead{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0}
 .profileBody{padding:16px;overflow-y:auto;flex:1;overscroll-behavior:contain}
-
-.profileFooter{position:sticky;bottom:0;background:linear-gradient(180deg, rgba(18,18,42,0.98), rgba(12,12,32,1));padding:12px 16px;border-top:1px solid rgba(247,198,0,0.25);display:flex;gap:10px;z-index:5;flex-shrink:0}
-.profileFooter .btn{flex:1;margin:0}
-.profileFooter .btnCancel{flex:1;height:44px;border-radius:999px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:#fff;font-weight:800;cursor:pointer}
-
 .profileAvatarLarge{width:90px;height:90px;border-radius:50%;overflow:hidden;margin:0 auto 12px;border:3px solid rgba(247,198,0,0.35);display:flex;align-items:center;justify-content:center;background:#1a1a32;cursor:pointer;position:relative}
 .profileAvatarLarge img{width:100%;height:100%;object-fit:cover}
 .profileAvatarLarge:after{content:'📸';position:absolute;bottom:0;right:0;width:28px;height:28px;background:#F7C600;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid #12122a}
@@ -833,7 +828,8 @@ setTimeout(()=>{
     <div class="field"><input id="profilePhoneDisplay" placeholder="📱 ژمارا موبایلێ - دشێی بگهوری" dir="rtl"><i>📱</i><span style="color:#00ff99;font-size:10px;font-weight:800">✅ دشێت بگهوریت</span></div>
     <div class="field textarea"><textarea id="profileBioInput" placeholder="بایۆ..." dir="rtl" maxlength="120"></textarea><i>📝</i></div>
     <div id="profileError" class="err"></div>
-  </div><div class="profileFooter"><button class="btn" id="profileSaveBtn" onclick="saveProfile()">پاشکەوتکرن ✅</button><button class="btnCancel" onclick="closeProfile()">ژ سەر راکرن ✕</button></div></div></div>
+    <button class="btn" id="profileSaveBtn" onclick="saveProfile()">پاشکەوتکرن ✅</button>
+  </div></div></div>
 
   
 <!-- REMOVED friendsModal -->
