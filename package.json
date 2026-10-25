@@ -1,7 +1,7 @@
 {
   "name": "yarya-zaxo",
-  "version": "58.0.0",
-  "description": "YARYA ZAXO V58 - 1 DEVICE = 1 ACCOUNT - Phone shared allowed, Name unique, PWA",
+  "version": "57.0.0",
+  "description": "YARYA ZAXO SIMPLE - No PWA popup, Simple title",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
