@@ -6479,7 +6479,7 @@ window.addEventListener('appinstalled', ()=>{
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('/sw.js?v=v58').then(r=>console.log('✅ SW V58 registered', r.scope)).catch(e=>console.log('SW fail',e));
+    // disabled - SIMPLE - navigator.serviceWorker.register('/sw.js?v=v49-icon').then(r=>console.log('✅ SW V27 registered - کێم-مەسرەف', r.scope)).catch(e=>console.log('SW fail', e));
   });
 }
 
