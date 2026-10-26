@@ -811,7 +811,7 @@ setTimeout(()=>{
   <div id="adminSeparator" style="width:1px;height:22px;background:rgba(255,255,255,0.1);margin:0 4px;display:none"></div>
   <button class="iconBtn small fullscreen" onclick="tryAutoFullscreen()" title="فول سکرین">⛶</button>
   <button class="iconBtn small" onclick="openLeaderboard()" style="background:rgba(247,198,0,0.15);border-color:rgba(247,198,0,0.3);color:#F7C600" title="رێزبەندی">🏆</button>
-  <button class="iconBtn small" id="managerBtn" onclick="openManagerModal()" style="background:rgba(0,220,120,0.15);border-color:rgba(0,220,120,0.3);color:#00ff99;display:none" title="دکاندار">🏪</button>
+  <span id="managerBtnPlaceholder"></span>
   <button class="iconBtn small" onclick="openProfile()" style="background:rgba(46,158,68,0.12);border-color:rgba(46,158,68,0.25);color:#00ff88">👤</button>
   </div>
   </div>
@@ -3416,125 +3416,31 @@ console.log('✅ GLOBAL V3 FIXED - بۆ بکارهێنەران سپونسەر و
 
 
 
-setInterval(()=>{ 
-  try{ 
-    window.currentUser = currentUser;
-  window.currentUser = currentUser; 
-    const btn=document.getElementById('managerBtn'); 
-    if(!btn) return;
-    const cu = currentUser || window.currentUser;
-    if(cu && (cu.role==='manager' || cu.isManager===true || cu.role==='owner')){
-      btn.style.display='flex'; 
-    } else {
-      if(btn) btn.style.display='none';
-    }
-  }catch(e){} 
-}, 800);
-
-try{ window.fetchLeaderboard = fetchLeaderboard; }catch(e){}
-try{ window.escapeHtml = escapeHtml; }catch(e){}
-
-
-window.refreshCurrentUserFromDB = async function(){
-  try{
-    let cu = window.currentUser;
-    if(!cu || !cu.usernameLower) return null;
-    const qUrl = `/api/firestore-query`;
-    const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: cu.usernameLower}}}, limit:1 } };
-    const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
-    const data = await res.json();
-    if(data && data[0] && data[0].document){
-      const doc = data[0].document;
-      const f = doc.fields||{};
-      const getBool = (k)=> f[k]?.booleanValue||false;
-      window.currentUser.unlockedMobile = getBool('unlockedMobile');
-      window.currentUser.unlockedCar = getBool('unlockedCar');
-      return window.currentUser;
-    }
-  }catch(e){ console.error('refresh error', e); }
-  return null;
-};
-
-
-
-// ===== PRO V2 ENHANCEMENTS - KEEP ORIGINAL GAME AS IS =====
-// 3 SEPARATE RANKINGS, COUNTDOWN SECOND BY SECOND, WINNER 20s + AUTO RESET
-console.log('PRO V2 enhancements loading - keeping original game as is');
-
-
-
-let proConfig = {freeEndAt:null, mobileEndAt:null, carEndAt:null, freePrize:'100$', mobilePrize:'ئایفون 18 پرو ماکس', carPrize:'ترومبێل', freeLocked:false, freeLockMessage:'', mobileLocked:false, mobileLockMessage:'', carLocked:false, carLockMessage:''};
-let proCountdownInterval = null;
-let proIsResetting = false;
-let proWinnerInterval = null;
-let proCurrentMode = 'free'; // free, mobile, car - for saving scores separately
-
-// Load config from settings/config
+setInterval(()=>{ try{ if(typeof window.updateManagerBtnVisibility==='function') window.updateManagerBtnVisibility(); }catch(e){} }, 800);
+// ===== RESTORED: proConfig + proLoadConfig (was removed) =====
+window.proConfig = window.proConfig || { freeLocked:false, mobileLocked:false, carLocked:false, freeLockMessage:'', mobileLockMessage:'', carLockMessage:'', freePrize:'', mobilePrize:'', carPrize:'', freeEndAt:null, mobileEndAt:null, carEndAt:null };
+var proConfig = window.proConfig;
 async function proLoadConfig(){
   try{
-    const cfgRef = doc(db,'settings','config');
-    const snap = await getDoc(cfgRef);
-    if(snap.exists()){
-      const d = snap.data();
-      const toDateX = (v)=>{ if(!v) return null; if(v.toDate) return v.toDate(); if(v.seconds) return new Date(v.seconds*1000); if(typeof v==='string') return new Date(v); return new Date(v); };
-      proConfig.freeEndAt = toDateX(d.freeEndAt);
-      proConfig.mobileEndAt = toDateX(d.mobileEndAt);
-      proConfig.carEndAt = toDateX(d.carEndAt);
-      proConfig.freePrize = d.freePrize||'100$';
-      proConfig.mobilePrize = d.mobilePrize||'ئایفون 18 پرو ماکس';
-      proConfig.carPrize = d.carPrize||'ترومبێل';
-      proConfig.freeLocked = d.freeLocked || false;
-      proConfig.freeLockMessage = d.freeLockMessage || '';
-      proConfig.mobileLocked = d.mobileLocked || false;
-      proConfig.mobileLockMessage = d.mobileLockMessage || '';
-      proConfig.carLocked = d.carLocked || false;
-      proConfig.carLockMessage = d.carLockMessage || '';
+    const r = await fetch('/api/config?t='+Date.now(), {cache:'no-store'});
+    if(r.ok){
+      const d = await r.json();
+      if(d.freeLocked !== undefined) proConfig.freeLocked = d.freeLocked;
+      if(d.mobileLocked !== undefined) proConfig.mobileLocked = d.mobileLocked;
+      if(d.carLocked !== undefined) proConfig.carLocked = d.carLocked;
+      if(d.freePrize) proConfig.freePrize = d.freePrize;
+      if(d.mobilePrize) proConfig.mobilePrize = d.mobilePrize;
+      if(d.carPrize) proConfig.carPrize = d.carPrize;
+      const toD = (v)=>{ if(!v) return null; if(v.toDate) return v.toDate(); if(v.seconds) return new Date(v.seconds*1000); return new Date(v); };
+      if(d.freeEndAt) proConfig.freeEndAt = toD(d.freeEndAt);
+      if(d.mobileEndAt) proConfig.mobileEndAt = toD(d.mobileEndAt);
+      if(d.carEndAt) proConfig.carEndAt = toD(d.carEndAt);
+      if(typeof proUpdateCountdownDisplay==='function') proUpdateCountdownDisplay();
     }
-    // If no dates, create defaults 7 days from now
-    if(!proConfig.freeEndAt || !proConfig.mobileEndAt || !proConfig.carEndAt){
-      const now = new Date();
-      const defaultEnd = new Date(now.getTime()+7*24*60*60*1000);
-      if(!proConfig.freeEndAt) proConfig.freeEndAt = defaultEnd;
-      if(!proConfig.mobileEndAt) proConfig.mobileEndAt = defaultEnd;
-      if(!proConfig.carEndAt) proConfig.carEndAt = defaultEnd;
-      try{
-        await setDoc(doc(db,'settings','config'), {
-          freeEndAt: proConfig.freeEndAt,
-          mobileEndAt: proConfig.mobileEndAt,
-          carEndAt: proConfig.carEndAt,
-          freePrize: proConfig.freePrize,
-          mobilePrize: proConfig.mobilePrize,
-          carPrize: proConfig.carPrize,
-          createdAt: serverTimestamp()
-        }, {merge:true});
-      }catch(e){ console.log('config create error',e); }
-    }
-    window._lastConfigVersion = d._version || 0; console.log('PRO config loaded', proConfig);
-    // 🔒 ئەگەر قفل بیت یەکسەر بچە سەر قفل
-    try{
-      const mode = window.proCurrentMode || window.currentRankingMode || 'free';
-      if(proConfig.freeLocked || proConfig.mobileLocked || proConfig.carLocked){
-        // دیار بکە کام قفلە - ئەولەویەت بەلاش، پاشی موبایل، پاشی ترومبێل
-        let lockedTab = 'free';
-        if(proConfig.freeLocked) lockedTab='free';
-        else if(proConfig.mobileLocked) lockedTab='mobile';
-        else if(proConfig.carLocked) lockedTab='car';
-        setTimeout(async ()=>{
-          try{
-            const modal = document.getElementById('leaderboardModal');
-            if(modal) modal.classList.add('show');
-            const closeBtn = document.querySelector('#leaderboardModal .leaderHead button');
-            if(closeBtn) closeBtn.style.display='none';
-            if(modal) modal.onclick=null;
-            if(typeof window.switchLbTab==='function'){
-              await window.switchLbTab(lockedTab);
-            }
-          }catch(e){ console.log('auto lock modal error', e); }
-        }, 800);
-      }
-    }catch(e){ console.log('auto lock check error', e); }
   }catch(e){ console.log('proLoadConfig error', e); }
+  return proConfig;
 }
+window.proLoadConfig = proLoadConfig;
 
 function proFormatCountdown(endDate){
   if(!endDate) return '--:--:--';
@@ -5234,9 +5140,60 @@ window.fetchLeaderboard = async function(){
 <!-- REMOVED V12 SCRIPT -->
 <style>
 #profileBtn, #userBtn, #fullscreenBtn { display: none !important; }
-#managerBtn { order: -1 !important; display: flex !important; }
+#managerBtn { order: -1 !important; display: none !important; }
+#managerBtn.is-shopkeeper { display: flex !important; }
 @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 </style>
+<script>
+// ===== FIX: Manager Button - Only Shopkeepers See It =====
+// Root cause was: CSS had display:flex !important for everyone.
+// Now: button is display:none !important by default, only .is-shopkeeper shows it.
+window.__isShopkeeperFromDB = false;
+window.__shopkeeperChecked = false;
+window.isShopkeeperUser = function(cu){
+  cu = cu || window.currentUser || (typeof currentUser !== 'undefined' ? currentUser : null);
+  if(!cu) return false;
+  if(cu.isManager === true || cu.isShopkeeper === true) return true;
+  var r = (cu.role || '').toString().toLowerCase();
+  if(r === 'manager' || r === 'owner' || r === 'admin') return true;
+  if(window.__isShopkeeperFromDB === true) return true;
+  if(typeof myShopkeeperDoc !== 'undefined' && myShopkeeperDoc) return true;
+  return false;
+};
+window.updateManagerBtnVisibility = function(){
+  try{
+    var btn = document.getElementById('managerBtn');
+    if(!btn) return;
+    var show = window.isShopkeeperUser();
+    if(show){
+      btn.classList.add('is-shopkeeper');
+      btn.style.display = 'flex';
+    } else {
+      btn.classList.remove('is-shopkeeper');
+      btn.style.display = 'none';
+    }
+  }catch(e){}
+};
+window.checkShopkeeperInFirestore = async function(){
+  try{
+    var cu = window.currentUser || (typeof currentUser !== 'undefined' ? currentUser : null);
+    if(!cu || !cu.usernameLower) return false;
+    if(window.__shopkeeperChecked && window.__isShopkeeperFromDB) return true;
+    var res = await fetch('/api/firestore-query', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({structuredQuery:{from:[{collectionId:'shopkeepers'}], where:{fieldFilter:{field:{fieldPath:'username'}, op:'EQUAL', value:{stringValue: cu.usernameLower}}}, limit:1}})});
+    var data = await res.json();
+    var found = !!(data && data.length>0 && data[0].document);
+    window.__isShopkeeperFromDB = found;
+    window.__shopkeeperChecked = true;
+    if(found && cu){ cu.isManager = true; if(!cu.role || cu.role==='user') cu.role='manager'; }
+    window.updateManagerBtnVisibility();
+    return found;
+  }catch(e){ return window.__isShopkeeperFromDB; }
+};
+// Check once on load and after login, then keep button in correct state
+setTimeout(function(){ window.checkShopkeeperInFirestore(); }, 1500);
+setInterval(function(){ if(window.currentUser && !window.__shopkeeperChecked) window.checkShopkeeperInFirestore(); }, 5000);
+</script>
+
 
 
 <script>
@@ -5407,6 +5364,8 @@ window.closeLeaderboard = function(){
 let myShopkeeperDoc = null;
 window.openManagerModal = async function(){
   let cu = window.currentUser;
+  // 🔒 Only shopkeepers - verify against Firestore if role not manager
+  try{ if(!window.isShopkeeperUser || !window.isShopkeeperUser(cu)){ const ok = await window.checkShopkeeperInFirestore(); if(!ok){ alert('⛔ تەنێ دکاندار دشێت ڤێ پانێلێ ڤەکەت'); try{ const _b=document.getElementById('managerBtn'); if(_b){ _b.classList.remove('is-shopkeeper'); _b.style.display='none'; } }catch(e){} return; } } }catch(e){}
   if(!cu){ if(confirm('تکایە سەرەتا بچو ژوورێ\n🔄 بۆ تۆمارکرن OK بکە')){ localStorage.clear(); location.reload(); } return; }
   const modal = document.getElementById('managerModal');
   if(!modal) return;
@@ -5427,6 +5386,7 @@ window.loadMyShopInfoNew = async function(){
     const data = await res.json();
     if(!data || data.length===0 || !data[0].document){
       document.getElementById('myShopInfo').innerHTML = '<div style="color:#ff8a8a">❌ تو نە دکانداری - پەیوەندی ب ئەدمینی بکە</div>';
+      window.__isShopkeeperFromDB=false; window.__shopkeeperChecked=true; try{ var _b=document.getElementById('managerBtn'); if(_b){ _b.classList.remove('is-shopkeeper'); _b.style.display='none'; } }catch(e){}
       return;
     }
     const doc = data[0].document;
@@ -5484,8 +5444,8 @@ window.loadMyShopInfoNew = async function(){
         }
       }
     }catch(e){}
-    const mgrBtn = document.getElementById('managerBtn');
-    if(mgrBtn) mgrBtn.style.display='flex';
+    window.__isShopkeeperFromDB=true; window.__shopkeeperChecked=true; const mgrBtn = document.getElementById('managerBtn');
+    if(mgrBtn){ mgrBtn.classList.add('is-shopkeeper'); mgrBtn.style.display='flex'; }
   }catch(e){ console.error(e); document.getElementById('myShopInfo').innerHTML='<div style="color:#ff8a8a">❌ '+e.message+'</div>'; }
 };
 
@@ -5633,815 +5593,13 @@ window.loadMySalesListNew = async function(){
 };
 
 // Check if current user is manager to show button
-setInterval(async ()=>{
-  try{
-    if(!window.currentUser) return;
-    const low = (window.currentUser.role||'').toLowerCase();
-    if(low==='manager' || window.currentUser.isManager){
-      const btn=document.getElementById('managerBtn');
-      if(btn) btn.style.display='flex';
-    }
-  }catch(e){}
-}, 3000);
-</script>
-
-<script>
-// ===== ADMIN NEW SHOP MANAGEMENT =====
-window.switchAdminTab = function(tab){
-  document.querySelectorAll('#adminModal .aTab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('adminBroadcastPane').style.display='none';
-  document.getElementById('adminSponsorPane').style.display='none';
-  const shopPane = document.getElementById('adminShopPane');
-  if(shopPane) shopPane.style.display='none';
-  document.getElementById('adminSettingsPane').style.display='none';
-  if(tab==='broadcast'){ document.getElementById('aTabBroadcast')?.classList.add('active'); document.getElementById('adminBroadcastPane').style.display='block'; }
-  else if(tab==='sponsor'){ document.getElementById('aTabSponsor')?.classList.add('active'); document.getElementById('adminSponsorPane').style.display='block'; }
-  else if(tab==='shop'){ document.getElementById('aTabShop')?.classList.add('active'); if(shopPane) shopPane.style.display='block'; loadAllShopkeepersNew(); }
-  else if(tab==='settings'){ document.getElementById('aTabSettings')?.classList.add('active'); document.getElementById('adminSettingsPane').style.display='block'; }
-};
-
-window.loadAllShopkeepersNew = async function(){
-  const listEl = document.getElementById('adminShopkeepersListREST') || document.getElementById('allShopkeepersList');
-  if(!listEl) return;
-  listEl.innerHTML='<div style="text-align:center;padding:12px;color:rgba(255,255,255,0.5)">⏳ بار دبیت...</div>';
-  try{
-    const url = `/api/firestore/shopkeepers?key=${window.firebaseConfig.apiKey}&pageSize=100`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if(!data.documents){ listEl.innerHTML='<div style="color:rgba(255,255,255,0.5);text-align:center;padding:12px">هیچ دکاندار نینە</div>'; return; }
-    listEl.innerHTML='';
-    data.documents.forEach(doc=>{
-      const f=doc.fields||{};
-      const getStr=(k)=>f[k]?.stringValue||'';
-      const getInt=(k)=>parseInt(f[k]?.integerValue||'0');
-      const getBool=(k)=>f[k]?.booleanValue||false;
-      const id=doc.name.split('/').pop();
-      const shopName=getStr('shopName');
-      const owner=getStr('ownerName');
-      const phone=getStr('phone');
-      const prov=getStr('province');
-      const mQuota=getInt('mobileQuota');
-      const cQuota=getInt('carQuota');
-      const mTotal=getInt('mobileTotal');
-      const cTotal=getInt('carTotal');
-      const isLocked=getBool('isLocked');
-      const isActive = f.isActive ? f.isActive.booleanValue!==false : true;
-      const card=document.createElement('div');
-      card.style.cssText='background:rgba(255,255,255,0.04);border:1px solid '+(isLocked?'rgba(212,16,31,0.3)':'rgba(255,255,255,0.08)')+';border-radius:12px;padding:10px';
-      card.innerHTML=`
-        <div style="display:flex;justify-content:space-between;align-items:flex-start">
-          <div><div style="color:#fff;font-weight:800;font-size:13px">🏪 ${shopName} - ${owner} ${isLocked?'🔒':''}</div>
-          <div style="color:rgba(255,255,255,0.5);font-size:11px">📱 ${phone} | 📍 ${prov} | ${isActive?'✅ چالاک':'⛔ نه چالاک'}</div>
-          <div style="display:flex;gap:8px;margin-top:6px"><span style="background:rgba(91,92,255,0.15);padding:4px 8px;border-radius:8px;font-size:11px;color:#8b8cff">📱 موبایل: ${mQuota} مایە / ${mTotal} گشتی</span><span style="background:rgba(247,198,0,0.15);padding:4px 8px;border-radius:8px;font-size:11px;color:#F7C600">🚗 ترومبێل: ${cQuota} مایە / ${cTotal} گشتی</span></div></div>
-          <div style="display:flex;flex-direction:column;gap:4px">
-            <button onclick="openEditShopkeeper('${id}')" style="height:30px;padding:0 12px;border-radius:8px;border:1px solid rgba(91,92,255,0.3);background:rgba(91,92,255,0.15);color:#8b8cff;font-size:11px;cursor:pointer">✏️ چاککرن</button>
-            <button onclick="deleteShopkeeperNew('${id}')" style="height:28px;padding:0 10px;border-radius:8px;border:1px solid rgba(212,16,31,0.3);background:rgba(212,16,31,0.15);color:#ff8a8a;font-size:11px;cursor:pointer">🗑️ ژێبرن</button>
-          </div>
-        </div>`;
-      listEl.appendChild(card);
-    });
-  }catch(e){ listEl.innerHTML='<div style="color:#ff8a8a">❌ '+e.message+'</div>'; }
-};
-
-window.openEditShopkeeper = async function(id){
-  const newM = prompt('چەند 📱 موبایل کوتا لێ زێدە/کێم بکەین؟ بو نموونە +10 یان -5 (ژمارە بنڤیسە بۆ گهورینا گشتی):');
-  if(newM===null) return;
-  const newC = prompt('چەند 🚗 ترومبێل کوتا لێ زێدە/کێم بکەین؟ +10 یان -5:');
-  if(newC===null) return;
-  const lockAction = confirm('دێ قفل بکەین؟ OK=قفلکرن, Cancel=ڤەکرن');
-  // For simplicity, we will fetch current and apply delta
-  try{
-    const DOCS_URL = `/api/firestore`;
-    const getUrl = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window.firebaseConfig.apiKey}`;
-    const getRes = await fetch(getUrl);
-    const doc = await getRes.json();
-    const f=doc.fields||{};
-    const getInt=(k)=>parseInt(f[k]?.integerValue||'0');
-    let mQuota=getInt('mobileQuota');
-    let cQuota=getInt('carQuota');
-    let mTotal=getInt('mobileTotal');
-    let cTotal=getInt('carTotal');
-    // Parse delta
-    const parseDelta = (str, current) => {
-      if(!str) return current;
-      str=str.trim();
-      if(str.startsWith('+')||str.startsWith('-')){ return Math.max(0, current+parseInt(str)); }
-      else { const v=parseInt(str); return isNaN(v)?current:Math.max(0,v); }
-    };
-    const newMQuota = parseDelta(newM, mQuota);
-    const newCQuota = parseDelta(newC, cQuota);
-    // Also update total if increased
-    const newMTotal = newMQuota>mTotal ? newMQuota : mTotal;
-    const newCTotal = newCQuota>cTotal ? newCQuota : cTotal;
-    const updUrl = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window.firebaseConfig.apiKey}&updateMask.fieldPaths=mobileQuota&updateMask.fieldPaths=carQuota&updateMask.fieldPaths=mobileTotal&updateMask.fieldPaths=carTotal&updateMask.fieldPaths=isLocked`;
-    const res = await fetch(updUrl, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields:{
-      mobileQuota:{integerValue: newMQuota.toString()},
-      carQuota:{integerValue: newCQuota.toString()},
-      mobileTotal:{integerValue: newMTotal.toString()},
-      carTotal:{integerValue: newCTotal.toString()},
-      isLocked:{booleanValue: lockAction}
-    }})});
-    if(res.ok){ alert(`✅ هاتە نوێکرن - موبایل: ${newMQuota}, ترومبێل: ${newCQuota}, قفل: ${lockAction?'بەلێ':'نەخێر'}`); loadAllShopkeepersNew(); }
-    else { alert('❌ '+await res.text()); }
-  }catch(e){ alert('❌ '+e.message); }
-};
-
-window.createShopkeeperREST = async function(){
-  const username = (document.getElementById('adminNewShopUsername')?.value||'').trim().toLowerCase();
-  const shopName = (document.getElementById('adminNewShopName')?.value||'').trim();
-  const ownerName = (document.getElementById('adminNewShopOwner')?.value||'').trim();
-  const phone = (document.getElementById('adminNewShopPhone')?.value||'').trim();
-  const province = (document.getElementById('adminNewShopProvince')?.value||'zaxo');
-  const mQuota = parseInt(document.getElementById('adminNewShopMobileQuota')?.value||'50');
-  const cQuota = parseInt(document.getElementById('adminNewShopCarQuota')?.value||'50');
-  if(!username||!shopName||!ownerName||!phone){ alert('هەمی خانەیان پر بکە'); return; }
-  try{
-    const DOCS_URL = `/api/firestore`;
-    const fields = {
-      username:{stringValue: username},
-      shopName:{stringValue: shopName},
-      ownerName:{stringValue: ownerName},
-      phone:{stringValue: phone},
-      province:{stringValue: province},
-      mobileQuota:{integerValue: mQuota.toString()},
-      carQuota:{integerValue: cQuota.toString()},
-      mobileTotal:{integerValue: mQuota.toString()},
-      carTotal:{integerValue: cQuota.toString()},
-      mobileGiven:{integerValue:'0'},
-      carGiven:{integerValue:'0'},
-      isActive:{booleanValue:true},
-      isLocked:{booleanValue:false},
-      role:{stringValue:'manager'},
-      isManager:{booleanValue:true},
-      createdAt:{timestampValue: new Date().toISOString()}
-    };
-    const res = await fetch(`${DOCS_URL}/shopkeepers?key=${window.firebaseConfig.apiKey}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields})});
-    if(!res.ok){ alert('❌ '+await res.text()); return; }
-    // Also update user to manager if exists
-    try{
-      const qUrl = `/api/firestore-query`;
-      const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: username}}}, limit:1 } };
-      const qRes = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
-      const qData = await qRes.json();
-      if(qData && qData[0]?.document){
-        const uid = qData[0].document.name.split('/').pop();
-        const updUrl = `${DOCS_URL}/users/${encodeURIComponent(uid)}?key=${window.firebaseConfig.apiKey}&updateMask.fieldPaths=isManager&updateMask.fieldPaths=role`;
-        await fetch(updUrl, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields:{isManager:{booleanValue:true}, role:{stringValue:'manager'}}})});
-      }
-    }catch(e){}
-    alert('✅ دکاندار دروست بوو: '+shopName);
-    loadAllShopkeepersNew();
-  }catch(e){ alert('❌ '+e.message); }
-};
-
-window.deleteShopkeeperNew = async function(id){
-  if(!confirm('دڵنیای دێ ژێبی؟')) return;
-  try{
-    const DOCS_URL = `/api/firestore`;
-    const url = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window.firebaseConfig.apiKey}`;
-    const res = await fetch(url, {method:'DELETE'});
-    if(res.ok){ alert('✅ ژێبرا'); loadAllShopkeepersNew(); } else alert('❌ نەژێبرا');
-  }catch(e){ alert(e.message); }
-};
-
-window.searchShopkeepersNew = async function(){
-  const term = document.getElementById('adminShopSearchInput')?.value.trim().toLowerCase();
-  if(!term){ loadAllShopkeepersNew(); return; }
-  const listEl = document.getElementById('adminShopkeepersListREST');
-  listEl.innerHTML='<div style="text-align:center;padding:12px;color:rgba(255,255,255,0.5)">⏳ گەڕان...</div>';
-  try{
-    const url = `/api/firestore/shopkeepers?key=${window.firebaseConfig.apiKey}&pageSize=100`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if(!data.documents){ listEl.innerHTML='❌ نەهاتە دیتن'; return; }
-    const filtered = data.documents.filter(doc=>{
-      const f=doc.fields||{};
-      const s = (f.shopName?.stringValue||'').toLowerCase() + ' ' + (f.ownerName?.stringValue||'').toLowerCase() + ' ' + (f.phone?.stringValue||'').toLowerCase() + ' ' + (f.province?.stringValue||'').toLowerCase() + ' ' + (f.username?.stringValue||'').toLowerCase();
-      return s.includes(term);
-    });
-    if(filtered.length===0){ listEl.innerHTML='<div style="text-align:center;padding:12px;color:rgba(255,255,255,0.5)">🔍 نەهاتە دیتن</div>'; return; }
-    listEl.innerHTML='';
-    filtered.forEach(doc=>{
-      const f=doc.fields||{};
-      const getStr=(k)=>f[k]?.stringValue||'';
-      const getInt=(k)=>parseInt(f[k]?.integerValue||'0');
-      const getBool=(k)=>f[k]?.booleanValue||false;
-      const id=doc.name.split('/').pop();
-      const shopName=getStr('shopName');
-      const owner=getStr('ownerName');
-      const phone=getStr('phone');
-      const prov=getStr('province');
-      const mQuota=getInt('mobileQuota');
-      const cQuota=getInt('carQuota');
-      const isLocked=getBool('isLocked');
-      const card=document.createElement('div');
-      card.style.cssText='background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px';
-      card.innerHTML=`<div style="display:flex;justify-content:space-between"><div><div style="color:#fff;font-weight:800">🏪 ${shopName} - ${owner} ${isLocked?'🔒':''}</div><div style="color:rgba(255,255,255,0.5);font-size:11px">📱 ${phone} | ${prov} | 📱 ${mQuota} | 🚗 ${cQuota}</div></div><button onclick="openEditShopkeeper('${id}')" style="height:30px;padding:0 12px;border-radius:8px;border:1px solid rgba(91,92,255,0.3);background:rgba(91,92,255,0.15);color:#8b8cff;font-size:11px;cursor:pointer">✏️</button></div>`;
-      listEl.appendChild(card);
-    });
-  }catch(e){ listEl.innerHTML='❌ '+e.message; }
-};
-</script>
-
-
-<!-- ===== PRO V2 WINNER MODAL 20 SECONDS + AUTO RESET ===== -->
-<div id="winnerModalPRO" class="winnerModalPRO" onclick="if(event.target===this){ window.proHideWinnerModal(); }">
-<div class="winnerCardPRO">
-<div class="winnerTop">
-<div class="winnerCrown">👑</div>
-<h2>🏆 براوەیێ رێزبەندیێ!</h2>
-<div class="winnerSub">یەکەمێ رێزبەندیێ - خەلات بۆ وی یە</div>
-<div class="winName" id="winnerNamePRO">چاوەڕێ...</div>
-<div class="winScoreBox">
-<div class="winScoreItem"><div class="label">⭐ سکۆر</div><div class="value" id="winnerScorePRO">0</div></div>
-<div class="winScoreItem prize"><div class="label">🎁 خەلات</div><div class="value" id="winnerPrizePRO" style="font-size:14px">100$</div></div>
-</div>
-<div class="winnerPrizeDetail" id="winnerPrizeDetailPRO">🎉 پیرۆزە! تۆ بوویە براوە</div>
-<div class="countdown">⏳ دێ رێزبەندی پشتی <span id="winnerCountdownPRO">20</span> چرکەیان سفر بیت...</div>
-<div class="progress"><div class="progressBar" id="winnerProgressPRO"></div></div>
-</div>
-<div class="winnerBottom">
-<button class="winnerCloseBtn" onclick="window.proHideWinnerModal(); event.stopPropagation();">✕ داخستن</button>
-</div>
-</div>
-</div>
-</div>
-
-<!-- Countdown bars for game view - will be injected via JS if not exists -->
-
-
-<!-- FINAL FIX PATCH -->
-<script>
-
-// ===== FINAL FIX - SEPARATE SCORES + PLAY BUTTON IN EACH RANKING =====
-console.log('Applying FINAL FIX for separate scores');
-
-window.leaderboardCache = window.leaderboardCache || {free:[], mobile:[], car:[]};
-
-window.playRanking = function(type){
-  // 🔒 YARYA WINNER FREEZE CHECK - Block playing if winner announced and not admin
-  try{
-    if(window.yaryaWinnerFreezeActive && !(window.currentUser && window.currentUser.isAdmin)){
-      alert('🔒 یاری راوەستیا!\n\nبراوە دیاربوو: '+(window.yaryaWinnerName||'')+'\nتکایە ژ یاریێ دەرکەڤە و دیسان بێژە ژوورێ دا یاری دەستپێبکەت');
-      // Show info toast if available
-      const gv = document.getElementById('gameView');
-      if(gv){
-        // Add temporary freeze message overlay
-        let freezeMsg = document.getElementById('yaryaFreezeMsg');
-        if(!freezeMsg){
-          freezeMsg = document.createElement('div');
-          freezeMsg.id='yaryaFreezeMsg';
-          freezeMsg.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999999;background:rgba(0,0,0,0.92);border:2px solid #F7C600;border-radius:20px;padding:20px 24px;text-align:center;max-width:320px;backdrop-filter:blur(15px)';
-          freezeMsg.innerHTML='<div style="font-size:40px">🔒</div><div style="color:#F7C600;font-weight:900;margin-top:10px">یاری راوەستیا</div><div style="color:#fff;font-size:13px;margin-top:8px;line-height:1.6">براوە دیاربوو، یاری ل دەڤ هەمیان راوەستیا.<br>تکایە ئەپێ بگرە و دیسان ڤەکە، یان ل سەر گەڕانەوە کلیک بکە.</div><button onclick="this.parentElement.remove()" style="margin-top:12px;height:36px;padding:0 18px;border-radius:999px;border:0;background:#F7C600;color:#000;font-weight:800;cursor:pointer">باشە</button>';
-          document.body.appendChild(freezeMsg);
-          setTimeout(()=>{ try{freezeMsg.remove();}catch(e){} }, 5000);
-        }
-      }
-      return;
-    }
-  }catch(e){}
-  // 🔒 ADMIN LOCK CHECK - NEW
-  try{
-    if(type==='free' && proConfig.freeLocked){
-      alert('🔒 '+(proConfig.freeLockMessage||'ئەڤ رێزبەندیە قفلکریە - ناشێی یاری بکەی'));
-      return;
-    }
-    if(type==='mobile' && proConfig.mobileLocked){
-      alert('🔒 '+(proConfig.mobileLockMessage||'رێزبەندیا موبایلێ قفلکریە'));
-      return;
-    }
-    if(type==='car' && proConfig.carLocked){
-      alert('🔒 '+(proConfig.carLockMessage||'رێزبەندیا ترومبێلێ قفلکریە'));
-      return;
-    }
-  }catch(e){}
-  console.log('▶️ Playing', type, ' - separate score');
-  window.proCurrentMode = type;
-  window.currentRankingMode = type;
-  if(typeof proCurrentMode !== 'undefined') proCurrentMode = type;
-  if(typeof currentRankingMode !== 'undefined') currentRankingMode = type;
-  try{
-    const cu = window.currentUser;
-    if(cu){
-      if(type==='free') bestScore = cu.bestScoreFree||cu.bestScore||0;
-      else if(type==='mobile') bestScore = cu.bestScoreMobile||0;
-      else if(type==='car') bestScore = cu.bestScoreCar||0;
-      const bestEl = document.getElementById('topBest');
-      if(bestEl) bestEl.textContent = '⭐ '+bestScore;
-    }
-    document.querySelectorAll('.modeBtnPRO').forEach(b=>b.classList.remove('active'));
-    const btn = document.getElementById('proMode'+type.charAt(0).toUpperCase()+type.slice(1));
-    if(btn) btn.classList.add('active');
-  }catch(e){}
-  if(window.closeLeaderboard) window.closeLeaderboard();
-  const gv = document.getElementById('gameView');
-  if(gv && gv.style.display==='none' && typeof startGame==='function') startGame();
-};
-
-window.switchLbTab = async function(tab){
-  window.currentLbTab = tab;
-  currentLbTab = tab;
-  currentLbTab = tab;
-  // 🔒 ADMIN LOCK CHECK - FIXED - تەنێ ئەو شینکری دیار بیت + X نەمینیت + یەکسەر بچیتە ڤی بەشی
-  try{
-    const hideCloseBtn = () => {
-      try{
-        const closeBtn = document.querySelector('#leaderboardModal .leaderHead button');
-        if(closeBtn) closeBtn.style.display='none';
-        const modal = document.getElementById('leaderboardModal');
-        if(modal) modal.onclick = null;
-      }catch(e){}
-    };
-    const showCloseBtn = () => {
-      try{
-        const closeBtn = document.querySelector('#leaderboardModal .leaderHead button');
-        if(closeBtn) closeBtn.style.display='flex';
-        const modal = document.getElementById('leaderboardModal');
-        if(modal) modal.onclick = function(e){ if(e.target===this) window.closeLeaderboard(); };
-      }catch(e){}
-    };
-    const makeLockBox = (title, msg) => {
-      hideCloseBtn();
-      return `<div style="width:100%;text-align:center;padding:24px 18px;background:linear-gradient(135deg,rgba(212,16,31,0.18),rgba(30,10,15,0.95));border:2px solid rgba(212,16,31,0.35);border-radius:22px;box-shadow:0 10px 30px rgba(0,0,0,0.4)">
-        <div style="font-size:56px;line-height:1">🔒</div>
-        <div style="color:#ff8a8a;font-weight:900;font-size:20px;margin-top:14px">${title}</div>
-        <div style="color:#fff;font-size:14px;margin-top:14px;background:rgba(0,0,0,0.35);padding:16px 14px;border-radius:14px;line-height:1.8;white-space:pre-wrap;word-break:break-word;border:1px solid rgba(255,255,255,0.06)">${msg}</div>
-        <div style="margin-top:18px;color:rgba(255,255,255,0.5);font-size:12px">🚫 ناشێی یاری بکەی تا ئەدمین ڤەکەت</div>
-      </div>`;
-    };
-    if(tab==='free' && proConfig.freeLocked){
-      const lockMsg = proConfig.freeLockMessage || 'ئەڤ رێزبەندیە قفلکریە';
-      const prizeEl = document.getElementById('lbPrizeInfo'); if(prizeEl) prizeEl.style.display='none';
-      document.querySelectorAll('#lbFreePane, #lbMobilePane, #lbCarPane').forEach(p=>{ if(p) p.style.display='none'; });
-      const fp = document.getElementById('lbFreePane'); if(fp){ fp.style.display='flex'; fp.innerHTML = makeLockBox('رێزبەندیا بەلاش قفلکریە', lockMsg); }
-      document.querySelectorAll('#lbTabFree, #lbTabMobile, #lbTabCar').forEach(b=>b.classList.remove('active'));
-      const tb = document.getElementById('lbTabFree'); if(tb) tb.classList.add('active');
-      return;
-    }
-    if(tab==='mobile' && proConfig.mobileLocked){
-      const lockMsg = proConfig.mobileLockMessage || 'رێزبەندیا موبایلێ قفلکریە';
-      const prizeEl = document.getElementById('lbPrizeInfo'); if(prizeEl) prizeEl.style.display='none';
-      document.querySelectorAll('#lbFreePane, #lbMobilePane, #lbCarPane').forEach(p=>{ if(p) p.style.display='none'; });
-      const mp = document.getElementById('lbMobilePane'); if(mp){ mp.style.display='flex'; mp.innerHTML = makeLockBox('رێزبەندیا موبایلێ قفلکریە', lockMsg); }
-      document.querySelectorAll('#lbTabFree, #lbTabMobile, #lbTabCar').forEach(b=>b.classList.remove('active'));
-      const tb = document.getElementById('lbTabMobile'); if(tb) tb.classList.add('active');
-      return;
-    }
-    if(tab==='car' && proConfig.carLocked){
-      const lockMsg = proConfig.carLockMessage || 'رێزبەندیا ترومبێلێ قفلکریە';
-      const prizeEl = document.getElementById('lbPrizeInfo'); if(prizeEl) prizeEl.style.display='none';
-      document.querySelectorAll('#lbFreePane, #lbMobilePane, #lbCarPane').forEach(p=>{ if(p) p.style.display='none'; });
-      const cp = document.getElementById('lbCarPane'); if(cp){ cp.style.display='flex'; cp.innerHTML = makeLockBox('رێزبەندیا ترومبێلێ قفلکریە', lockMsg); }
-      document.querySelectorAll('#lbTabFree, #lbTabMobile, #lbTabCar').forEach(b=>b.classList.remove('active'));
-      const tb = document.getElementById('lbTabCar'); if(tb) tb.classList.add('active');
-      return;
-    }
-    const prizeElReset = document.getElementById('lbPrizeInfo'); if(prizeElReset) prizeElReset.style.display='block';
-    showCloseBtn();
-  }catch(e){ console.log('lock check error', e); }
-
-  document.querySelectorAll('#lbTabFree, #lbTabMobile, #lbTabCar').forEach(b=>b.classList.remove('active'));
-  const tb = document.getElementById('lbTab'+tab.charAt(0).toUpperCase()+tab.slice(1));
-  if(tb) tb.classList.add('active');
-  const fp = document.getElementById('lbFreePane');
-  const mp = document.getElementById('lbMobilePane');
-  const cp = document.getElementById('lbCarPane');
-  if(fp) fp.style.display = tab==='free'?'flex':'none';
-  if(mp) mp.style.display = tab==='mobile'?'flex':'none';
-  if(cp) cp.style.display = tab==='car'?'flex':'none';
-  const pe = document.getElementById('lbPrizeInfo');
-  if(pe){
-    if(tab==='free') pe.innerHTML = '🎁 100$ - 🆓 بەلاش - <button onclick="playRanking(\'free\')" style="background:#00ff88;color:#000;border:0;padding:4px 12px;border-radius:999px;font-weight:900;font-size:11px;cursor:pointer">▶️ پلای</button> - سکۆر جودا';
-    else if(tab==='mobile') pe.innerHTML = '🎁 📱 ئایفون - <button onclick="playRanking(\'mobile\')" style="background:#8b8cff;color:#fff;border:0;padding:4px 12px;border-radius:999px;font-weight:900;font-size:11px;cursor:pointer">▶️ پلای - موبایل</button> - سکۆر جودا';
-    else pe.innerHTML = '🎁 🚗 ترومبێل - <button onclick="playRanking(\'car\')" style="background:#F7C600;color:#000;border:0;padding:4px 12px;border-radius:999px;font-weight:900;font-size:11px;cursor:pointer">▶️ پلای - ترومبێل</button> - سکۆر جودا';
-  }
-  if(tab==='free') await loadLeaderboardDataSeparate('free');
-  if(tab==='mobile') await checkAndLoadMobileSeparate();
-  if(tab==='car') await checkAndLoadCarSeparate();
-};
-
-async function checkAndLoadMobileSeparate(){
-  try{ if(window.refreshCurrentUserFromDB) await window.refreshCurrentUserFromDB(); }catch(e){}
-  const unlocked = window.currentUser?.unlockedMobile || (window.currentUser?.bestScore||0)>=5000 || (window.currentUser?.bestScoreFree||0)>=5000;
-  const lockEl = document.getElementById('lbMobileLock');
-  const listEl = document.getElementById('lbMobileList');
-  if(unlocked){
-    if(lockEl) lockEl.style.display='none';
-    if(listEl) listEl.style.display='flex';
-    await loadLeaderboardDataSeparate('mobile');
-  }else{
-    if(lockEl) lockEl.style.display='block';
-    if(listEl){ listEl.style.display='none'; listEl.innerHTML=''; }
-  }
-}
-async function checkAndLoadCarSeparate(){
-  try{ if(window.refreshCurrentUserFromDB) await window.refreshCurrentUserFromDB(); }catch(e){}
-  const unlocked = window.currentUser?.unlockedCar || (window.currentUser?.bestScore||0)>=10000 || (window.currentUser?.bestScoreFree||0)>=10000;
-  const lockEl = document.getElementById('lbCarLock');
-  const listEl = document.getElementById('lbCarList');
-  if(unlocked){
-    if(lockEl) lockEl.style.display='none';
-    if(listEl) listEl.style.display='flex';
-    await loadLeaderboardDataSeparate('car');
-  }else{
-    if(lockEl) lockEl.style.display='block';
-    if(listEl){ listEl.style.display='none'; listEl.innerHTML=''; }
-  }
-}
-async function loadLeaderboardDataSeparate(type){
-  const paneId = type==='free' ? 'lbFreeList' : type==='mobile' ? 'lbMobileList' : 'lbCarList';
-  const list = document.getElementById(paneId);
-  if(!list) return;
-  const playBtn = `<div style="text-align:center;margin-bottom:10px"><button onclick="playRanking('${type}')" style="width:100%;height:48px;border-radius:12px;border:0;background:${type==='free'?'#00ff88':type==='mobile'?'#6a6aff':'#F7C600'};color:${type==='mobile'?'#fff':'#000'};font-weight:900;font-size:14px;cursor:pointer">▶️ پلای ل ${type==='free'?'بەلاش - 100$':type==='mobile'?'موبایل - 5000':'ترومبێل - 10000'} - سکۆر جودا بو ڤێ رێزبەندیێ</button><div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:6px">سکۆرێ هەرسێکان ژێک جودایە - هەر رێزبەندیەک ژ سفرێ</div></div>`;
-  list.innerHTML = playBtn + '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.5)">⏳ بار دبیت... رێزبەندیا '+type+' - سکۆر جودا</div>';
-  try{
-    const data = await fetchLeaderboardSeparate(type);
-    window.leaderboardCache[type]=data;
-    renderLbListSeparate(paneId,data,type);
-  }catch(e){
-    list.innerHTML = playBtn + '<div style="color:#ff8a8a">❌ '+e.message+'</div>';
-  }
-}
-async function fetchLeaderboardSeparate(type){
-  try{
-    const res = await fetch(`${DOCS_URL}/users?key=${firebaseConfig.apiKey}&pageSize=200`);
-    const data = await res.json();
-    if(!data.documents) return [];
-    let results = data.documents.map(d=>parseUserDoc(d)).filter(Boolean);
-    if(type==='free'){
-      results = results.filter(u=> (u.bestScoreFree||u.bestScore||0) > 0);
-      results.sort((a,b)=> (b.bestScoreFree||b.bestScore||0) - (a.bestScoreFree||a.bestScore||0));
-      return results.slice(0,50).map(p=>({name:p.username||p.docId||'—',photo:p.photoBase64||'',score:p.bestScoreFree||p.bestScore||0,bio:p.bio||''}));
-    }else if(type==='mobile'){
-      results = results.filter(u=> u.unlockedMobile);
-      results.sort((a,b)=> (b.bestScoreMobile||0) - (a.bestScoreMobile||0));
-      return results.slice(0,50).map(p=>({name:p.username||p.docId||'—',photo:p.photoBase64||'',score:p.bestScoreMobile||0,bio:p.bio||''}));
-    }else{
-      results = results.filter(u=> u.unlockedCar);
-      results.sort((a,b)=> (b.bestScoreCar||0) - (a.bestScoreCar||0));
-      return results.slice(0,50).map(p=>({name:p.username||p.docId||'—',photo:p.photoBase64||'',score:p.bestScoreCar||0,bio:p.bio||''}));
-    }
-  }catch(e){ return []; }
-}
-function renderLbListSeparate(paneId,data,type){
-  const list = document.getElementById(paneId);
-  if(!list) return;
-  const playBtn = `<div style="text-align:center;margin-bottom:10px"><button onclick="playRanking('${type}')" style="width:100%;height:48px;border-radius:12px;border:0;background:${type==='free'?'#00ff88':type==='mobile'?'#6a6aff':'#F7C600'};color:${type==='mobile'?'#fff':'#000'};font-weight:900;font-size:14px;cursor:pointer">▶️ پلای ل ${type==='free'?'بەلاش - 100$':type==='mobile'?'موبایل - 5000':'ترومبێل - 10000'} - سکۆر جودا</button><div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:6px">سکۆرێ هەرسێکان ژێک جودایە - هەر رێزبەندیەک ژ سفرێ</div></div>`;
-  if(!data||data.length===0){
-    list.innerHTML = playBtn + '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.4)">هیچ نینە - یەکەم کەس بە تو - ژ سفرێ 🏆</div>';
-    return;
-  }
-  list.innerHTML = playBtn;
-  data.forEach((u,i)=>{
-    const row=document.createElement('div');
-    row.className='leaderRow '+(i===0?'gold':'');
-    const photo = u.photo ? `<img src="${u.photo}" alt="">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#5B5CFF;color:#fff;font-weight:800">${(u.name||'?').charAt(0).toUpperCase()}</div>`;
-    const bioHtml = u.bio ? `<div class="leaderBio">📝 ${window.escapeHtml(u.bio)}</div>` : `<div class="leaderBio empty">بێ بایۆ</div>`;
-    row.innerHTML=`<div class="rank">${i+1}</div><div class="leaderAvatar">${photo}</div><div class="leaderInfo"><div class="leaderName">${window.escapeHtml(u.name)}</div>${bioHtml}</div><div class="leaderScore" style="color:${type==='free'?'#00ff88':type==='mobile'?'#8b8cff':'#F7C600'}">${u.score||0}</div>`;
-    list.appendChild(row);
-  });
-}
-window.fetchLeaderboard = async function(){ return await fetchLeaderboardSeparate('free'); };
-console.log('✅ FINAL FIX - Separate scores + Play button in each ranking - DONE');
-
-</script>
-<!-- END FINAL FIX -->
-
-<script>
-// ===== AUTO-REFRESH COMPLETE - V17 =====
-let autoRefreshInterval=null; let lastLbRefresh=0;
-function startAutoRefreshSystem(){
-  if(autoRefreshInterval) clearInterval(autoRefreshInterval);
-  autoRefreshInterval=setInterval(async()=>{
-    try{
-      if(typeof updateWinnerBottomBar==='function') await updateWinnerBottomBar();
-      const lbModal=document.getElementById('leaderboardModal');
-      if(lbModal && lbModal.classList.contains('show')){
-        const activeTabEl=document.querySelector('.lbTab.active');
-        const activeTab=activeTabEl?activeTabEl.dataset.tab:(window.currentLbTab||'free');
-        if(activeTab && typeof fetchLeaderboardSeparate==='function'){
-          try{
-            const data=await fetchLeaderboardSeparate(activeTab);
-            if(window.leaderboardCache) window.leaderboardCache[activeTab]=data;
-            if(typeof renderLbListSeparate==='function'){
-              const paneId=activeTab==='free'?'lbListFree':activeTab==='mobile'?'lbListMobile':'lbListCar';
-              renderLbListSeparate(paneId,data,activeTab);
-            }
-          }catch(e){}
-        }
-        if(typeof proUpdateCountdownDisplay==='function') proUpdateCountdownDisplay();
-      }
-      const now=Date.now();
-      if(now-lastLbRefresh>15000){
-        lastLbRefresh=now;
-        try{ const d=await fetchLeaderboardSeparate('free'); if(d && window.leaderboardCache) window.leaderboardCache['free']=d; }catch(e){}
-      }
-    }catch(e){}
-  },4000);
-  setInterval(()=>{
-    try{
-      if(typeof proConfig!=='undefined' && proConfig.freeEndAt){
-        const diff=(proConfig.freeEndAt-new Date())/1000;
-        if(diff>0 && diff<30){
-          if(typeof updateWinnerBottomBar==='function') updateWinnerBottomBar();
-          if(typeof proUpdateCountdownDisplay==='function') proUpdateCountdownDisplay();
-        }
-      }
-    }catch(e){}
-  },1000);
-}
-setTimeout(()=>{ startAutoRefreshSystem(); console.log('✅ V17 Auto-refresh active - leaderboard during game'); },2000);
-document.addEventListener('visibilitychange', ()=>{
-  if(!document.hidden){
-    if(typeof updateWinnerBottomBar==='function') updateWinnerBottomBar();
-    if(typeof fetchLeaderboardSeparate==='function') fetchLeaderboardSeparate('free').then(d=>{ if(d && window.leaderboardCache) window.leaderboardCache['free']=d; }).catch(()=>{});
-  }
-});
-window.manualRefreshAll=async function(){
-  if(typeof updateWinnerBottomBar==='function') await updateWinnerBottomBar();
-  for(let mode of ['free','mobile','car']){
-    try{ const data=await fetchLeaderboardSeparate(mode); if(window.leaderboardCache) window.leaderboardCache[mode]=data; }catch(e){}
-  }
-  alert('✅ هەمی هاتە نوێکرن');
-};
-</script>
-
-
-<script>
-// EMERGENCY RECOVERY V19
-window.emergencyReset=function(){
-  if(confirm('🚨 پاک کرنا داتا و چوونەژوورێ؟\nهەمی ناڤ هاتنە ژێبرن؟')){
-    try{
-      localStorage.removeItem('yarya_username');
-      localStorage.removeItem('yarya_username_original');
-      localStorage.removeItem('yarya_user_photo');
-      currentUser=null; window.currentUser=null;
-      location.reload();
-    }catch(e){ localStorage.clear(); location.reload(); }
-  }
-};
-window.forceShowLogin=function(){
-  try{
-    const ls=document.getElementById('loadingScreen');
-    const lv=document.getElementById('loginView');
-    const gv=document.getElementById('gameView');
-    if(ls){ ls.style.display='none'; }
-    if(gv){ gv.style.display='none'; }
-    if(lv){ lv.style.display='block'; lv.style.visibility='visible'; lv.style.opacity='1'; }
-    localStorage.removeItem('yarya_username');
-    currentUser=null; window.currentUser=null;
-  }catch(e){ location.reload(); }
-};
-setTimeout(()=>{
-  try{
-    const lv=document.getElementById('loginView');
-    const gv=document.getElementById('gameView');
-    const hasUser=localStorage.getItem('yarya_username');
-    if(!hasUser && lv && (lv.style.display==='none' || lv.style.display=='')){
-      if(!gv || gv.style.display==='none'){
-        const ls=document.getElementById('loadingScreen');
-        if(ls) ls.style.display='none';
-        lv.style.display='block';
-        lv.style.visibility='visible';
-        lv.style.opacity='1';
-      }
-    }
-    if(!window.currentUser && gv && gv.style.display!=='none'){
-      if(!document.getElementById('emergencyLoginBtn')){
-        const btn=document.createElement('button');
-        btn.id='emergencyLoginBtn';
-        btn.textContent='🔄 چوونەژوور / تۆمارکرن';
-        btn.style.cssText='background:#00ff88;color:#000;border:0;padding:8px 14px;border-radius:999px;font-weight:900;font-size:11px;cursor:pointer;margin:8px auto;display:block;';
-        btn.onclick=window.forceShowLogin;
-        const topBar=document.querySelector('#gameView .topBar') || gv;
-        if(topBar) topBar.appendChild(btn);
-      }
-    }
-  }catch(e){}
-},3000);
-console.log('✅ V19 Emergency recovery active');
-</script>
-
-
-<style id="pwa-install-v27-cost-optimized">
-#pwaInstallBanner {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%) translateY(150px);
-  background: linear-gradient(135deg, #1e1e3a 0%, #252550 100%);
-  border: 1px solid rgba(247,198,0,0.25);
-  border-radius: 20px;
-  padding: 12px 14px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 9999;
-  min-width: 320px;
-  max-width: 94%;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-  transition: all 0.5s cubic-bezier(0.34,1.56,0.64,1);
-  opacity: 0;
-  direction: rtl;
-}
-#pwaInstallBanner.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-#pwaInstallBanner img { width: 44px; height: 44px; border-radius: 10px; border: 2px solid rgba(247,198,0,0.3); flex-shrink:0; }
-#pwaInstallBanner .info { flex:1; text-align:right; min-width:0; }
-#pwaInstallBanner .info b { color:#fff; font-size:12px; display:block; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-#pwaInstallBanner .info span { color:rgba(255,255,255,0.65); font-size:10.5px; display:block; margin-top:2px; line-height:1.4; }
-#pwaInstallBanner button { height:36px; padding:0 14px; border-radius:999px; border:0; background:linear-gradient(180deg,#ffe27a,#F7C600); color:#000; font-weight:900; font-size:11px; cursor:pointer; flex-shrink:0; }
-#pwaInstallBanner .closeBtn { width:30px; height:30px; border-radius:50%; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.06); color:#fff; }
-.installModal {
-  position: fixed; inset:0; z-index:10000; display:none; align-items:center; justify-content:center;
-  background: rgba(7,10,26,0.75); backdrop-filter: blur(12px); padding:16px;
-}
-.installModal.show { display:flex; }
-.installModalCard {
-  width:100%; max-width:390px; background:linear-gradient(180deg,#1e1e42 0%,#12122e 100%);
-  border:1px solid rgba(247,198,0,0.18); border-radius:28px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.5);
-  position:relative;
-}
-.installModalCard::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,#D4101F 33%,#F7C600 33%,#F7C600 66%,#2E9E44 66%); }
-.installModalHeader { padding:20px 18px 12px; text-align:center; border-bottom:1px solid rgba(255,255,255,0.06); }
-.installModalHeader .iconBig { width:72px; height:72px; margin:0 auto 12px; border-radius:18px; overflow:hidden; border:3px solid rgba(247,198,0,0.4); background:#070a1a; }
-.installModalHeader .iconBig img { width:100%; height:100%; object-fit:cover; }
-.installModalHeader h2 { color:#fff; font-size:18px; font-weight:900; margin-bottom:6px; }
-.installModalHeader p { color:rgba(255,255,255,0.65); font-size:12px; line-height:1.6; }
-.installModalBody { padding:14px 16px; }
-.installStep { display:flex; gap:10px; align-items:flex-start; margin-bottom:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:10px; }
-.installStep .num { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#ffe27a,#F7C600); color:#000; font-weight:900; font-size:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-.installStep .txt { flex:1; text-align:right; direction:rtl; }
-.installStep .txt b { color:#fff; font-size:12px; display:block; margin-bottom:2px; }
-.installStep .txt span { color:rgba(255,255,255,0.58); font-size:11px; line-height:1.5; }
-.installStep .iconS { font-size:18px; flex-shrink:0; }
-.installModalFooter { padding:12px 16px 18px; display:flex; gap:8px; }
-.installModalFooter button { flex:1; height:44px; border-radius:999px; border:0; font-weight:900; font-size:12px; cursor:pointer; font-family:'Noto Sans Arabic'; }
-.btnInstallPrimary { background:linear-gradient(180deg,#ffe27a,#F7C600); color:#000; }
-.btnInstallSecondary { background:rgba(255,255,255,0.07); color:#fff; border:1.5px solid rgba(255,255,255,0.12) !important; }
-.costBadge { position: fixed; top: 10px; left: 10px; background: rgba(0,255,136,0.15); border: 1px solid rgba(0,255,136,0.3); color: #00ff88; padding: 6px 10px; border-radius: 999px; font-size: 10px; font-weight: 900; z-index: 9998; direction: ltr; }
-</style>
-
-<div id="costSavingBadge" class="costBadge" style="display:none">💰 V27 73% کێمتر مەسرەف!</div>
-
-<div id="pwaInstallBanner">
-  <img src="/icons/icon-192x192.png" alt="YARYA ZAXO PRO 🏆🐥">
-  <div class="info">
-    <b>🏆 YARYA ZAXO PRO دابەزێنە</b>
-    <span id="pwaBannerText">وەک ئەپ - کلیک بکە دابەزاندن</span>
-  </div>
-  <button id="pwaInstallBtn">دابەزاندن</button>
-  <button class="closeBtn" onclick="hideInstallBanner()">✕</button>
-</div>
-
-<div id="iosInstallModal" class="installModal" onclick="if(event.target===this) closeIOSModal()">
-  <div class="installModalCard">
-    <div class="installModalHeader">
-      <div class="iconBig"><img src="/icons/icon-192x192.png" alt="icon"></div>
-      <h2>📱 دابەزاندن بۆ ئایفون</h2>
-      <p>یاریا <b style="color:#F7C600">YARYA ZAXO PRO 🏆🐥</b> وەک ئەپ دابەزێنە</p>
-    </div>
-    <div class="installModalBody">
-      <div class="installStep">
-        <div class="num">1</div>
-        <div class="txt"><b>کلیک بکە سەر Share ⬆️</b><span>ل خوارێ Safari - چوارگۆشە ب تیرێ</span></div>
-        <div class="iconS">⬆️</div>
-      </div>
-      <div class="installStep">
-        <div class="num">2</div>
-        <div class="txt"><b>Add to Home Screen</b><span>هەلبژێرە - ئایکون +</span></div>
-        <div class="iconS">➕</div>
-      </div>
-      <div class="installStep">
-        <div class="num">3</div>
-        <div class="txt"><b>کلیک Add</b><span>چیچک 🏆 د کاسا زێرین دا دێ دیار بیت!</span></div>
-        <div class="iconS">🏆</div>
-      </div>
-    </div>
-    <div class="installModalFooter">
-      <button class="btnInstallSecondary" onclick="closeIOSModal()">تێگەهشتم ✅</button>
-      <button class="btnInstallPrimary" onclick="closeIOSModal()">باشە</button>
-    </div>
-  </div>
-</div>
-
-<div id="androidInstallModal" class="installModal" onclick="if(event.target===this) closeAndroidModal()">
-  <div class="installModalCard">
-    <div class="installModalHeader">
-      <div class="iconBig"><img src="/icons/icon-192x192.png" alt="icon"></div>
-      <h2>🤖 دابەزاندن بۆ ئەندروید</h2>
-      <p>یاریا <b style="color:#F7C600">YARYA ZAXO PRO 🏆🐥</b> ئێنستال بکە - V27 کێم-مەسرەف!</p>
-    </div>
-    <div class="installModalBody">
-      <div class="installStep">
-        <div class="num">1</div>
-        <div class="txt"><b>کلیک دابەزاندن 📲</b><span>یان مێنیو Chrome (⋮) → Install app</span></div>
-        <div class="iconS">📲</div>
-      </div>
-      <div class="installStep">
-        <div class="num">2</div>
-        <div class="txt"><b>پشتراست بکە Install</b><span>کلیک Install یان Add</span></div>
-        <div class="iconS">✅</div>
-      </div>
-      <div class="installStep">
-        <div class="num">3</div>
-        <div class="txt"><b>یاریێ وەک ئەپ بکە! 🎮</b><span>ئایکونا چیچک 🏆 ل Home Screen - 73% کێمتر مەسرەف!</span></div>
-        <div class="iconS">🐥</div>
-      </div>
-    </div>
-    <div class="installModalFooter">
-      <button class="btnInstallSecondary" onclick="closeAndroidModal()">پاشان</button>
-      <button class="btnInstallPrimary" id="androidInstallBtnModal">📲 ئێنستال</button>
-    </div>
-  </div>
-</div>
-
-<script>
-// PWA INSTALL V27 FINAL - کێم-مەسرەف + بێ FAB + ئایوئێس د مەسجێدا + بێ شاشی رەش + ئایکونا جوان
-let deferredPrompt=null;
-function hideInstallBanner(){ const b=document.getElementById('pwaInstallBanner'); if(b) b.classList.remove('show'); localStorage.setItem('pwa_banner_dismissed', Date.now()); }
-function showInstallBanner(){ const b=document.getElementById('pwaInstallBanner'); if(b){ b.classList.add('show'); } }
-function showIOSModal(){ const m=document.getElementById('iosInstallModal'); if(m) m.classList.add('show'); }
-function closeIOSModal(){ const m=document.getElementById('iosInstallModal'); if(m) m.classList.remove('show'); }
-function showAndroidModal(){ const m=document.getElementById('androidInstallModal'); if(m) m.classList.add('show'); }
-function closeAndroidModal(){ const m=document.getElementById('androidInstallModal'); if(m) m.classList.remove('show'); }
-
-window.hideInstallBanner=hideInstallBanner;
-window.showIOSModal=showIOSModal;
-window.closeIOSModal=closeIOSModal;
-window.showAndroidModal=showAndroidModal;
-window.closeAndroidModal=closeAndroidModal;
-
-window.addEventListener('beforeinstallprompt-disabled', (e)=>{
-  e.preventDefault();
-  deferredPrompt=e;
-  console.log('✅ V27 PWA installable - 73% cost saving banner');
-  setTimeout(()=>{ if(!window.matchMedia('(display-mode: standalone)').matches) showInstallBanner(); }, 2000);
-});
-
-document.addEventListener('DOMContentLoaded', ()=>{
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
-  const bannerText=document.getElementById('pwaBannerText');
-  const installBtn=document.getElementById('pwaInstallBtn');
-  
-  if(isIOS && bannerText){
-    bannerText.innerHTML='ل Safari: Share ⬆️ → Add to Home Screen ➕';
-    if(installBtn){ installBtn.textContent='رێنما'; installBtn.onclick=()=>showIOSModal(); }
-  } else {
-    if(installBtn){
-      installBtn.onclick=async()=>{
-        if(deferredPrompt){
-          deferredPrompt.prompt();
-          const {outcome}=await deferredPrompt.userChoice;
-          console.log('Install:',outcome);
-          if(outcome==='accepted'){ hideInstallBanner(); closeAndroidModal(); }
-          deferredPrompt=null;
-        } else {
-          showAndroidModal();
-        }
-      };
-    }
-  }
-  
-  const androidBtn=document.getElementById('androidInstallBtnModal');
-  if(androidBtn){
-    androidBtn.onclick=async()=>{
-      if(deferredPrompt){
-        deferredPrompt.prompt();
-        const {outcome}=await deferredPrompt.userChoice;
-        if(outcome==='accepted'){ hideInstallBanner(); closeAndroidModal(); }
-        deferredPrompt=null;
-      } else {
-        alert('📲 بۆ ئێنستال:\n1. مێنیو Chrome (⋮) بکەرەوە\n2. Install app یان Add to Home Screen\n3. Install\n\n🏆 چیچک د کاسێ دا - V27 کێم-مەسرەف!');
-      }
-    };
-  }
-  
-  // V27: Show cost saving badge for admin
-  try{
-    const user = localStorage.getItem('yarya_username')||'';
-    if(user.toLowerCase().includes('admin') || localStorage.getItem('yarya_is_admin')==='true'){
-      const badge=document.getElementById('costSavingBadge');
-      if(badge){ badge.style.display='block'; setTimeout(()=>badge.style.display='none', 5000); }
-    }
-  }catch(e){}
-  
-  setTimeout(()=>{
-    const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-    if(!isStandalone){
-      const lastDismiss=localStorage.getItem('pwa_banner_dismissed');
-      if(!lastDismiss || Date.now()-parseInt(lastDismiss) > 30000){
-        showInstallBanner();
-        console.log('🔔 V27 banner show - کێم-مەسرەف + ئایکونا جوان');
-      }
-    }
-  }, 3000);
+setInterval(async ()=>{ try{ if(typeof window.updateManagerBtnVisibility==='function') window.updateManagerBtnVisibility(); }catch(e){} }, 3000);
   
   // Remove any leftover FAB - V27 no FAB
   const fab=document.getElementById('pwaFabInstall');
   if(fab) fab.remove();
   // Also clean localStorage
   try{ localStorage.removeItem('fab_shown'); }catch(e){}
-});
 
 window.addEventListener('appinstalled', ()=>{
   console.log('✅ V27 PWA installed - 73% cost saving!');
@@ -6453,7 +5611,7 @@ window.addEventListener('appinstalled', ()=>{
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
-    // disabled - SIMPLE - navigator.serviceWorker.register('/sw.js?v=v49-icon').then(r=>console.log('✅ SW V27 registered - کێم-مەسرەف', r.scope)).catch(e=>console.log('SW fail', e));
+    // disabled - SIMPLE - navigator.serviceWorker.register('/sw.js?v=v4-icon-2026').then(r=>console.log('✅ SW V27 registered - کێم-مەسرەف', r.scope)).catch(e=>console.log('SW fail', e));
   });
 }
 
@@ -6580,7 +5738,7 @@ console.log('✅ V31 ALL FIXES APPLIED');
 
 <script>
 // YARYA ZAXO PLAYER EDIT - Player can change name/mobile/bio, NOT ID/code
-window.YARYA ZAXO_PLAYER = {
+window.YARYA_ZAXO_PLAYER = {
   async editProfile(){
     const current = window.currentUser || JSON.parse(localStorage.getItem('yarya_user')||'{}');
     if(!current.username){ alert('بەرێ خو تومار بکە'); return; }
@@ -7682,6 +6840,275 @@ window.closeAccountsModal = function(event){
 };
 
 console.log('✅ ULTIMATE FIX v3 ready - winner locked, no zero, no zoom');
+</script>
+
+
+<script>
+// ===== RESTORED ADMIN SHOPKEEPER FUNCTIONS (were deleted in earlier edit) =====
+window.loadAllShopkeepersNew = async function(){
+  const list = document.getElementById('adminShopkeepersListREST');
+  if(!list) return;
+  list.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.5)">⏳ بار دبیت...</div>';
+  try{
+    const res = await fetch(`/api/firestore/shopkeepers?key=${window.firebaseConfig.apiKey}&pageSize=100`);
+    const data = await res.json();
+    let shops = [];
+    if(data && data.documents){ shops = data.documents.map(d=>{ const f=d.fields||{}; const g=(k,def)=>{ if(f[k]?.stringValue!==undefined) return f[k].stringValue; if(f[k]?.integerValue!==undefined) return parseInt(f[k].integerValue); if(f[k]?.booleanValue!==undefined) return f[k].booleanValue; return def; }; return {id:d.name.split('/').pop(), shopName:g('shopName',''), username:g('username',''), owner:g('owner',''), phone:g('phone',''), province:g('province',''), mobileQuota:g('mobileQuota',0), carQuota:g('carQuota',0), isActive:g('isActive',true), isLocked:g('isLocked',false)}; }); }
+    window._adminShops = shops;
+    if(!shops.length){ list.innerHTML='<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.5)">هیچ دکاندار نینە</div>'; return; }
+    list.innerHTML = shops.map(s=>`<div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,0.08)"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="color:#fff;font-weight:800">${s.shopName||s.username} - ${s.owner||''}</div><div style="color:rgba(255,255,255,0.6);font-size:11px">@${s.username} | ${s.phone||''} | ${s.province||''}</div><div style="color:#F7C600;font-size:11px;margin-top:4px">📱 ${s.mobileQuota} | 🚗 ${s.carQuota} | ${s.isLocked?'🔒 قفلکری':'✅ چالاک'}</div></div><div style="display:flex;gap:6px"><button onclick="openEditShopkeeper('${s.id}')" style="padding:8px 12px;border-radius:8px;border:0;background:#5B5CFF;color:#fff;font-weight:700;cursor:pointer">✏️</button><button onclick="deleteShopkeeperNew('${s.id}')" style="padding:8px 12px;border-radius:8px;border:0;background:#d4101f;color:#fff;font-weight:700;cursor:pointer">🗑️</button></div></div></div>`).join('');
+  }catch(e){ list.innerHTML='<div style="color:#ff8a8a">❌ '+e.message+'</div>'; }
+};
+window.loadAllShopkeepersREST = window.loadAllShopkeepersNew;
+window.searchShopkeepersNew = function(){
+  const term = (document.getElementById('adminShopSearchInput')?.value||'').toLowerCase();
+  const shops = window._adminShops||[];
+  const list = document.getElementById('adminShopkeepersListREST');
+  if(!list) return;
+  if(!term){ window.loadAllShopkeepersNew(); return; }
+  const filtered = shops.filter(s=> (s.shopName||'').toLowerCase().includes(term) || (s.username||'').toLowerCase().includes(term) || (s.owner||'').toLowerCase().includes(term) || (s.province||'').toLowerCase().includes(term) || (s.phone||'').includes(term));
+  if(!filtered.length){ list.innerHTML='<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.5)">هیچ نەهاتە دیتن</div>'; return; }
+  list.innerHTML = filtered.map(s=>`<div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:12px"><div style="color:#fff;font-weight:800">${s.shopName} - ${s.owner}</div><div style="color:rgba(255,255,255,0.6);font-size:11px">@${s.username} | 📱 ${s.mobileQuota} | 🚗 ${s.carQuota}</div><div style="display:flex;gap:6px;margin-top:8px"><button onclick="openEditShopkeeper('${s.id}')" style="padding:6px 10px;border-radius:8px;border:0;background:#5B5CFF;color:#fff;cursor:pointer">✏️ دەستکاری</button><button onclick="deleteShopkeeperNew('${s.id}')" style="padding:6px 10px;border-radius:8px;border:0;background:#d4101f;color:#fff;cursor:pointer">🗑️ ژێبە</button></div></div>`).join('');
+};
+window.createShopkeeperREST = async function(){
+  const username = document.getElementById('adminNewShopUsername')?.value.trim().toLowerCase();
+  const shopName = document.getElementById('adminNewShopName')?.value.trim()||username;
+  const owner = document.getElementById('adminNewShopOwner')?.value.trim()||'';
+  const phone = document.getElementById('adminNewShopPhone')?.value.trim()||'';
+  const province = document.getElementById('adminNewShopProvince')?.value.trim()||'دهۆک';
+  const mQ = parseInt(document.getElementById('adminNewShopMobileQuota')?.value||'50');
+  const cQ = parseInt(document.getElementById('adminNewShopCarQuota')?.value||'50');
+  if(!username){ alert('یوزەرنەیم بنڤیسە'); return; }
+  try{
+    const fields = { username:{stringValue:username}, shopName:{stringValue:shopName}, owner:{stringValue:owner}, phone:{stringValue:phone}, province:{stringValue:province}, mobileQuota:{integerValue:mQ.toString()}, carQuota:{integerValue:cQ.toString()}, isActive:{booleanValue:true}, isLocked:{booleanValue:false}, createdAt:{timestampValue:new Date().toISOString()} };
+    const res = await fetch(`/api/firestore/shopkeepers?key=${window.firebaseConfig.apiKey}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields})});
+    if(!res.ok) throw new Error(await res.text());
+    const q = await fetch('/api/firestore-query', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({structuredQuery:{from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue:username}}}, limit:1}})});
+    const qd = await q.json();
+    if(qd && qd[0]?.document){
+      const uid = qd[0].document.name.split('/').pop();
+      await fetch(`/api/firestore/users/${encodeURIComponent(uid)}?key=${window.firebaseConfig.apiKey}&updateMask.fieldPaths=isManager&updateMask.fieldPaths=role`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields:{isManager:{booleanValue:true}, role:{stringValue:'manager'}}})});
+    }
+    alert('✅ دکاندار هاتە دروستکرن');
+    if(typeof loadAllShopkeepersNew==='function') loadAllShopkeepersNew();
+  }catch(e){ alert('❌ '+e.message); }
+};
+window.openEditShopkeeper = async function(id){
+  const shops = window._adminShops||[];
+  const s = shops.find(x=>x.id===id);
+  if(!s){ alert('دکاندار نەهاتە دیتن'); return; }
+  const newM = prompt('کوتا موبایلێ نوو:', s.mobileQuota);
+  if(newM===null) return;
+  const newC = prompt('کوتا ترومبێلێ نوو:', s.carQuota);
+  if(newC===null) return;
+  const lock = confirm('🔒 دکانداری قفل بکەم؟ OK=قفل, Cancel=ڤەکە');
+  try{
+    const fields = { mobileQuota:{integerValue:parseInt(newM).toString()}, carQuota:{integerValue:parseInt(newC).toString()}, isLocked:{booleanValue:lock} };
+    await fetch(`/api/firestore/shopkeepers/${encodeURIComponent(id)}?key=${window.firebaseConfig.apiKey}&updateMask.fieldPaths=mobileQuota&updateMask.fieldPaths=carQuota&updateMask.fieldPaths=isLocked`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields})});
+    alert('✅ هاتە گهورین');
+    loadAllShopkeepersNew();
+  }catch(e){ alert('❌ '+e.message); }
+};
+window.deleteShopkeeperNew = async function(id){
+  if(!confirm('دڵنیای دێ ڤی دکانداری ژێبی؟')) return;
+  try{
+    await fetch(`/api/firestore/shopkeepers/${encodeURIComponent(id)}?key=${window.firebaseConfig.apiKey}`, {method:'DELETE'});
+    alert('✅ هاتە ژێبرن');
+    loadAllShopkeepersNew();
+  }catch(e){ alert('❌ '+e.message); }
+};
+</script>
+
+
+<script>
+// ===== STRICT FIX V3 - Shopkeeper ONLY - 2026-10-26 =====
+// Ev script her tiştî override dike - tenê dikan-dar dibînin
+(function(){
+
+  // Deduplicate: remove any duplicate managerBtn / shop buttons
+  try{
+    setInterval(function(){
+      try{
+        var all = document.querySelectorAll('#managerBtn, button[title="دکاندار"], button[onclick*="openManagerModal"]');
+        // Keep only the verified one if exists, else remove all
+        if(window.__SHOP_VERIFIED!==true){
+          all.forEach(function(b){ try{ b.remove(); }catch(e){} });
+          var ph = document.getElementById('managerBtnPlaceholder');
+          if(!ph){
+            var tp = document.querySelector('.topActions');
+            if(tp){ var s=document.createElement('span'); s.id='managerBtnPlaceholder'; tp.appendChild(s); }
+          }
+        } else {
+          // Verified: keep only first
+          for(var i=1;i<all.length;i++){ try{ all[i].remove(); }catch(e){} }
+        }
+      }catch(e){}
+    }, 1000);
+  }catch(e){}
+
+  window.__SHOP_VERIFIED = false;
+  window.__SHOP_CHECK_DONE = false;
+  // 1. Patch parseUserDoc to keep role/isManager (original dropped them)
+  try{
+    if(typeof parseUserDoc !== 'undefined'){
+      var _oldParse = parseUserDoc;
+      window.parseUserDoc = function(doc){
+        var res = _oldParse(doc);
+        if(!res) return null;
+        try{
+          var f = doc.fields||{};
+          if(f.role && f.role.stringValue) res.role = f.role.stringValue;
+          if(f.isManager && f.isManager.booleanValue!==undefined) res.isManager = f.isManager.booleanValue;
+          if(f.isShopkeeper && f.isShopkeeper.booleanValue!==undefined) res.isManager = res.isManager || f.isShopkeeper.booleanValue;
+        }catch(e){}
+        return res;
+      };
+      // also keep global reference
+      try{ parseUserDoc = window.parseUserDoc; }catch(e){}
+    }
+  }catch(e){}
+  // 2. Strict check - checks users doc + shopkeepers with both fields, case-insensitive
+  window.checkShopkeeperStrict = async function(){
+    try{
+      var cu = window.currentUser || (typeof currentUser !== 'undefined' ? currentUser : null);
+      if(!cu || !cu.usernameLower){ window.__SHOP_VERIFIED=false; window.__SHOP_CHECK_DONE=true; window.updateManagerBtnVisibilityStrict && window.updateManagerBtnVisibilityStrict(); return false; }
+      var low = cu.usernameLower.toLowerCase();
+      // A) Check users doc directly for isManager / role
+      try{
+        var idsToTry = [];
+        if(cu.id) idsToTry.push(cu.id);
+        if(low) idsToTry.push(low);
+        if(cu.username) idsToTry.push(cu.username);
+        for(var _i=0; _i<idsToTry.length; _i++){
+          var _id = idsToTry[_i];
+          try{
+            var _r = await fetch('/api/firestore/users/'+encodeURIComponent(_id)+'?key='+(window.firebaseConfig && window.firebaseConfig.apiKey||''));
+            if(_r && _r.ok){
+              var _d = await _r.json();
+              var _f = _d.fields||{};
+              if(_f.isManager && _f.isManager.booleanValue===true){ window.__SHOP_VERIFIED=true; window.__SHOP_CHECK_DONE=true; cu.isManager=true; cu.role='manager'; window.updateManagerBtnVisibilityStrict(); return true; }
+              if(_f.role && (_f.role.stringValue==='manager' || _f.role.stringValue==='admin' || _f.role.stringValue==='owner')){ window.__SHOP_VERIFIED=true; window.__SHOP_CHECK_DONE=true; cu.isManager=true; cu.role=_f.role.stringValue; window.updateManagerBtnVisibilityStrict(); return true; }
+            }
+          }catch(e){}
+        }
+      }catch(e){}
+      // B) Check shopkeepers collection - try username and usernameLower, both low and original
+      var fieldsToTry = ['username','usernameLower'];
+      var valuesToTry = [low];
+      if(cu.username && cu.username.toLowerCase()!==low) valuesToTry.push(cu.username);
+      for(var fi=0; fi<fieldsToTry.length; fi++){
+        for(var vi=0; vi<valuesToTry.length; vi++){
+          try{
+            var q = await fetch('/api/firestore-query', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({structuredQuery:{from:[{collectionId:'shopkeepers'}], where:{fieldFilter:{field:{fieldPath:fieldsToTry[fi]}, op:'EQUAL', value:{stringValue: valuesToTry[vi]}}}, limit:1}})});
+            var data = await q.json();
+            if(data && data.length>0 && data[0].document){ window.__SHOP_VERIFIED=true; window.__SHOP_CHECK_DONE=true; cu.isManager=true; cu.role='manager'; window.updateManagerBtnVisibilityStrict(); return true; }
+          }catch(e){}
+        }
+      }
+      // C) Fallback: list all shopkeepers and compare lowercased (server may store different case)
+      try{
+        var allRes = await fetch('/api/firestore/shopkeepers?key='+(window.firebaseConfig && window.firebaseConfig.apiKey||'')+'&pageSize=200');
+        if(allRes && allRes.ok){
+          var allData = await allRes.json();
+          var docs = allData.documents||[];
+          for(var d=0; d<docs.length; d++){
+            var ff = docs[d].fields||{};
+            var u1 = (ff.username && ff.username.stringValue||'').toLowerCase();
+            var u2 = (ff.usernameLower && ff.usernameLower.stringValue||'').toLowerCase();
+            if(u1===low || u2===low){ window.__SHOP_VERIFIED=true; window.__SHOP_CHECK_DONE=true; cu.isManager=true; cu.role='manager'; window.updateManagerBtnVisibilityStrict(); return true; }
+          }
+        }
+      }catch(e){}
+      window.__SHOP_VERIFIED=false; window.__SHOP_CHECK_DONE=true; window.updateManagerBtnVisibilityStrict(); return false;
+    }catch(e){ window.__SHOP_VERIFIED=false; window.__SHOP_CHECK_DONE=true; window.updateManagerBtnVisibilityStrict(); return false; }
+  };
+  // 3. Visibility enforcer
+  window.updateManagerBtnVisibilityStrict = function(){
+    try{
+      var ph = document.getElementById('managerBtnPlaceholder');
+      var btn = document.getElementById('managerBtn');
+      if(window.__SHOP_VERIFIED===true){
+        if(!btn && ph){
+          btn = document.createElement('button');
+          btn.id='managerBtn'; btn.className='iconBtn small is-shopkeeper';
+          btn.style.cssText='background:rgba(0,220,120,0.15);border-color:rgba(0,220,120,0.3);color:#00ff99;display:flex';
+          btn.title='دکاندار'; btn.textContent='🏪';
+          btn.onclick = function(){ window.openManagerModal(); };
+          ph.replaceWith(btn);
+        } else if(btn){
+          btn.classList.add('is-shopkeeper'); btn.style.setProperty('display','flex','important'); btn.style.visibility='visible';
+        }
+      } else {
+        if(btn) btn.remove();
+        var modal = document.getElementById('managerModal');
+        if(modal && modal.classList.contains('show') && window.__SHOP_CHECK_DONE){ modal.classList.remove('show'); }
+      }
+    }catch(e){}
+  };
+  // Keep old name working - strict version
+  window.isShopkeeperUser = function(cu){
+    if(window.__SHOP_VERIFIED===true) return true;
+    if(!cu) cu = window.currentUser;
+    if(!cu) return false;
+    if(cu.isManager===true) return true;
+    var r = (cu.role||'').toString().toLowerCase();
+    if(r==='manager' || r==='admin' || r==='owner') return true;
+    return false;
+  };
+  window.updateManagerBtnVisibility = window.updateManagerBtnVisibilityStrict;
+  window.checkShopkeeperInFirestore = window.checkShopkeeperStrict;
+  // 4. Override openManagerModal - NEVER open for non-shopkeepers
+  var _origOpen = window.openManagerModal;
+  window.openManagerModal = async function(){
+    var verified = window.__SHOP_VERIFIED;
+    if(!window.__SHOP_CHECK_DONE || verified!==true){
+      verified = await window.checkShopkeeperStrict();
+    }
+    if(!verified){
+      try{ alert('⛔ تەنێ دکاندار دشێت ڤێ پانێلێ ڤەکەت'); }catch(e){}
+      window.updateManagerBtnVisibilityStrict();
+      var m = document.getElementById('managerModal'); if(m) m.classList.remove('show');
+      return;
+    }
+    // Verified - open normally
+    try{
+      var modal = document.getElementById('managerModal');
+      if(!modal) return;
+      modal.classList.add('show');
+      var info = document.getElementById('myShopInfo');
+      if(info) info.innerHTML='⏳ بار دبیت...';
+      if(typeof loadMyShopInfoNew==='function') await loadMyShopInfoNew();
+      if(typeof loadMySalesListNew==='function') loadMySalesListNew();
+    }catch(e){}
+  };
+  // 5. Hide button immediately and enforce every 800ms
+  window.updateManagerBtnVisibilityStrict();
+  setInterval(window.updateManagerBtnVisibilityStrict, 800);
+  // 6. Re-check on login / after 1.5s and on every currentUser change
+  setTimeout(function(){ window.checkShopkeeperStrict(); }, 1500);
+  setInterval(function(){ if(window.currentUser && !window.__SHOP_CHECK_DONE) window.checkShopkeeperStrict(); }, 5000);
+  // 7. MutationObserver - if modal is opened while not verified, close it instantly
+  try{
+    var _obs = new MutationObserver(function(){
+      if(window.__SHOP_VERIFIED!==true && window.__SHOP_CHECK_DONE){
+        var mm = document.getElementById('managerModal');
+        if(mm && mm.classList.contains('show')) mm.classList.remove('show');
+      }
+      window.updateManagerBtnVisibilityStrict();
+    });
+    document.addEventListener('DOMContentLoaded', function(){
+      var mm = document.getElementById('managerModal');
+      if(mm) _obs.observe(mm, {attributes:true, attributeFilter:['class']});
+      var btn = document.getElementById('managerBtn');
+      if(btn) _obs.observe(btn, {attributes:true, attributeFilter:['class','style']});
+    });
+    // Also observe body for modal class changes if DOM already loaded
+    setTimeout(function(){
+      var mm2 = document.getElementById('managerModal');
+      if(mm2) _obs.observe(mm2, {attributes:true, attributeFilter:['class']});
+    }, 2000);
+  }catch(e){}
+})();
 </script>
 
 </html>
