@@ -665,6 +665,6 @@ app.get('*', (req,res)=>{
   return res.sendFile(path.join(__dirname,'public','index.html'));
 });
 app.listen(PORT, '0.0.0.0', ()=>{
-  console.log('V58 ADMIN EDIT - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
-  console.log(`V58 ADMIN EDIT - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
+  console.log('V59 SHOP-FIX - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
+  console.log(`V59 SHOP-FIX - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
 });
