@@ -6919,4 +6919,165 @@ window.deleteShopkeeperNew = async function(id){
 };
 </script>
 
+
+<script>
+// ===== STRICT FIX V3 - Shopkeeper ONLY - 2026-10-26 =====
+// Ev script her tiştî override dike - tenê dikan-dar dibînin
+(function(){
+  window.__SHOP_VERIFIED = false;
+  window.__SHOP_CHECK_DONE = false;
+  // 1. Patch parseUserDoc to keep role/isManager (original dropped them)
+  try{
+    if(typeof parseUserDoc !== 'undefined'){
+      var _oldParse = parseUserDoc;
+      window.parseUserDoc = function(doc){
+        var res = _oldParse(doc);
+        if(!res) return null;
+        try{
+          var f = doc.fields||{};
+          if(f.role && f.role.stringValue) res.role = f.role.stringValue;
+          if(f.isManager && f.isManager.booleanValue!==undefined) res.isManager = f.isManager.booleanValue;
+          if(f.isShopkeeper && f.isShopkeeper.booleanValue!==undefined) res.isManager = res.isManager || f.isShopkeeper.booleanValue;
+        }catch(e){}
+        return res;
+      };
+      // also keep global reference
+      try{ parseUserDoc = window.parseUserDoc; }catch(e){}
+    }
+  }catch(e){}
+  // 2. Strict check - checks users doc + shopkeepers with both fields, case-insensitive
+  window.checkShopkeeperStrict = async function(){
+    try{
+      var cu = window.currentUser || (typeof currentUser !== 'undefined' ? currentUser : null);
+      if(!cu || !cu.usernameLower){ window.__SHOP_VERIFIED=false; window.__SHOP_CHECK_DONE=true; window.updateManagerBtnVisibilityStrict && window.updateManagerBtnVisibilityStrict(); return false; }
+      var low = cu.usernameLower.toLowerCase();
+      // A) Check users doc directly for isManager / role
+      try{
+        var idsToTry = [];
+        if(cu.id) idsToTry.push(cu.id);
+        if(low) idsToTry.push(low);
+        if(cu.username) idsToTry.push(cu.username);
+        for(var _i=0; _i<idsToTry.length; _i++){
+          var _id = idsToTry[_i];
+          try{
+            var _r = await fetch('/api/firestore/users/'+encodeURIComponent(_id)+'?key='+(window.firebaseConfig && window.firebaseConfig.apiKey||''));
+            if(_r && _r.ok){
+              var _d = await _r.json();
+              var _f = _d.fields||{};
+              if(_f.isManager && _f.isManager.booleanValue===true){ window.__SHOP_VERIFIED=true; window.__SHOP_CHECK_DONE=true; cu.isManager=true; cu.role='manager'; window.updateManagerBtnVisibilityStrict(); return true; }
+              if(_f.role && (_f.role.stringValue==='manager' || _f.role.stringValue==='admin' || _f.role.stringValue==='owner')){ window.__SHOP_VERIFIED=true; window.__SHOP_CHECK_DONE=true; cu.isManager=true; cu.role=_f.role.stringValue; window.updateManagerBtnVisibilityStrict(); return true; }
+            }
+          }catch(e){}
+        }
+      }catch(e){}
+      // B) Check shopkeepers collection - try username and usernameLower, both low and original
+      var fieldsToTry = ['username','usernameLower'];
+      var valuesToTry = [low];
+      if(cu.username && cu.username.toLowerCase()!==low) valuesToTry.push(cu.username);
+      for(var fi=0; fi<fieldsToTry.length; fi++){
+        for(var vi=0; vi<valuesToTry.length; vi++){
+          try{
+            var q = await fetch('/api/firestore-query', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({structuredQuery:{from:[{collectionId:'shopkeepers'}], where:{fieldFilter:{field:{fieldPath:fieldsToTry[fi]}, op:'EQUAL', value:{stringValue: valuesToTry[vi]}}}, limit:1}})});
+            var data = await q.json();
+            if(data && data.length>0 && data[0].document){ window.__SHOP_VERIFIED=true; window.__SHOP_CHECK_DONE=true; cu.isManager=true; cu.role='manager'; window.updateManagerBtnVisibilityStrict(); return true; }
+          }catch(e){}
+        }
+      }
+      // C) Fallback: list all shopkeepers and compare lowercased (server may store different case)
+      try{
+        var allRes = await fetch('/api/firestore/shopkeepers?key='+(window.firebaseConfig && window.firebaseConfig.apiKey||'')+'&pageSize=200');
+        if(allRes && allRes.ok){
+          var allData = await allRes.json();
+          var docs = allData.documents||[];
+          for(var d=0; d<docs.length; d++){
+            var ff = docs[d].fields||{};
+            var u1 = (ff.username && ff.username.stringValue||'').toLowerCase();
+            var u2 = (ff.usernameLower && ff.usernameLower.stringValue||'').toLowerCase();
+            if(u1===low || u2===low){ window.__SHOP_VERIFIED=true; window.__SHOP_CHECK_DONE=true; cu.isManager=true; cu.role='manager'; window.updateManagerBtnVisibilityStrict(); return true; }
+          }
+        }
+      }catch(e){}
+      window.__SHOP_VERIFIED=false; window.__SHOP_CHECK_DONE=true; window.updateManagerBtnVisibilityStrict(); return false;
+    }catch(e){ window.__SHOP_VERIFIED=false; window.__SHOP_CHECK_DONE=true; window.updateManagerBtnVisibilityStrict(); return false; }
+  };
+  // 3. Visibility enforcer
+  window.updateManagerBtnVisibilityStrict = function(){
+    try{
+      var btn = document.getElementById('managerBtn');
+      if(!btn) return;
+      if(window.__SHOP_VERIFIED===true){
+        btn.classList.add('is-shopkeeper'); btn.style.setProperty('display','flex','important'); btn.style.visibility='visible'; btn.style.opacity='1';
+      } else {
+        btn.classList.remove('is-shopkeeper'); btn.style.setProperty('display','none','important'); btn.style.visibility='hidden';
+        var modal = document.getElementById('managerModal');
+        if(modal && modal.classList.contains('show') && window.__SHOP_CHECK_DONE){ modal.classList.remove('show'); }
+      }
+    }catch(e){}
+  };
+  // Keep old name working - strict version
+  window.isShopkeeperUser = function(cu){
+    if(window.__SHOP_VERIFIED===true) return true;
+    if(!cu) cu = window.currentUser;
+    if(!cu) return false;
+    if(cu.isManager===true) return true;
+    var r = (cu.role||'').toString().toLowerCase();
+    if(r==='manager' || r==='admin' || r==='owner') return true;
+    return false;
+  };
+  window.updateManagerBtnVisibility = window.updateManagerBtnVisibilityStrict;
+  window.checkShopkeeperInFirestore = window.checkShopkeeperStrict;
+  // 4. Override openManagerModal - NEVER open for non-shopkeepers
+  var _origOpen = window.openManagerModal;
+  window.openManagerModal = async function(){
+    var verified = window.__SHOP_VERIFIED;
+    if(!window.__SHOP_CHECK_DONE || verified!==true){
+      verified = await window.checkShopkeeperStrict();
+    }
+    if(!verified){
+      try{ alert('⛔ تەنێ دکاندار دشێت ڤێ پانێلێ ڤەکەت'); }catch(e){}
+      window.updateManagerBtnVisibilityStrict();
+      var m = document.getElementById('managerModal'); if(m) m.classList.remove('show');
+      return;
+    }
+    // Verified - open normally
+    try{
+      var modal = document.getElementById('managerModal');
+      if(!modal) return;
+      modal.classList.add('show');
+      var info = document.getElementById('myShopInfo');
+      if(info) info.innerHTML='⏳ بار دبیت...';
+      if(typeof loadMyShopInfoNew==='function') await loadMyShopInfoNew();
+      if(typeof loadMySalesListNew==='function') loadMySalesListNew();
+    }catch(e){}
+  };
+  // 5. Hide button immediately and enforce every 800ms
+  window.updateManagerBtnVisibilityStrict();
+  setInterval(window.updateManagerBtnVisibilityStrict, 800);
+  // 6. Re-check on login / after 1.5s and on every currentUser change
+  setTimeout(function(){ window.checkShopkeeperStrict(); }, 1500);
+  setInterval(function(){ if(window.currentUser && !window.__SHOP_CHECK_DONE) window.checkShopkeeperStrict(); }, 5000);
+  // 7. MutationObserver - if modal is opened while not verified, close it instantly
+  try{
+    var _obs = new MutationObserver(function(){
+      if(window.__SHOP_VERIFIED!==true && window.__SHOP_CHECK_DONE){
+        var mm = document.getElementById('managerModal');
+        if(mm && mm.classList.contains('show')) mm.classList.remove('show');
+      }
+      window.updateManagerBtnVisibilityStrict();
+    });
+    document.addEventListener('DOMContentLoaded', function(){
+      var mm = document.getElementById('managerModal');
+      if(mm) _obs.observe(mm, {attributes:true, attributeFilter:['class']});
+      var btn = document.getElementById('managerBtn');
+      if(btn) _obs.observe(btn, {attributes:true, attributeFilter:['class','style']});
+    });
+    // Also observe body for modal class changes if DOM already loaded
+    setTimeout(function(){
+      var mm2 = document.getElementById('managerModal');
+      if(mm2) _obs.observe(mm2, {attributes:true, attributeFilter:['class']});
+    }, 2000);
+  }catch(e){}
+})();
+</script>
+
 </html>
