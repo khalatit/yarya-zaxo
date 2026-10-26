@@ -1,1 +1,1908 @@
-<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=/"></head><body>Redirecting to game admin...</body></html>
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YARYA ZAXO - Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--gold:#F7C600;--gold-light:#ffe27a;--bg:#070a1a;--card:#16162e;--card2:#1e1e3a;--border:rgba(255,255,255,0.08);--text:rgba(255,255,255,0.6)}
+body{background:radial-gradient(140% 100% at 20% 0%, #2a1a4a 0%, #151a33 35%, #070a1a 75%);color:#fff;font-family:'Noto Sans Arabic',sans-serif;min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:rgba(0,0,0,0.2);border-radius:999px}
+::-webkit-scrollbar-thumb{background:rgba(247,198,0,0.2);border-radius:999px}
+::-webkit-scrollbar-thumb:hover{background:rgba(247,198,0,0.35)}
+
+/* HEADER */
+.header{height:68px;background:linear-gradient(90deg,rgba(26,26,58,0.95),rgba(18,18,42,0.98));backdrop-filter:blur(20px);border-bottom:2px solid var(--gold);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.4)}
+.header h1{font-size:18px;font-weight:900;color:var(--gold);display:flex;align-items:center;gap:8px;letter-spacing:0.3px}
+.header h1 span{font-size:12px;background:rgba(247,198,0,0.15);border:1px solid rgba(247,198,0,0.3);padding:4px 10px;border-radius:999px;color:var(--gold)}
+.btn{height:40px;padding:0 18px;border-radius:999px;border:0;font-weight:800;font-size:12px;cursor:pointer;font-family:'Noto Sans Arabic';transition:all 0.2s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn.gold{background:linear-gradient(180deg,var(--gold-light),var(--gold));color:#000;box-shadow:0 4px 15px rgba(247,198,0,0.3)}
+.btn.gold:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(247,198,0,0.4)}
+.btn.dark{background:rgba(255,255,255,0.06);color:#fff;border:1.5px solid rgba(255,255,255,0.12);backdrop-filter:blur(10px)}
+.btn.dark:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);transform:translateY(-1px)}
+
+/* LAYOUT */
+.container{display:flex;min-height:calc(100vh - 68px)}
+.sidebar{width:270px;background:linear-gradient(180deg,#10102a,#0d0d24);border-left:1px solid var(--border);padding:16px;display:flex;flex-direction:column;gap:8px;position:sticky;top:68px;height:calc(100vh - 68px);overflow-y:auto}
+.sItem{height:52px;border-radius:14px;border:1.5px solid transparent;background:transparent;color:rgba(255,255,255,0.65);display:flex;align-items:center;gap:12px;padding:0 16px;font-size:13px;font-weight:800;cursor:pointer;text-align:right;transition:all 0.2s;position:relative;overflow:hidden}
+.sItem::before{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);width:3px;height:0;background:var(--gold);border-radius:999px;transition:all 0.2s}
+.sItem.active{background:#fff;color:#12122a;box-shadow:0 4px 20px rgba(255,255,255,0.15);border-color:#fff}
+.sItem.active::before{height:20px;background:#12122a}
+.sItem:hover:not(.active){background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.1);color:#fff;transform:translateX(-2px)}
+.sItem span.badge{margin-right:auto;background:var(--gold);color:#000;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:900;min-width:26px;text-align:center}
+.main{flex:1;padding:24px;overflow-y:auto;max-width:100%}
+
+/* DASHBOARD */
+.countGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+@media(max-width:1000px){.countGrid{grid-template-columns:1fr}}
+.cdCard{background:linear-gradient(135deg,var(--card2),var(--card));border:1px solid var(--border);border-radius:20px;padding:20px;text-align:center;position:relative;overflow:hidden;transition:all 0.3s}
+.cdCard::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--accent)}
+.cdCard:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,0.3);border-color:rgba(255,255,255,0.15)}
+.cdCard.free{--accent:#7CFC9A}
+.cdCard.mobile{--accent:#8b8cff}
+.cdCard.car{--accent:#F7C600}
+.cdCard .title{font-size:13px;font-weight:800;color:#fff;margin-bottom:12px}
+.cdCard .timer{font-size:28px;font-weight:900;direction:ltr;font-family:monospace;letter-spacing:1px;margin:10px 0;text-shadow:0 2px 10px rgba(0,0,0,0.5)}
+.cdCard.free .timer{color:#7CFC9A}
+.cdCard.mobile .timer{color:#8b8cff}
+.cdCard.car .timer{color:#F7C600}
+.cdCard .date{font-size:11px;color:rgba(255,255,255,0.4);margin-top:8px;background:rgba(0,0,0,0.25);padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.05)}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+@media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.cards{grid-template-columns:1fr}.container{flex-direction:column}.sidebar{width:100%;height:auto;position:relative;top:0;flex-direction:row;overflow-x:auto;flex-wrap:nowrap;padding:12px;gap:8px;border-left:0;border-bottom:1px solid var(--border)}.sItem{white-space:nowrap;flex-shrink:0;height:44px}.main{padding:16px}}
+.card{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--border);border-radius:20px;padding:20px;position:relative;overflow:hidden;transition:all 0.3s}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--accent,#F7C600)}
+.card:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,0.3)}
+.card .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.card .icon{width:46px;height:46px;border-radius:14px;background:var(--bg,rgba(247,198,0,0.15));display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid rgba(255,255,255,0.05)}
+.card .num{font-size:34px;font-weight:900;color:#fff;line-height:1;text-shadow:0 2px 10px rgba(0,0,0,0.3)}
+.card .label{font-size:12px;color:rgba(255,255,255,0.5);margin-top:8px;font-weight:700;line-height:1.5}
+.card.gold{--accent:#F7C600;--bg:rgba(247,198,0,0.15)}
+.card.green{--accent:#00ff88;--bg:rgba(0,255,136,0.12)}
+.card.blue{--accent:#6b7cff;--bg:rgba(107,124,255,0.15)}
+.card.purple{--accent:#a78bfa;--bg:rgba(167,139,250,0.15)}
+.card.red{--accent:#ff6b8a;--bg:rgba(255,107,138,0.12)}
+.card.orange{--accent:#ffb86a;--bg:rgba(255,184,106,0.12)}
+
+/* SECTION */
+.section{background:linear-gradient(180deg,#12122e, #0f0f28);border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:20px;margin-bottom:20px;box-shadow:0 8px 25px rgba(0,0,0,0.2);position:relative;overflow:hidden}
+.section::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg, transparent, rgba(247,198,0,0.2), transparent)}
+.section h3{font-size:15px;font-weight:900;margin-bottom:16px;display:flex;align-items:center;gap:10px;color:#fff}
+.section h3::after{content:'';flex:1;height:1px;background:linear-gradient(90deg, rgba(255,255,255,0.1), transparent);margin-right:10px}
+
+/* TOOLBAR */
+.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.searchBox{flex:1;min-width:220px;height:48px;border-radius:14px;border:1.5px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.35);color:#fff;padding:0 44px 0 16px;font-size:13px;font-family:'Noto Sans Arabic';outline:none;transition:all 0.2s}
+.searchBox:focus{border-color:var(--gold);background:rgba(0,0,0,0.5);box-shadow:0 0 0 3px rgba(247,198,0,0.15)}
+.searchWrap{position:relative;flex:1;min-width:220px}
+.searchWrap i{position:absolute;right:14px;top:50%;transform:translateY(-50%);opacity:0.5;font-style:normal;font-size:16px}
+.shopGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;max-height:750px;overflow-y:auto;padding:6px}
+.shopCard{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;transition:all 0.3s;position:relative}
+.shopCard:hover{border-color:rgba(247,198,0,0.25);transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,0.2);background:rgba(255,255,255,0.06)}
+.badge{display:inline-block;padding:6px 12px;border-radius:10px;font-size:11px;font-weight:800;margin:3px;border:1px solid transparent}
+.tableWrap{overflow-x:auto;background:rgba(0,0,0,0.25);border-radius:14px;border:1px solid rgba(255,255,255,0.06);box-shadow:inset 0 1px 0 rgba(255,255,255,0.05)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:14px 12px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.06);white-space:nowrap}
+th{color:rgba(255,255,255,0.5);font-size:11px;background:rgba(255,255,255,0.03);position:sticky;top:0;font-weight:800;letter-spacing:0.3px}
+tr:hover{background:rgba(255,255,255,0.03)}
+.input{width:100%;height:48px;border-radius:14px;border:1.5px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.35);color:#fff;padding:0 16px;font-size:13px;font-family:'Noto Sans Arabic';outline:none;transition:all 0.2s}
+.input:focus{border-color:var(--gold);background:rgba(0,0,0,0.5);box-shadow:0 0 0 3px rgba(247,198,0,0.15)}
+.formRow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+@media(max-width:600px){.formRow{grid-template-columns:1fr}}
+
+/* ===== BROADCAST / SHRIT - FIXED BEAUTIFUL DESIGN ===== */
+.adminSection{margin-bottom:20px}
+.adminLabel{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:rgba(255,255,255,0.9);margin-bottom:12px;letter-spacing:0.2px}
+.adminTextarea{width:100%;min-height:100px;border-radius:16px;border:1.5px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.4);color:#fff;padding:14px 16px;font-family:'Noto Sans Arabic';font-size:14px;line-height:1.7;outline:none;resize:vertical;transition:all 0.2s;box-shadow:inset 0 2px 8px rgba(0,0,0,0.3)}
+.adminTextarea::placeholder{color:rgba(255,255,255,0.4)}
+.adminTextarea:focus{border-color:var(--gold);background:rgba(0,0,0,0.55);box-shadow:0 0 0 3px rgba(247,198,0,0.15), inset 0 2px 8px rgba(0,0,0,0.3)}
+
+.iconGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+@media(max-width:600px){.iconGrid{grid-template-columns:repeat(4,1fr)}}
+.iconOpt{height:50px;border-radius:14px;background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;transition:all 0.2s;position:relative;overflow:hidden}
+.iconOpt::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.1),transparent);opacity:0;transition:opacity 0.2s}
+.iconOpt:hover{transform:translateY(-2px) scale(1.02);background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.15);box-shadow:0 6px 20px rgba(0,0,0,0.2)}
+.iconOpt:hover::before{opacity:1}
+.iconOpt.sel{background:#fff;border-color:var(--gold);box-shadow:0 6px 20px rgba(247,198,0,0.4), 0 0 0 2px var(--gold);transform:scale(1.08) translateY(-1px);color:#000}
+
+.styleGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:700px){.styleGrid{grid-template-columns:repeat(2,1fr)}}
+.styleOpt{padding:14px 10px;border-radius:14px;font-size:12px;font-weight:800;cursor:pointer;border:2px solid transparent;text-align:center;transition:all 0.25s;position:relative;overflow:hidden;min-height:48px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.styleOpt::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent);opacity:0;transition:opacity 0.2s}
+.styleOpt:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 8px 25px rgba(0,0,0,0.3)}
+.styleOpt:hover::before{opacity:1}
+.styleOpt.gold{background:linear-gradient(135deg,#F7C600 0%, #ffe27a 100%);color:#000;border-color:rgba(247,198,0,0.3)}
+.styleOpt.red{background:linear-gradient(135deg,#D4101F 0%, #ff6b8a 100%);color:#fff;border-color:rgba(212,16,31,0.3)}
+.styleOpt.green{background:linear-gradient(135deg,#2E9E44 0%, #7CFC9A 100%);color:#fff;border-color:rgba(46,158,68,0.3)}
+.styleOpt.purple{background:linear-gradient(135deg,#5B5CFF 0%, #a78bfa 100%);color:#fff;border-color:rgba(91,92,255,0.3)}
+.styleOpt.blackgold{background:linear-gradient(135deg,#000 0%, #1a1a1a 100%);color:#F7C600;border:2px solid #F7C600;box-shadow:0 0 15px rgba(247,198,0,0.2)}
+.styleOpt.rainbow{background:linear-gradient(90deg,#ff3b3b,#ff9f1c,#ffde59,#2ecc71,#3498db,#9b59b6);color:#fff;border-color:rgba(255,255,255,0.3);background-size:200% 100%;animation:rainbowMove 3s linear infinite}
+.styleOpt.sel{border-color:#fff;box-shadow:0 0 0 3px var(--gold), 0 10px 30px rgba(247,198,0,0.5);transform:scale(1.05) translateY(-2px);z-index:2}
+
+.animRow,.directionRow{display:flex;gap:10px;flex-wrap:wrap}
+.animOpt,.dirOpt{flex:1;min-width:90px;height:48px;border-radius:14px;border:1.5px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#fff;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;font-family:'Noto Sans Arabic';position:relative;overflow:hidden}
+.animOpt::before,.dirOpt::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.08),transparent);opacity:0;transition:opacity 0.2s}
+.animOpt:hover,.dirOpt:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);transform:translateY(-1px)}
+.animOpt:hover::before,.dirOpt:hover::before{opacity:1}
+.animOpt.sel,.dirOpt.sel{background:#fff;color:#12122a;border-color:#fff;box-shadow:0 6px 20px rgba(255,255,255,0.25);transform:translateY(-1px) scale(1.02);font-weight:900}
+
+/* SLIDERS - Beautiful */
+.sliderWrap{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.08);border-radius:14px;padding:12px 16px;transition:all 0.2s}
+.sliderWrap:hover{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.12)}
+.sliderVal{color:var(--gold);font-weight:900;min-width:65px;font-size:14px;text-shadow:0 1px 3px rgba(0,0,0,0.3)}
+.sliderVal.purple{color:#a78bfa}
+.sliderWrap input[type="range"]{flex:1;accent-color:var(--gold);height:6px;cursor:pointer}
+.sliderWrap input[type="range"].purpleRange{accent-color:#a78bfa}
+.sliderInfo{color:rgba(255,255,255,0.4);font-size:11px;min-width:45px;text-align:left;background:rgba(0,0,0,0.2);padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,0.05)}
+
+/* PREVIEW BOX */
+.previewBox{background:rgba(0,0,0,0.4);border:2px dashed rgba(247,198,0,0.35);border-radius:16px;padding:18px;text-align:center;font-weight:900;min-height:70px;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1.6;transition:all 0.4s;position:relative;overflow:hidden;box-shadow:inset 0 2px 10px rgba(0,0,0,0.2)}
+.previewBox::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);transition:left 0.6s}
+.previewBox:hover::before{left:100%}
+.previewBox.style-gold{background:linear-gradient(135deg,#F7C600 0%,#ffe27a 100%);color:#000;border-style:solid;border-color:#F7C600;box-shadow:0 8px 30px rgba(247,198,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3)}
+.previewBox.style-red{background:linear-gradient(135deg,#D4101F 0%,#ff4d6d 100%);color:#fff;border-style:solid;border-color:#ff6b8a;box-shadow:0 8px 30px rgba(212,16,31,0.4)}
+.previewBox.style-green{background:linear-gradient(135deg,#2E9E44 0%,#7CFC9A 100%);color:#fff;border-style:solid;border-color:#7CFC9A;box-shadow:0 8px 30px rgba(46,158,68,0.4)}
+.previewBox.style-purple{background:linear-gradient(135deg,#5B5CFF 0%,#a78bfa 100%);color:#fff;border-style:solid;border-color:#8b8cff;box-shadow:0 8px 30px rgba(91,92,255,0.4)}
+.previewBox.style-blackgold{background:linear-gradient(135deg,#000 0%,#1a1a1a 100%);color:#F7C600;border:1px solid #F7C600;box-shadow:0 0 25px rgba(247,198,0,0.25), inset 0 1px 0 rgba(247,198,0,0.1)}
+.previewBox.style-rainbow{background:linear-gradient(90deg,#ff3b3b,#ff9f1c,#ffde59,#2ecc71,#3498db,#9b59b6);background-size:300% 100%;color:#fff;border-style:solid;border-color:#fff;animation:rainbowMove 4s linear infinite;box-shadow:0 8px 30px rgba(0,0,0,0.3)}
+
+/* BROADCAST LIST */
+.broadcastQueueItem{background:linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:14px;display:flex;align-items:center;gap:14px;transition:all 0.3s;position:relative;overflow:hidden}
+.broadcastQueueItem::before{content:'';position:absolute;right:0;top:0;bottom:0;width:3px;background:var(--gold);opacity:0;transition:opacity 0.2s}
+.broadcastQueueItem:hover{background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04));border-color:rgba(247,198,0,0.2);transform:translateY(-2px) translateX(-2px);box-shadow:0 8px 25px rgba(0,0,0,0.2)}
+.broadcastQueueItem:hover::before{opacity:1}
+.bqIcon{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,rgba(247,198,0,0.2),rgba(247,198,0,0.1));border:1.5px solid rgba(247,198,0,0.25);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 4px 12px rgba(247,198,0,0.15)}
+.bqText{flex:1;min-width:0}
+.bqDir{background:linear-gradient(135deg,rgba(247,198,0,0.2),rgba(247,198,0,0.1));color:var(--gold);padding:8px 12px;border-radius:999px;font-size:11px;font-weight:900;border:1.5px solid rgba(247,198,0,0.25);box-shadow:0 2px 8px rgba(247,198,0,0.15)}
+.bqDel{width:36px;height:36px;border-radius:10px;border:1.5px solid rgba(212,16,31,0.3);background:linear-gradient(135deg,rgba(212,16,31,0.2),rgba(212,16,31,0.1));color:#ff8a8a;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:900;transition:all 0.2s;flex-shrink:0}
+.bqDel:hover{background:linear-gradient(135deg,rgba(212,16,31,0.35),rgba(212,16,31,0.2));transform:scale(1.1) rotate(90deg);box-shadow:0 4px 15px rgba(212,16,31,0.3);color:#fff}
+
+/* WINNER BANNER */
+.winnerBanner{position:fixed;top:84px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#F7C600,#ffe27a);color:#000;padding:18px 28px;border-radius:18px;font-weight:900;box-shadow:0 15px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(247,198,0,0.3);z-index:200;display:none;max-width:90%;text-align:center;border:2px solid #fff}
+.winnerBanner.show{display:block;animation:pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)}
+@keyframes pop{0%{transform:translateX(-50%) scale(0.7) translateY(-20px);opacity:0}100%{transform:translateX(-50%) scale(1) translateY(0);opacity:1}}
+@keyframes rainbowMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes twinkle{0%,100%{opacity:0.3}50%{opacity:1}}
+
+.loading{padding:24px;text-align:center;color:rgba(255,255,255,0.5);font-size:13px}
+.loading::after{content:'';display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin-right:8px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* SPECIAL CARDS */
+.glowGold{box-shadow:0 0 30px rgba(247,198,0,0.15);border-color:rgba(247,198,0,0.2) !important}
+.glowBlue{box-shadow:0 0 30px rgba(91,92,255,0.15);border-color:rgba(91,92,255,0.2) !important}
+</style>
+</head>
+<body>
+<!-- V38: Admin NOT in code - Password from Render env - Original dashboard preserved -->
+<div id="adminLoginGate" style="position:fixed;inset:0;z-index:9999;background:#070a1a;display:flex;align-items:center;justify-content:center;padding:20px;font-family:'Noto Sans Arabic'">
+  <div style="background:#17171c;border:1px solid #2a2a2e;border-radius:20px;padding:28px;max-width:360px;width:100%;text-align:center">
+    <h1 style="color:#F7C600;font-size:20px;margin-bottom:8px">👑 Admin - YARYA ZAXO PRO - V38</h1>
+    <p style="color:#aaa;font-size:12px;margin-bottom:16px">Password پێویستە - دناڤ کودی دا نیە - Original Dashboard</p>
+    <input type="password" id="adminPwd" placeholder="🔒 Admin Password..." style="width:100%;padding:12px;border-radius:10px;border:1px solid #333;background:#111;color:#fff;margin-bottom:12px">
+    <button onclick="checkAdminPwd()" style="width:100%;padding:12px;background:#F7C600;border:0;border-radius:10px;font-weight:900;cursor:pointer;color:#000">چوونە ژوور 🔐</button>
+    <p id="adminPwdErr" style="color:#ff6b6b;font-size:12px;margin-top:10px"></p>
+    <p style="color:#777;font-size:11px;margin-top:12px">Password ل Render دا: Settings → Environment → ADMIN_PASSWORD</p>
+  </div>
+</div>
+<script>
+async function checkAdminPwd(){
+  const pwd = document.getElementById('adminPwd').value;
+  if(!pwd){ document.getElementById('adminPwdErr').textContent='Password بنڤیسە'; return; }
+  try{
+    const r = await fetch('/api/users',{headers:{'x-admin-password':pwd}});
+    if(!r.ok){ document.getElementById('adminPwdErr').textContent='⛔ Password خەلەتە'; return; }
+    window._adminPwd = pwd; localStorage.setItem('yarya_admin_pwd', pwd);
+    document.getElementById('adminLoginGate').style.display='none';
+    // Keep pwd for subsequent set-admin calls
+  }catch(e){ document.getElementById('adminPwdErr').textContent='❌ '+e.message; }
+}
+</script>
+
+<div class="header">
+<h1>👑 ئەدمین داشبورد PRO <span>V12 ULTIMATE</span> - دیارە</h1>
+<div style="display:flex;gap:10px">
+<button class="btn dark" onclick="location.href='index.html'">🎮 یاری</button>
+<button class="btn dark" onclick="location.href='shop.html'">🏪 دکان</button>
+<button class="btn gold" onclick="location.reload()">🔄 نوێکردنەوە</button>
+</div>
+</div>
+
+<div class="container">
+<div class="sidebar">
+<button class="sItem active" id="sDash" onclick="switchTab('dash')">📊 دەشبورد <span style="background:rgba(255,255,255,0.15);color:#fff">6</span></button>
+<button class="sItem" id="sShops" onclick="switchTab('shops')">🏪 هەمی دکان <span id="shopCountBadge" class="badge" style="background:var(--gold);color:#000">0</span></button>
+<button class="sItem" id="sPlayers" onclick="switchTab('players')">👥 یاریکەر <span id="playerCountBadge" class="badge" style="background:#8b8cff;color:#fff">0</span></button>
+<button class="sItem" id="sTrans" onclick="switchTab('trans')">💰 کرین و پارە</button>
+<button class="sItem" id="sSettings" onclick="switchTab('settings')">⏰ روژ بەروار</button>
+<button class="sItem" id="sWinners" onclick="switchTab('winners')">🏆 براوەکان</button>
+<button class="sItem" id="sSponsor" onclick="switchTab('sponsor')">💎 سپونسەر <span id="sponsorCountBadge" class="badge" style="background:#5B5CFF;color:#fff">0</span></button>
+<button class="sItem" id="sSocial" onclick="switchTab('social')">📱 ئەکاونت <span style="background:#5B5CFF;color:#fff;padding:3px 8px;border-radius:999px;font-size:10px">NEW</span></button>
+<button class="sItem" id="sBroadcast" onclick="switchTab('broadcast')">📢 شریت <span id="broadcastCountBadge" class="badge" style="background:var(--gold);color:#000">0</span></button>
+<button class="sItem" id="sBlocked" onclick="switchTab('blocked')">⛔ بلوک <span id="blockedCountBadge" class="badge" style="background:#D4101F;color:#fff">0</span></button>
+</div>
+
+<div class="main">
+
+<!-- DASHBOARD TAB -->
+<div id="tabDash">
+<h2 style="font-size:20px;margin-bottom:18px;display:flex;align-items:center;gap:10px">📊 دەشبوردەکێ جوان <span style="font-size:11px;background:rgba(247,198,0,0.15);border:1px solid rgba(247,198,0,0.3);padding:4px 10px;border-radius:999px;color:var(--gold)">هەمی دیارن - V12</span></h2>
+
+<div class="countGrid">
+<div class="cdCard free"><div class="title">🆓 بەلاش - 100$ - ژ سفرێ</div><div class="timer" id="cdFree">--:--:--</div><div class="date" id="cdFreeDate">بار دبیت...</div><div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:10px;background:rgba(124,252,154,0.08);padding:6px 10px;border-radius:999px;display:inline-block">⚡ چرکە چرکە دێتە خار</div></div>
+<div class="cdCard mobile"><div class="title">📱 ئایفون 18 پرو ماکس - 5000</div><div class="timer" id="cdMobile">--:--:--</div><div class="date" id="cdMobileDate">بار دبیت...</div><div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:10px;background:rgba(139,140,255,0.08);padding:6px 10px;border-radius:999px;display:inline-block">⚡ چرکە چرکە دێتە خار</div></div>
+<div class="cdCard car"><div class="title">🚗 ترومبێل - 10000</div><div class="timer" id="cdCar">--:--:--</div><div class="date" id="cdCarDate">بار دبیت...</div><div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:10px;background:rgba(247,198,0,0.08);padding:6px 10px;border-radius:999px;display:inline-block">⚡ چرکە چرکە دێتە خار</div></div>
+</div>
+
+<div class="cards">
+<div class="card gold"><div class="top"><div class="icon">🏪</div><div style="font-size:10px;color:rgba(255,255,255,0.4);background:rgba(0,0,0,0.2);padding:4px 8px;border-radius:999px">دکاندار</div></div><div class="num" id="statShops">0</div><div class="label">🏪 چەند دکاندار هەنە - هەمی د جهەکێ دا</div></div>
+<div class="card purple"><div class="top"><div class="icon">👥</div><div style="font-size:10px;color:rgba(255,255,255,0.4);background:rgba(0,0,0,0.2);padding:4px 8px;border-radius:999px">یاریکەر</div></div><div class="num" id="statPlayers">0</div><div class="label">👥 چەند یاریکەر هەنە</div></div>
+<div class="card green"><div class="top"><div class="icon">🟢</div><div style="font-size:10px;color:rgba(255,255,255,0.4);background:rgba(0,0,0,0.2);padding:4px 8px;border-radius:999px">ئونلاین</div></div><div class="num" id="statOnline">0</div><div class="label">🟢 چەند ئونلاینن نوکە</div></div>
+<div class="card blue"><div class="top"><div class="icon">📱</div><div style="font-size:10px;color:rgba(255,255,255,0.4);background:rgba(0,0,0,0.2);padding:4px 8px;border-radius:999px">5000</div></div><div class="num" id="statUnlockMobile">0</div><div class="label">📱 چەندان 5000 ڤەکرینە - ژ سفرێ</div></div>
+<div class="card orange"><div class="top"><div class="icon">🚗</div><div style="font-size:10px;color:rgba(255,255,255,0.4);background:rgba(0,0,0,0.2);padding:4px 8px;border-radius:999px">10000</div></div><div class="num" id="statUnlockCar">0</div><div class="label">🚗 چەندان 10000 ڤەکرینە - ژ سفرێ</div></div>
+<div class="card red"><div class="top"><div class="icon">💰</div><div style="font-size:10px;color:rgba(255,255,255,0.4);background:rgba(0,0,0,0.2);padding:4px 8px;border-radius:999px">پارە</div></div><div class="num" id="statMoney">0</div><div class="label">💰 سەرجەمێ کرینان / پارە</div></div>
+</div>
+
+<div class="section">
+<h3>🏪 پاشکەفتێن دکانان - کورتی</h3>
+<div id="shopStatsList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">
+<div class="loading">بار دبیت</div>
+</div>
+</div>
+</div>
+
+<!-- SHOPS TAB -->
+<div id="tabShops" style="display:none">
+<div class="section">
+<h3>🏪 هەمی دکان - پاشکەفت د جهەکێ دا</h3>
+<div class="toolbar">
+<div class="searchWrap"><i>🔍</i><input id="shopSearch" class="searchBox" placeholder="سێرچ - ناڤێ دکانێ، خودان، ژمارە..." oninput="filterShops()"></div>
+<select id="shopProvinceFilter" onchange="filterShops()" class="input" style="width:180px"><option value="">هەمی پارێزگەهـ</option><option value="zaxo">زاخو</option><option value="duhok">دهۆک</option><option value="hawler">هەولێر</option><option value="slemani">سلێمانی</option><option value="halabja">هەڵەبجە</option><option value="kirkuk">کەرکوک</option><option value="mosul">مووسڵ</option><option value="baghdad">بەغدا</option></select>
+<button class="btn gold" onclick="toggleCreateForm()">➕ دکانا نوو</button>
+</div>
+<div id="createShopForm" style="display:none;background:rgba(0,0,0,0.3);padding:18px;border-radius:16px;margin-bottom:18px;border:1px solid rgba(255,255,255,0.08)">
+<h4 style="font-size:14px;margin-bottom:14px">➕ دروستکرنا دکاندارێ نوو - 50 📱 + 50 🚗</h4>
+<div class="formRow"><input id="newUsername" class="input" placeholder="یوزەرنەیم (ahmed_zaxo)"><input id="newShopName" class="input" placeholder="ناڤێ دکانێ"></div>
+<div class="formRow"><input id="newOwnerName" class="input" placeholder="ناڤێ خودانێ دکانێ"><input id="newPhone" class="input" placeholder="ژمارا موبایل 0750..."></div>
+<div class="formRow"><select id="newProvince" class="input"><option value="zaxo">زاخو</option><option value="duhok">دهۆک</option><option value="hawler">هەولێر</option><option value="slemani">سلێمانی</option><option value="halabja">هەڵەبجە</option><option value="kirkuk">کەرکوک</option><option value="mosul">مووسڵ</option><option value="baghdad">بەغدا</option></select><div style="display:flex;gap:8px"><input id="newMobileQuota" type="number" class="input" value="50" placeholder="📱"><input id="newCarQuota" type="number" class="input" value="50" placeholder="🚗"></div></div>
+<div style="display:flex;gap:10px"><button class="btn gold" style="flex:1" onclick="createShop()">✅ دروست بکە</button><button class="btn dark" onclick="toggleCreateForm()">❌ داخستن</button></div>
+</div>
+<div id="shopsGrid" class="shopGrid"><div class="loading">بار دبیت - هەمی دکان</div></div>
+</div>
+</div>
+
+<!-- PLAYERS TAB -->
+<div id="tabPlayers" style="display:none">
+<div class="section">
+<h3>👥 یاریکەر - ژ سفرێ بۆ هەمیان</h3>
+<div class="toolbar">
+<div class="searchWrap"><i>🔍</i><input id="playerSearch" class="searchBox" placeholder="سێرچ - ناڤ، یوزەرنەیم..." oninput="filterPlayers()"></div>
+<select id="playerFilter" onchange="filterPlayers()" class="input" style="width:190px"><option value="">هەمی</option><option value="mobile">تەنێ 5000 ڤەکرین</option><option value="car">تەنێ 10000 ڤەکرین</option><option value="online">ئونلاین نوکە</option></select>
+<button class="btn dark" onclick="loadPlayers()">🔄 نوێکردن</button>
+</div>
+<div class="tableWrap"><table><thead><tr><th>یاریکەر + جیهاز</th><th>🆓 بەلاش</th><th>📱 موبایل</th><th>🚗 ترومبێل</th><th>ستاتوس + سیستەم</th><th>کردار + بلوک</th></tr></thead><tbody id="playersTable"><tr><td colspan="7" class="loading">بار دبیت</td></tr></tbody></table></div>
+</div>
+</div>
+
+<!-- TRANS TAB - V20 NO INDEX -->
+<div id="tabTrans" style="display:none">
+<div class="section">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+<h3>💰 کرین و پارە - حسابات و روژ بەروار</h3>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button class="btn dark" onclick="loadTransactions()" style="height:40px">🔄 نوێکرن</button>
+<button onclick="deleteAllTrans()" style="height:40px;padding:0 16px;border-radius:12px;border:1.5px solid rgba(212,16,31,0.4);background:linear-gradient(135deg,rgba(212,16,31,0.25),rgba(212,16,31,0.15));color:#ff8a8a;font-weight:800;cursor:pointer">🗑️ هەمی ژێببە</button>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:20px">
+<div style="background:linear-gradient(135deg,rgba(91,92,255,0.18),rgba(91,92,255,0.06));border:1.5px solid rgba(91,92,255,0.3);border-radius:18px;padding:18px;text-align:center;position:relative;overflow:hidden">
+<div style="position:absolute;top:0;left:0;right:0;height:3px;background:#8b8cff"></div>
+<div style="font-size:11px;color:#8b8cff;font-weight:900">📱 5000 - یێن ڤەکرین</div>
+<div id="stat5000Count" style="font-size:32px;font-weight:900;color:#fff;margin:8px 0;font-family:monospace">0</div>
+<div style="font-size:10px;color:rgba(255,255,255,0.5)">ژمارە</div>
+<div id="stat5000Money" style="margin-top:10px;background:rgba(0,0,0,0.25);padding:8px;border-radius:10px;font-size:13px;font-weight:800;color:#8b8cff">0 د.ع</div>
+<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:4px">سەرجەم پارە</div>
+</div>
+<div style="background:linear-gradient(135deg,rgba(247,198,0,0.18),rgba(247,198,0,0.06));border:1.5px solid rgba(247,198,0,0.3);border-radius:18px;padding:18px;text-align:center;position:relative;overflow:hidden">
+<div style="position:absolute;top:0;left:0;right:0;height:3px;background:#F7C600"></div>
+<div style="font-size:11px;color:#F7C600;font-weight:900">🚗 10000 - یێن ڤەکرین</div>
+<div id="stat10000Count" style="font-size:32px;font-weight:900;color:#fff;margin:8px 0;font-family:monospace">0</div>
+<div style="font-size:10px;color:rgba(255,255,255,0.5)">ژمارە</div>
+<div id="stat10000Money" style="margin-top:10px;background:rgba(0,0,0,0.25);padding:8px;border-radius:10px;font-size:13px;font-weight:800;color:#F7C600">0 د.ع</div>
+<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:4px">سەرجەم پارە</div>
+</div>
+<div style="background:linear-gradient(135deg,rgba(0,255,136,0.18),rgba(0,255,136,0.06));border:1.5px solid rgba(0,255,136,0.3);border-radius:18px;padding:18px;text-align:center;position:relative;overflow:hidden">
+<div style="position:absolute;top:0;left:0;right:0;height:3px;background:#00ff88"></div>
+<div style="font-size:11px;color:#00ff88;font-weight:900">💰 سەرجەمێ گشتی</div>
+<div id="statTotalCount" style="font-size:32px;font-weight:900;color:#fff;margin:8px 0;font-family:monospace">0</div>
+<div style="font-size:10px;color:rgba(255,255,255,0.5)">هەمی کرین</div>
+<div id="statTotalMoney" style="margin-top:10px;background:rgba(0,255,136,0.15);padding:8px;border-radius:10px;font-size:14px;font-weight:900;color:#00ff88;border:1px solid rgba(0,255,136,0.3)">0 د.ع</div>
+<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:4px">سەرجەم پارەی گشتی</div>
+</div>
+</div>
+<div class="toolbar" style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;background:rgba(0,0,0,0.2);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.06)">
+<select id="transTypeFilter" onchange="loadTransactions()" class="input" style="width:160px;height:40px"><option value="">هەمی کرین</option><option value="mobile">📱 5000</option><option value="car">🚗 10000</option></select>
+<select id="transLimitFilter" onchange="loadTransactions()" class="input" style="width:120px;height:40px"><option value="10" selected>10 دانە</option><option value="20">20 دانە</option><option value="50">50 دانە</option></select>
+<span id="transInfo" style="font-size:11px;color:rgba(255,255,255,0.5);margin-right:auto">تەنێ 10 بۆ خێرایی</span>
+</div>
+<div class="tableWrap"><table><thead><tr><th>روژ / بەروار</th><th>جور</th><th>یاریکەر</th><th>دکاندار</th><th>دکان</th><th>ژێبرن</th></tr></thead><tbody id="transTable"><tr><td colspan="7" class="loading">بار دبیت</td></tr></tbody></table></div>
+</div>
+</div>
+
+<!-- SETTINGS TAB -->
+<div id="tabSettings" style="display:none">
+<div class="section">
+<h3>⏰ روژ بەروار دەمژمێر - جوان بۆ هەر رێزبەندیەکێ</h3>
+<p style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:18px;background:rgba(247,198,0,0.06);padding:12px;border-radius:12px;border:1px solid rgba(247,198,0,0.1)">هەر رێزبەندیەکێ کاتژمێرەکێ جودا هەیە، چرکە چرکە دێتە خار تا دبیتە سفر. پشتی 20 سانیان دیار دبیت و سفر دبیت.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px">
+<div style="background:linear-gradient(135deg,rgba(124,252,154,0.1),rgba(124,252,154,0.03));border:1.5px solid rgba(124,252,154,0.2);border-radius:20px;padding:20px">
+<h4 style="color:#7CFC9A;margin-bottom:14px;display:flex;align-items:center;gap:8px">🆓 رێزبەندیا بەلاش - 100$ <span style="background:rgba(124,252,154,0.15);padding:3px 8px;border-radius:999px;font-size:10px">ژ سفرێ</span></h4>
+<label style="font-size:11px;color:rgba(255,255,255,0.6)">روژ و بەروار و دەمژمێرێ دوماهیکێ</label>
+<input id="freeEndInput" type="datetime-local" class="input" style="margin:10px 0 14px">
+<label style="font-size:11px;color:rgba(255,255,255,0.6)">خەلات</label>
+<input id="freePrizeInput" class="input" placeholder="100$ - بۆ هەمیان">
+<div style="margin-top:14px;padding:14px;background:rgba(212,16,31,0.09);border:1.5px solid rgba(212,16,31,0.22);border-radius:14px">
+  <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:900;color:#ff8a8a;font-size:13px">
+    <input type="checkbox" id="freeLockCheck" style="width:20px;height:20px;accent-color:#D4101F" onchange="document.getElementById('freeLockMsgWrap').style.display=this.checked?'block':'none'">
+    <span>🔒 قفل بکە - ئەڤ رێزبەندیە بگرە</span>
+  </label>
+  <div id="freeLockMsgWrap" style="display:none;margin-top:12px">
+    <label style="font-size:11px;color:rgba(255,255,255,0.6)">💬 پەیاما قفلکرنێ بۆ یاریکەران</label>
+    <textarea id="freeLockMessageInput" class="input" style="height:85px;resize:none;margin-top:6px;padding:10px" placeholder="مثلا: ئەڤ رێزبەندیە نها قفلە ژبەر چاککرنێ... سوبەهی دێ ڤەبیت"></textarea>
+  </div>
+</div>
+<div style="margin-top:14px;padding:14px;background:rgba(0,0,0,0.3);border-radius:14px;text-align:center;border:1px solid rgba(124,252,154,0.1)"><div style="font-size:10px;color:rgba(255,255,255,0.5)">⏰ مایە - چرکە چرکە</div><div id="setFreeTimer" style="font-size:22px;font-weight:900;color:#7CFC9A;direction:ltr;font-family:monospace;margin-top:6px">--:--:--</div></div>
+<button class="btn gold" style="width:100%;margin-top:14px" onclick="saveSetting('free')">💾 پاشکەفت بکە</button>
+<button class="btn dark" style="width:100%;margin-top:10px" onclick="resetRankingManual('free')">🔄 سفر بکە نوکە</button>
+</div>
+<div style="background:linear-gradient(135deg,rgba(139,140,255,0.1),rgba(139,140,255,0.03));border:1.5px solid rgba(139,140,255,0.2);border-radius:20px;padding:20px">
+<h4 style="color:#8b8cff;margin-bottom:14px;display:flex;align-items:center;gap:8px">📱 رێزبەندیا موبایل - 5000 <span style="background:rgba(139,140,255,0.15);padding:3px 8px;border-radius:999px;font-size:10px">ژ سفرێ</span></h4>
+<label style="font-size:11px;color:rgba(255,255,255,0.6)">روژ و بەروار و دەمژمێرێ دوماهیکێ</label>
+<input id="mobileEndInput" type="datetime-local" class="input" style="margin:10px 0 14px">
+<label style="font-size:11px;color:rgba(255,255,255,0.6)">خەلات</label>
+<input id="mobilePrizeInput" class="input" placeholder="ئایفون 18 پرو ماکس">
+<div style="margin-top:14px;padding:14px;background:rgba(212,16,31,0.09);border:1.5px solid rgba(212,16,31,0.22);border-radius:14px">
+  <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:900;color:#ff8a8a;font-size:13px">
+    <input type="checkbox" id="mobileLockCheck" style="width:20px;height:20px;accent-color:#D4101F" onchange="document.getElementById('mobileLockMsgWrap').style.display=this.checked?'block':'none'">
+    <span>🔒 قفل بکە - ئەڤ رێزبەندیە بگرە</span>
+  </label>
+  <div id="mobileLockMsgWrap" style="display:none;margin-top:12px">
+    <label style="font-size:11px;color:rgba(255,255,255,0.6)">💬 پەیاما قفلکرنێ بۆ یاریکەران</label>
+    <textarea id="mobileLockMessageInput" class="input" style="height:85px;resize:none;margin-top:6px;padding:10px" placeholder="مثلا: رێزبەندیا موبایلێ نها قفلە..."></textarea>
+  </div>
+</div>
+<div style="margin-top:14px;padding:14px;background:rgba(0,0,0,0.3);border-radius:14px;text-align:center;border:1px solid rgba(139,140,255,0.1)"><div style="font-size:10px;color:rgba(255,255,255,0.5)">⏰ مایە - چرکە چرکە</div><div id="setMobileTimer" style="font-size:22px;font-weight:900;color:#8b8cff;direction:ltr;font-family:monospace;margin-top:6px">--:--:--</div></div>
+<button class="btn gold" style="width:100%;margin-top:14px" onclick="saveSetting('mobile')">💾 پاشکەفت بکە</button>
+<button class="btn dark" style="width:100%;margin-top:10px" onclick="resetRankingManual('mobile')">🔄 سفر بکە نوکە</button>
+</div>
+<div style="background:linear-gradient(135deg,rgba(247,198,0,0.1),rgba(247,198,0,0.03));border:1.5px solid rgba(247,198,0,0.2);border-radius:20px;padding:20px">
+<h4 style="color:#F7C600;margin-bottom:14px;display:flex;align-items:center;gap:8px">🚗 رێزبەندیا ترومبێل - 10000 <span style="background:rgba(247,198,0,0.15);padding:3px 8px;border-radius:999px;font-size:10px;color:#F7C600">ژ سفرێ</span></h4>
+<label style="font-size:11px;color:rgba(255,255,255,0.6)">روژ و بەروار و دەمژمێرێ دوماهیکێ</label>
+<input id="carEndInput" type="datetime-local" class="input" style="margin:10px 0 14px">
+<label style="font-size:11px;color:rgba(255,255,255,0.6)">خەلات</label>
+<input id="carPrizeInput" class="input" placeholder="ترومبێل">
+<div style="margin-top:14px;padding:14px;background:rgba(212,16,31,0.09);border:1.5px solid rgba(212,16,31,0.22);border-radius:14px">
+  <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:900;color:#ff8a8a;font-size:13px">
+    <input type="checkbox" id="carLockCheck" style="width:20px;height:20px;accent-color:#D4101F" onchange="document.getElementById('carLockMsgWrap').style.display=this.checked?'block':'none'">
+    <span>🔒 قفل بکە - ئەڤ رێزبەندیە بگرە</span>
+  </label>
+  <div id="carLockMsgWrap" style="display:none;margin-top:12px">
+    <label style="font-size:11px;color:rgba(255,255,255,0.6)">💬 پەیاما قفلکرنێ بۆ یاریکەران</label>
+    <textarea id="carLockMessageInput" class="input" style="height:85px;resize:none;margin-top:6px;padding:10px" placeholder="مثلا: رێزبەندیا ترومبێلێ نها قفلە..."></textarea>
+  </div>
+</div>
+<div style="margin-top:14px;padding:14px;background:rgba(0,0,0,0.3);border-radius:14px;text-align:center;border:1px solid rgba(247,198,0,0.1)"><div style="font-size:10px;color:rgba(255,255,255,0.5)">⏰ مایە - چرکە چرکە</div><div id="setCarTimer" style="font-size:22px;font-weight:900;color:#F7C600;direction:ltr;font-family:monospace;margin-top:6px">--:--:--</div></div>
+<button class="btn gold" style="width:100%;margin-top:14px" onclick="saveSetting('car')">💾 پاشکەفت بکە</button>
+<button class="btn dark" style="width:100%;margin-top:10px" onclick="resetRankingManual('car')">🔄 سفر بکە نوکە</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- WINNERS TAB - WITH DELETE -->
+<div id="tabWinners" style="display:none">
+<div class="section">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+<h3>🏆 براوەکان - پشتی 20 سانیان دیار + سفر</h3>
+<div style="display:flex;gap:8px">
+<button onclick="loadWinners()" style="height:40px;padding:0 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.08);color:#fff;font-weight:700;cursor:pointer">🔄 نووکرن</button>
+<button onclick="deleteAllWinners()" style="height:40px;padding:0 16px;border-radius:12px;border:1.5px solid rgba(212,16,31,0.4);background:linear-gradient(135deg,rgba(212,16,31,0.25),rgba(212,16,31,0.15));color:#ff8a8a;font-weight:800;cursor:pointer">🗑️ هەمی ژێببە</button>
+</div>
+</div>
+<div class="tableWrap"><table><thead><tr><th>روژ / بەروار / دەمژمێر</th><th>رێزبەندی</th><th>براوە</th><th>📱 ژمارا موبایل</th><th>سکۆر</th><th>خەلات</th><th>ژێبرن</th></tr></thead><tbody id="winnersTable"><tr><td colspan="7" class="loading">بار دبیت</td></tr></tbody></table></div>
+</div>
+</div>
+
+<!-- SPONSOR TAB -->
+<div id="tabSponsor" style="display:none">
+<div class="section glowBlue" style="border-color:rgba(91,92,255,0.25);background:linear-gradient(135deg,rgba(91,92,255,0.08),rgba(91,92,255,0.02))">
+<h3>💎 سپونسەر - بۆ هەمی بکارهێنەران</h3>
+<p style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:18px;background:rgba(0,0,0,0.2);padding:10px 14px;border-radius:10px;border:1px solid rgba(91,92,255,0.1)">ڤیدیو یان یوتیوب لینکێ دێ بۆ هەمی یاریکەران دیار بیت، پشتی 3 جار بەردەوام بوونێ 🎬</p>
+<div style="background:rgba(0,0,0,0.3);padding:18px;border-radius:16px;border:1px solid rgba(255,255,255,0.06);margin-bottom:18px">
+<h4 style="font-size:13px;margin-bottom:14px;color:#8b8cff;display:flex;align-items:center;gap:8px">➕ سپونسەرێ نوو زێدە بکە <span style="background:rgba(91,92,255,0.15);padding:3px 8px;border-radius:999px;font-size:10px">PRO</span></h4>
+<div class="formRow">
+<input id="sponsorNameInput" class="input" placeholder="ناڤێ سپونسەری - بۆ نموونە: قورئانا پیروز">
+<input id="sponsorLinkInput" class="input" placeholder="لینکێ MP4 یان YouTube - https://...">
+</div>
+<div class="formRow">
+<div class="sliderWrap" style="flex:1"><span style="font-size:11px;color:rgba(255,255,255,0.6)">چرکە:</span><span id="sponsorSecondsVal" class="sliderVal">15</span><input type="range" id="sponsorSecondsInput" min="5" max="60" value="15" oninput="document.getElementById('sponsorSecondsVal').textContent=this.value"></div>
+<input id="sponsorRewardInput" class="input" placeholder="پەیاما خەلات - بۆ نموونە: بەردەوام بە 🚀">
+</div>
+<button class="btn gold" style="width:100%;height:50px;margin-top:12px;background:linear-gradient(135deg,#5B5CFF,#7a7cff);color:#fff;box-shadow:0 6px 20px rgba(91,92,255,0.3)" onclick="addSponsorAdmin()">💰 سپونسەری زێدە بکە ➕ (بۆ هەمیان)</button>
+</div>
+<div class="section">
+<h3>📋 لیستا سپونسەران (<span id="sponsorCount">0</span>)</h3>
+<div id="sponsorListAdmin" style="display:grid;gap:12px"><div class="loading">بار دبیت</div></div>
+</div>
+</div>
+</div>
+
+<!-- BROADCAST / SHRIT TAB - FIXED BEAUTIFUL V12 -->
+<div id="tabBroadcast" style="display:none">
+<div class="section glowGold" style="border-color:rgba(247,198,0,0.3);background:linear-gradient(135deg,rgba(247,198,0,0.08),rgba(247,198,0,0.02))">
+<h3>📢 شریت - نامەیا گشتی - V12 ULTIMATE - وەک یاریێ <span style="background:var(--gold);color:#000;padding:3px 10px;border-radius:999px;font-size:10px;margin-right:8px">PRO</span></h3>
+<p style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:18px;background:rgba(0,0,0,0.2);padding:10px 14px;border-radius:10px;border:1px solid rgba(247,198,0,0.1)">✨ هەمان شریتا ناف یاریێ - ب ئایکون و 6 شێواز و جوڵە و لایێ هاتنێ - جوان کراوە 💛</p>
+
+<div style="background:rgba(0,0,0,0.3);padding:20px;border-radius:18px;border:1px solid rgba(255,255,255,0.06);margin-bottom:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05)">
+
+<div class="adminSection">
+<label class="adminLabel">✍️ نامەیا گشتی (شریت): <span style="font-size:10px;background:rgba(247,198,0,0.15);color:var(--gold);padding:3px 8px;border-radius:999px;border:1px solid rgba(247,198,0,0.2)">200 پیت</span></label>
+<textarea id="broadcastInput" class="adminTextarea" placeholder="نامەیا گشتی بنڤیسە... بۆ نموونە: سلاڤ بکارهێنەرێت هێژا 👋 - بخێرهاتن بۆ YARYA ZAXO PRO 🎮" maxlength="200"></textarea>
+</div>
+
+<div class="adminSection">
+<label class="adminLabel">📢 ئایکون - حەز ژێ بکە:</label>
+<div class="iconGrid" id="iconGrid"></div>
+</div>
+
+<div class="adminSection">
+<label class="adminLabel">🎨 شێواز - 6 جورێن جوان و مودێرن:</label>
+<div class="styleGrid" id="styleGrid"></div>
+</div>
+
+<div class="adminSection">
+<label class="adminLabel">🎬 جوڵە - چاوا بهێت؟</label>
+<div class="animRow">
+<button class="animOpt sel" data-anim="marquee" onclick="selectAnimV12(this)">➡️ شریت</button>
+<button class="animOpt" data-anim="slide" onclick="selectAnimV12(this)">⬇️ داکەفتن</button>
+<button class="animOpt" data-anim="pulse" onclick="selectAnimV12(this)">✨ بریسکە</button>
+</div>
+</div>
+
+<div class="adminSection">
+<label class="adminLabel">🧭 لایێ هاتنێ:</label>
+<div class="directionRow">
+<button class="dirOpt sel" data-dir="rtl" onclick="selectDirV12(this)"><span>➡️</span> ژ راستێ</button>
+<button class="dirOpt" data-dir="ltr" onclick="selectDirV12(this)"><span>⬅️</span> ژ چەپێ</button>
+</div>
+</div>
+
+<div class="adminSection">
+<label class="adminLabel">⏱️ ماوەیا شریتێ و ناڤبەر:</label>
+<div style="display:grid;gap:10px">
+<div class="sliderWrap"><span style="font-size:11px;color:rgba(255,255,255,0.6)">⏱️ ماوە:</span><span id="broadcastSecondsVal" class="sliderVal">5 چرکە</span><input type="range" id="broadcastSecondsInput" min="3" max="20" value="5" oninput="document.getElementById('broadcastSecondsVal').textContent=this.value+' چرکە'; selectedSecondsV12=parseInt(this.value); updatePreviewV12();"><span class="sliderInfo">3-20</span></div>
+<div class="sliderWrap"><span style="font-size:11px;color:rgba(255,255,255,0.6)">⏳ ناڤبەر:</span><span id="broadcastGapVal" class="sliderVal purple">3 چرکە</span><input type="range" id="broadcastGapInput" min="1" max="10" value="3" class="purpleRange" oninput="document.getElementById('broadcastGapVal').textContent=this.value+' چرکە'; selectedGapV12=parseInt(this.value);"><span class="sliderInfo">1-10</span></div>
+</div>
+</div>
+
+<div class="adminSection">
+<label class="adminLabel">👁️ پێشبینین - وەک یاریێ دیار دبیت:</label>
+<div class="previewBox style-gold" id="broadcastPreview">📢 پێشبینین ل ڤێرێ... - شریتێ تە ل ڤێرێ دیار دبیت ✨</div>
+</div>
+
+<div style="display:flex;gap:12px;margin-top:20px">
+<button onclick="addBroadcastV12()" style="flex:1;height:54px;border-radius:999px;border:0;background:linear-gradient(180deg,#ffe27a,#F7C600);color:#1a1200;font-weight:900;cursor:pointer;font-family:'Noto Sans Arabic';font-size:14px;box-shadow:0 6px 20px rgba(247,198,0,0.4);transition:all 0.2s">➕ زێدە بکە بۆ لیستێ (بۆ هەمیان) 📢</button>
+<button onclick="clearBroadcastV12()" style="width:120px;height:54px;border-radius:999px;border:1.5px solid rgba(212,16,31,0.3);background:rgba(212,16,31,0.12);color:#ff8a8a;font-weight:800;cursor:pointer;font-family:'Noto Sans Arabic';font-size:12px;transition:all 0.2s">🗑️ پاک بکە</button>
+</div>
+
+</div>
+
+<div class="section">
+<h3>📋 لیستا شریتان (<span id="broadcastQueueCount">0</span>) - گشتی بۆ هەمیان 📡</h3>
+<div id="broadcastQueueList" style="display:grid;gap:10px;max-height:600px;overflow-y:auto;padding:4px"><div class="loading">بار دبیت</div></div>
+</div>
+
+</div>
+</div>
+
+</div>
+</div>
+
+
+
+<!-- SOCIAL ACCOUNTS TAB - NEW V13 - 2 BUTTONS SYSTEM -->
+<div id="tabSocial" style="display:none">
+<div class="section glowGold" style="border-color:rgba(91,92,255,0.3);background:linear-gradient(135deg,rgba(91,92,255,0.08),rgba(91,92,255,0.02))">
+<h3>📱 ئەکاونتێن سوشیال - بۆ بوتنا خوارێ <span style="background:#5B5CFF;color:#fff;padding:3px 10px;border-radius:999px;font-size:10px;margin-right:8px">V13 NEW - 2 Buttons</span></h3>
+<p style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:18px;background:rgba(0,0,0,0.2);padding:10px 14px;border-radius:10px;border:1px solid rgba(91,92,255,0.15)">🔗 لێرە لینکێن TikTok و Facebook و Instagram دانە - دێ ل بوتنا "ئەکاونتێن مە" ل یاریێ دیار بن - یاریکەر دێ کلیک بکەن و بچنە سەر ئەکاونتێن تە ✅</p>
+
+<div style="background:rgba(0,0,0,0.3);padding:20px;border-radius:18px;border:1px solid rgba(255,255,255,0.06);margin-bottom:18px">
+<h4 style="font-size:14px;margin-bottom:16px;color:#8b8cff;display:flex;align-items:center;gap:8px">🔗 لینکێن سوشیال میدیا - V13</h4>
+
+<div class="adminSection" style="margin-bottom:16px">
+<label class="adminLabel">🎵 TikTok لینک:</label>
+<input id="tiktokLinkInput" class="input" placeholder="https://www.tiktok.com/@yourname" style="direction:ltr;text-align:left">
+<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:6px">مثال: https://www.tiktok.com/@yaryazaxo</div>
+</div>
+
+<div class="adminSection" style="margin-bottom:16px">
+<label class="adminLabel">📘 Facebook لینک:</label>
+<input id="facebookLinkInput" class="input" placeholder="https://www.facebook.com/yourpage" style="direction:ltr;text-align:left">
+<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:6px">مثال: https://www.facebook.com/yaryazaxo</div>
+</div>
+
+<div class="adminSection" style="margin-bottom:16px">
+<label class="adminLabel">📸 Instagram لینک:</label>
+<input id="instagramLinkInput" class="input" placeholder="https://www.instagram.com/yourname" style="direction:ltr;text-align:left">
+<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:6px">مثال: https://www.instagram.com/yaryazaxo</div>
+</div>
+
+<div style="display:flex;gap:10px;margin-top:20px">
+<button onclick="saveSocialLinksAdmin()" style="flex:1;height:54px;border-radius:999px;border:0;background:linear-gradient(180deg,#8b8cff,#5B5CFF);color:#fff;font-weight:900;cursor:pointer;font-family:'Noto Sans Arabic';font-size:14px;box-shadow:0 6px 20px rgba(91,92,255,0.4)">💾 پاشکەفت بکە - بۆ یاریکەران دیار بیت</button>
+<button onclick="loadSocialLinksAdmin()" style="width:120px;height:54px;border-radius:999px;border:1.5px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:#fff;font-weight:800;cursor:pointer;font-family:'Noto Sans Arabic'">🔄 نوێکردن</button>
+</div>
+
+<div id="socialSaveStatus" style="display:none;margin-top:14px;padding:12px;border-radius:12px;text-align:center;font-size:12px;font-weight:800"></div>
+
+<div style="margin-top:20px;padding:14px;background:rgba(247,198,0,0.08);border:1px solid rgba(247,198,0,0.15);border-radius:14px">
+<div style="font-size:12px;color:#F7C600;font-weight:800;margin-bottom:8px">💡 چاوا کار دکەت؟</div>
+<div style="font-size:11px;color:rgba(255,255,255,0.6);line-height:1.8">
+1. لینکێن خۆ ل سەرێ بنڤیسە<br>
+2. پاشکەفت بکە کلیک بکە<br>
+3. ل یاریێ ل خوارێ دوو بوتنا هەنە - ئێک "ئەکاونتێن مە" - یاریکەر کلیک دکەت و دچیتە سەر لینکێن تە<br>
+4. بوتنا دووێ "براوە" یە - ناڤێ یەکەمێ رێزبەندیێ خوکار دچیتە تێدا - ژمارا موبایلێ تەنێ بۆ تە دیارە
+</div>
+</div>
+
+</div>
+
+<div class="section">
+<h3>👁️ پێشبینین - وەک ل یاریێ دیار دبیت</h3>
+<div style="background:rgba(0,0,0,0.3);padding:16px;border-radius:16px;border:1px solid rgba(255,255,255,0.06)">
+<div style="display:flex;gap:10px;justify-content:center">
+<button style="flex:1;max-width:180px;height:48px;border-radius:999px;border:0;background:linear-gradient(135deg,#5B5CFF,#7a7cff);color:#fff;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px">📱 ئەکاونتێن مە</button>
+<button style="flex:1;max-width:180px;height:48px;border-radius:999px;border:0;background:linear-gradient(135deg,#ffe27a,#F7C600);color:#1a1200;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px">🏆 براوە: <span id="previewWinnerName">...</span></button>
+</div>
+<div style="margin-top:14px;display:grid;gap:10px">
+<div style="padding:12px;background:rgba(0,0,0,0.4);border-radius:12px;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px">
+<span style="width:36px;height:36px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center">🎵</span>
+<span style="color:#fff;font-size:12px;flex:1" id="previewTiktok">TikTok لینک...</span>
+</div>
+<div style="padding:12px;background:rgba(0,0,0,0.4);border-radius:12px;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px">
+<span style="width:36px;height:36px;background:#1877F2;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff">f</span>
+<span style="color:#fff;font-size:12px;flex:1" id="previewFacebook">Facebook لینک...</span>
+</div>
+<div style="padding:12px;background:rgba(0,0,0,0.4);border-radius:12px;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px">
+<span style="width:36px;height:36px;background:linear-gradient(135deg,#f09433,#dc2743);border-radius:10px;display:flex;align-items:center;justify-content:center">📸</span>
+<span style="color:#fff;font-size:12px;flex:1" id="previewInsta">Instagram لینک...</span>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+
+
+<!-- BLOCKED DEVICES TAB - NEW V12 SECURITY -->
+<div id="tabBlocked" style="display:none">
+<div class="section" style="border-color:rgba(212,16,31,0.3);background:linear-gradient(135deg,rgba(212,16,31,0.08),rgba(212,16,31,0.02))">
+<h3>⛔ جیهازێن بلوک کری - پاراستنا دژی هاکەر <span style="background:#D4101F;color:#fff;padding:3px 10px;border-radius:999px;font-size:10px;margin-right:8px">SECURITY</span></h3>
+<p style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:18px;background:rgba(0,0,0,0.2);padding:10px 14px;border-radius:10px;border:1px solid rgba(212,16,31,0.15)">🔒 ئەڤ لیستە هەمی موبایلێن بلوک کری نیشان ددەت - ئەو جیهازە دائێدی ناشێت یاری بکەت - تە دێ هاکەران ل ڤێرێ بلوک کەی ⛔</p>
+
+<div style="background:rgba(0,0,0,0.3);padding:18px;border-radius:16px;border:1px solid rgba(255,255,255,0.06);margin-bottom:18px">
+<h4 style="font-size:13px;margin-bottom:14px;color:#ff8a8a;display:flex;align-items:center;gap:8px">➕ بلوک کرنا جیهازەکێ ب دەست - ب ئایدی</h4>
+<div class="formRow">
+<input id="manualBlockDeviceId" class="input" placeholder="ئایدیێ جیهازێ - بۆ نموونە: dev_abc123 یان UUID">
+<input id="manualBlockReason" class="input" placeholder="ئەگەر - بۆ نموونە: هاکەر - سکۆرێ ساختە">
+</div>
+<button class="btn gold" style="width:100%;height:50px;margin-top:12px;background:linear-gradient(135deg,#D4101F,#ff6b8a);color:#fff;box-shadow:0 6px 20px rgba(212,16,31,0.3)" onclick="manualBlockDevice()">⛔ بلوک بکە - جیهاز دائێدی کار ناکەت</button>
+</div>
+
+<div class="section">
+<h3>📋 لیستا جیهازێن بلوک کری (<span id="blockedCount">0</span>) - هەمی قفل</h3>
+<div id="blockedList" style="display:grid;gap:12px;max-height:700px;overflow-y:auto;padding:4px"><div class="loading">بار دبیت - بلوک لیست</div></div>
+</div>
+</div>
+</div>
+
+<div id="winnerBanner" class="winnerBanner"></div>
+
+
+<script type="module">
+
+import { initializeApp, getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, orderBy, limit, getDocs, addDoc, serverTimestamp, deleteDoc, writeBatch } from "./firebase-shim.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyB5y-soQQwolnaRLPcARamLXq-YbGFph74",
+  authDomain: "yarya-zaxo.firebaseapp.com",
+  projectId: "yarya-zaxo",
+  storageBucket: "yarya-zaxo.firebasestorage.app",
+  messagingSenderId: "369754174656",
+  appId: "1:369754174656:web:a5d1355bd8ce313f166925"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let allShops = [];
+let allPlayers = [];
+let configData = {};
+let countdownInterval = null;
+let isResetting = false;
+
+window.switchTab = function(tab){
+  document.querySelectorAll('.sItem').forEach(b=>b.classList.remove('active'));
+  const id = 's'+tab.charAt(0).toUpperCase()+tab.slice(1);
+  const el = document.getElementById(id);
+  if(el) el.classList.add('active');
+  document.getElementById('tabDash').style.display = tab==='dash'?'block':'none';
+  document.getElementById('tabShops').style.display = tab==='shops'?'block':'none';
+  document.getElementById('tabPlayers').style.display = tab==='players'?'block':'none';
+  document.getElementById('tabTrans').style.display = tab==='trans'?'block':'none';
+  document.getElementById('tabSettings').style.display = tab==='settings'?'block':'none';
+  document.getElementById('tabWinners').style.display = tab==='winners'?'block':'none';
+  document.getElementById('tabSponsor').style.display = tab==='sponsor'?'block':'none';
+  document.getElementById('tabSocial').style.display = tab==='social'?'block':'none';
+  document.getElementById('tabBroadcast').style.display = tab==='broadcast'?'block':'none';
+  document.getElementById('tabBlocked').style.display = tab==='blocked'?'block':'none';
+  if(tab==='shops' && allShops.length===0) loadShops();
+  if(tab==='players' && allPlayers.length===0) loadPlayers();
+  if(tab==='trans') loadTransactions();
+  if(tab==='winners') loadWinners();
+  if(tab==='sponsor') loadSponsorsAdmin();
+  if(tab==='social') loadSocialLinksAdmin();
+  if(tab==='broadcast'){ loadBroadcastsAdmin(); setTimeout(initIconsV12, 100); }
+  if(tab==='blocked') loadBlockedDevices();
+};
+
+window.toggleCreateForm = function(){
+  const f = document.getElementById('createShopForm');
+  f.style.display = f.style.display==='none'?'block':'none';
+};
+
+async function init(){
+  document.getElementById('statShops').textContent = '⏳';
+  document.getElementById('statPlayers').textContent = '⏳';
+  document.getElementById('statOnline').textContent = '⏳';
+  document.getElementById('statUnlockMobile').textContent = '⏳';
+  document.getElementById('statUnlockCar').textContent = '⏳';
+  document.getElementById('statMoney').textContent = '⏳';
+  await loadConfig();
+  await loadStats();
+  loadShops();
+  startCountdown();
+  setTimeout(initIconsV12, 500);
+}
+
+async function loadConfig(){
+  try{
+    const snap = await getDoc(doc(db,'settings','config'));
+    if(snap.exists()){
+      const data = snap.data();
+      const toDate = (v)=>{
+        if(!v) return null;
+        if(v.toDate) return v.toDate();
+        if(v.seconds) return new Date(v.seconds*1000);
+        if(typeof v==='string') return new Date(v);
+        return new Date(v);
+      };
+      configData.freeEndAt = toDate(data.freeEndAt) || new Date(Date.now()+7*24*60*60*1000);
+      configData.mobileEndAt = toDate(data.mobileEndAt) || new Date(Date.now()+7*24*60*60*1000);
+      configData.carEndAt = toDate(data.carEndAt) || new Date(Date.now()+7*24*60*60*1000);
+      configData.freePrize = data.freePrize||'100$';
+      configData.mobilePrize = data.mobilePrize||'ئایفون 18 پرو ماکس';
+      configData.carPrize = data.carPrize||'ترومبێل';
+      configData.freeLocked = data.freeLocked || false;
+      configData.freeLockMessage = data.freeLockMessage || '';
+      configData.mobileLocked = data.mobileLocked || false;
+      configData.mobileLockMessage = data.mobileLockMessage || '';
+      configData.carLocked = data.carLocked || false;
+      configData.carLockMessage = data.carLockMessage || '';
+      document.getElementById('freeEndInput').value = toLocalInput(configData.freeEndAt);
+      document.getElementById('mobileEndInput').value = toLocalInput(configData.mobileEndAt);
+      document.getElementById('carEndInput').value = toLocalInput(configData.carEndAt);
+      document.getElementById('freePrizeInput').value = configData.freePrize;
+      document.getElementById('mobilePrizeInput').value = configData.mobilePrize;
+      document.getElementById('carPrizeInput').value = configData.carPrize;
+      // 🔒 LOCK
+      if(document.getElementById('freeLockCheck')){ document.getElementById('freeLockCheck').checked = configData.freeLocked; }
+      if(document.getElementById('freeLockMessageInput')){ document.getElementById('freeLockMessageInput').value = configData.freeLockMessage; }
+      if(document.getElementById('freeLockMsgWrap')){ document.getElementById('freeLockMsgWrap').style.display = configData.freeLocked?'block':'none'; }
+      if(document.getElementById('mobileLockCheck')){ document.getElementById('mobileLockCheck').checked = configData.mobileLocked; }
+      if(document.getElementById('mobileLockMessageInput')){ document.getElementById('mobileLockMessageInput').value = configData.mobileLockMessage; }
+      if(document.getElementById('mobileLockMsgWrap')){ document.getElementById('mobileLockMsgWrap').style.display = configData.mobileLocked?'block':'none'; }
+      if(document.getElementById('carLockCheck')){ document.getElementById('carLockCheck').checked = configData.carLocked; }
+      if(document.getElementById('carLockMessageInput')){ document.getElementById('carLockMessageInput').value = configData.carLockMessage; }
+      if(document.getElementById('carLockMsgWrap')){ document.getElementById('carLockMsgWrap').style.display = configData.carLocked?'block':'none'; }
+    } else {
+      const def = new Date(Date.now()+7*24*60*60*1000);
+      configData.freeEndAt = def; configData.mobileEndAt = def; configData.carEndAt = def;
+      configData.freePrize='100$'; configData.mobilePrize='ئایفون 18 پرو ماکس'; configData.carPrize='ترومبێل';
+      document.getElementById('freeEndInput').value = toLocalInput(def);
+      document.getElementById('mobileEndInput').value = toLocalInput(def);
+      document.getElementById('carEndInput').value = toLocalInput(def);
+    }
+  }catch(e){ 
+    const def = new Date(Date.now()+7*24*60*60*1000);
+    configData.freeEndAt = def; configData.mobileEndAt = def; configData.carEndAt = def;
+  }
+}
+
+function toLocalInput(date){
+  if(!date) return '';
+  try{
+    const offset = date.getTimezoneOffset()*60000;
+    const local = new Date(date.getTime() - offset);
+    return local.toISOString().slice(0,16);
+  }catch(e){ return ''; }
+}
+
+function startCountdown(){
+  if(countdownInterval) clearInterval(countdownInterval);
+  countdownInterval = setInterval(()=>{
+    updateCountdowns();
+    checkWinners();
+  },1000);
+  updateCountdowns();
+}
+
+function formatCountdown(end){
+  if(!end) return '--:--:--';
+  if(typeof end==='string') end = new Date(end);
+  if(end && end.seconds) end = new Date(end.seconds*1000);
+  if(!(end instanceof Date) || isNaN(end.getTime())) return '--:--:--';
+  let diff = Math.floor((end - new Date())/1000);
+  if(diff<=0) return '00:00:00';
+  const d = Math.floor(diff/86400); diff%=86400;
+  const h = Math.floor(diff/3600); diff%=3600;
+  const m = Math.floor(diff/60); const s = diff%60;
+  if(d>0) return `${d}ر ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function updateCountdowns(){
+  try{
+    if(configData.freeEndAt){
+      const txt = formatCountdown(configData.freeEndAt);
+      const el1 = document.getElementById('cdFree');
+      const el2 = document.getElementById('setFreeTimer');
+      if(el1) el1.textContent = txt;
+      if(el2) el2.textContent = txt;
+      const el3 = document.getElementById('cdFreeDate');
+      if(el3) el3.textContent = configData.freeEndAt.toLocaleString('ku-IQ');
+    }
+    if(configData.mobileEndAt){
+      const txt = formatCountdown(configData.mobileEndAt);
+      const el1 = document.getElementById('cdMobile');
+      const el2 = document.getElementById('setMobileTimer');
+      if(el1) el1.textContent = txt;
+      if(el2) el2.textContent = txt;
+      const el3 = document.getElementById('cdMobileDate');
+      if(el3) el3.textContent = configData.mobileEndAt.toLocaleString('ku-IQ');
+    }
+    if(configData.carEndAt){
+      const txt = formatCountdown(configData.carEndAt);
+      const el1 = document.getElementById('cdCar');
+      const el2 = document.getElementById('setCarTimer');
+      if(el1) el1.textContent = txt;
+      if(el2) el2.textContent = txt;
+      const el3 = document.getElementById('cdCarDate');
+      if(el3) el3.textContent = configData.carEndAt.toLocaleString('ku-IQ');
+    }
+  }catch(e){}
+}
+
+async function checkWinners(){
+  if(isResetting) return;
+  const now = new Date();
+  if(configData.freeEndAt && now>=configData.freeEndAt){
+    await handleWinner('free');
+  } else if(configData.mobileEndAt && now>=configData.mobileEndAt){
+    await handleWinner('mobile');
+  } else if(configData.carEndAt && now>=configData.carEndAt){
+    await handleWinner('car');
+  }
+}
+
+async function handleWinner(type){
+  if(isResetting) return;
+  isResetting = true;
+  try{
+    let q;
+    if(type==='free') q = query(collection(db,'users'), orderBy('bestScoreFree','desc'), limit(1));
+    else if(type==='mobile') q = query(collection(db,'users'), where('unlockedMobile','==',true), orderBy('bestScoreMobile','desc'), limit(1));
+    else q = query(collection(db,'users'), where('unlockedCar','==',true), orderBy('bestScoreCar','desc'), limit(1));
+    let winner = null;
+    let winnerName = 'کەس نەبوو';
+    let winnerScore = 0;
+    let winnerPhone = '';
+    let winnerId = 'none';
+    try{
+      const snap = await getDocs(q);
+      if(!snap.empty){ snap.forEach(d=>{ const data=d.data(); winner={id:d.id, ...data}; winnerName=data.displayName||data.username||'کەس نەبوو'; winnerScore=type==='free'?(data.bestScoreFree||data.bestScore||0): type==='mobile'?(data.bestScoreMobile||0):(data.bestScoreCar||0); winnerPhone=data.phoneNumber||data.phone||''; winnerId=d.id; }); }
+    }catch(e){
+      try{
+        const snap2 = await getDocs(query(collection(db,'users'), orderBy('bestScore','desc'), limit(1)));
+        if(!snap2.empty){ snap2.forEach(d=>{ const data=d.data(); winnerName=data.displayName||data.username||'کەس نەبوو'; winnerScore=data.bestScore||0; winnerPhone=data.phoneNumber||''; winnerId=d.id; }); }
+      }catch(e2){}
+    }
+    const prize = type==='free'?configData.freePrize: type==='mobile'?configData.mobilePrize:configData.carPrize;
+    let docId = '';
+    try{
+      const endAt = configData[type+'EndAt'];
+      if(endAt){ docId = type + '_' + Math.floor(endAt.getTime()/1000); }
+      else{ docId = type + '_' + Math.floor(Date.now()/1000); }
+    }catch(e){ docId = type + '_' + Math.floor(Date.now()/1000); }
+    try{
+      const winnerRef = doc(db, 'winners', docId);
+      const existingSnap = await getDoc(winnerRef);
+      if(existingSnap.exists()){
+        if(!window._winnerLogOnce) { window._winnerLogOnce={}; } if(!window._winnerLogOnce[docId]){ window._winnerLogOnce[docId]=1; console.log('Winner already exists for '+docId+', skipping duplicate'); }
+        isResetting = false;
+        return;
+      }
+      await setDoc(winnerRef, {
+        type: type,
+        winnerName: winnerName,
+        winnerScore: winnerScore,
+        winnerId: winnerId,
+        winnerPhone: winnerPhone,
+        phoneNumber: winnerPhone,
+        prize: prize,
+        createdAt: serverTimestamp(),
+        endAt: new Date(),
+        endAtOriginal: configData[type+'EndAt']||new Date()
+      });
+    }catch(e){
+      console.log('winner save error', e);
+      try{
+        await addDoc(collection(db,'winners'), {
+          type: type,
+          winnerName: winnerName,
+          winnerScore: winnerScore,
+          winnerId: winner?.id||'none',
+          winnerPhone: winnerPhone,
+          phoneNumber: winnerPhone,
+          prize: prize,
+          createdAt: serverTimestamp(),
+          endAt: new Date()
+        });
+      }catch(e2){}
+    }
+    showWinnerBanner(type, winnerName, winnerScore, prize);
+    setTimeout(async ()=>{
+      await resetRanking(type);
+      hideWinnerBanner();
+      isResetting = false;
+    }, 20000);
+  }catch(e){
+    isResetting = false;
+  }
+}
+
+
+function showWinnerBanner(type, name, score, prize){
+  const el = document.getElementById('winnerBanner');
+  el.innerHTML = `🏆 براوەی ${type==='free'?'بەلاش': type==='mobile'?'موبایل':'ترومبێل'}: <b>${name}</b> - ${score} خال - 🎁 ${prize} <br><small>20 چرکە و پاشان سفر دبیت...</small>`;
+  el.classList.add('show');
+}
+function hideWinnerBanner(){
+  document.getElementById('winnerBanner').classList.remove('show');
+}
+async function resetRanking(type){
+  try{
+    const snap = await getDocs(collection(db,'users'));
+    let batch = writeBatch(db);
+    let count=0;
+    snap.forEach(d=>{
+      if(type==='free') batch.update(d.ref || doc(db,'users', d.id), {bestScoreFree:0, bestScore:0});
+      else if(type==='mobile') batch.update(d.ref || doc(db,'users', d.id), {bestScoreMobile:0, unlockedMobile:false, mobileUnlockedAt: null});
+      else batch.update(d.ref || doc(db,'users', d.id), {bestScoreCar:0, unlockedCar:false, carUnlockedAt: null});
+      count++;
+      if(count>=400){ batch.commit(); batch = writeBatch(db); count=0; }
+    });
+    if(count>0) await batch.commit();
+    const newEnd = new Date(Date.now()+7*24*60*60*1000);
+    const ref = doc(db,'settings','config');
+    if(type==='free') { await updateDoc(ref, {freeEndAt:newEnd}); configData.freeEndAt=newEnd; }
+    else if(type==='mobile') { await updateDoc(ref, {mobileEndAt:newEnd}); configData.mobileEndAt=newEnd; }
+    else { await updateDoc(ref, {carEndAt:newEnd}); configData.carEndAt=newEnd; }
+    if(type==='mobile') alert(`✅ رێزبەندیا موبایلێ سفر بوو + هەمی هاتنە قفلکرن 🔒\nنوکه دێ جارەکا دی چنە دکانێ`);
+    else if(type==='car') alert(`✅ رێزبەندیا ترومبێلێ سفر بوو + هەمی هاتنە قفلکرن 🔒\nنوکه دێ جارەکا دی چنە دکانێ`);
+    else alert(`✅ رێزبەندیا ${type} سفر بوو`);
+    loadStats();
+  }catch(e){ alert('❌ '+e.message); }
+}
+window.resetRankingManual = async function(type){
+  if(!confirm(`دڵنیای دڤێت رێزبەندیا ${type} سفر بکەی؟`)) return;
+  await resetRanking(type);
+};
+
+async function loadStats(){
+  try{
+    const shopsSnap = await getDocs(collection(db,'shopkeepers'));
+    const playersSnap = await getDocs(collection(db,'users'));
+    let transCount = 0;
+    try{
+      const transSnap = await getDocs(collection(db,'unlockTransactions'));
+      transCount = transSnap.size;
+    }catch(e){ 
+      try{
+        const transSnap2 = await getDocs(collection(db,'transactions'));
+        transCount = transSnap2.size;
+      }catch(e2){ transCount = 0; }
+    }
+    document.getElementById('statShops').textContent = shopsSnap.size;
+    document.getElementById('shopCountBadge').textContent = shopsSnap.size;
+    document.getElementById('statPlayers').textContent = playersSnap.size;
+    document.getElementById('playerCountBadge').textContent = playersSnap.size;
+    let online=0, mob=0, car=0;
+    const now = new Date();
+    playersSnap.forEach(d=>{
+      const data=d.data();
+      let lastSeen = null;
+      if(data.lastSeen?.toDate) lastSeen = data.lastSeen.toDate();
+      else if(data.lastSeen?.seconds) lastSeen = new Date(data.lastSeen.seconds*1000);
+      else if(data.updatedAt?.toDate) lastSeen = data.updatedAt.toDate();
+      if(lastSeen && (now - lastSeen) < 10*60*1000) online++;
+      if(data.unlockedMobile) mob++;
+      if(data.unlockedCar) car++;
+      if(!data.unlockedMobile && (data.bestScore>=5000 || data.totalPoints>=5000)) mob++;
+      if(!data.unlockedCar && (data.bestScore>=10000 || data.totalPoints>=10000)) car++;
+    });
+    document.getElementById('statOnline').textContent = online;
+    document.getElementById('statUnlockMobile').textContent = mob;
+    document.getElementById('statUnlockCar').textContent = car;
+    document.getElementById('statMoney').textContent = transCount;
+    const shopStatsEl = document.getElementById('shopStatsList');
+    shopStatsEl.innerHTML='';
+    if(shopsSnap.empty){
+      shopStatsEl.innerHTML='<div style="padding:20px;text-align:center;color:rgba(255,255,255,0.5)">هیچ دکان نینە - ➕ دکانا نوو دروست بکە</div>';
+    } else {
+      shopsSnap.forEach(d=>{
+        const s=d.data();
+        const div=document.createElement('div');
+        div.style.cssText='background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:14px;transition:0.2s';
+        div.innerHTML=`<div style="font-weight:800;font-size:13px">🏪 ${escapeHtml(s.shopName||'بێ ناڤ')}</div><div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:4px">👤 ${escapeHtml(s.ownerName||'')}<br>📱 ${s.phone||''} | 📍 ${s.province||''}</div><div style="margin-top:8px"><span class="badge" style="background:rgba(91,92,255,0.15);color:#8b8cff;border-color:rgba(91,92,255,0.2)">📱 ${s.mobileQuota||0}/${s.mobileTotal||50}</span> <span class="badge" style="background:rgba(247,198,0,0.15);color:#F7C600;border-color:rgba(247,198,0,0.2)">🚗 ${s.carQuota||0}/${s.carTotal||50}</span></div>`;
+        shopStatsEl.appendChild(div);
+      });
+    }
+  }catch(e){ 
+    document.getElementById('statShops').textContent = '❌';
+    document.getElementById('statPlayers').textContent = '❌';
+    document.getElementById('statOnline').textContent = '❌';
+    document.getElementById('statUnlockMobile').textContent = '❌';
+    document.getElementById('statUnlockCar').textContent = '❌';
+    document.getElementById('statMoney').textContent = '❌';
+    document.getElementById('shopStatsList').innerHTML = '<div style="color:#ff8a8a">❌ خەلەت: '+e.message+'</div>';
+  }
+}
+
+async function loadShops(){
+  const grid = document.getElementById('shopsGrid');
+  grid.innerHTML='<div class="loading">بار دبیت - هەمی دکان د جهەکێ دا</div>';
+  try{
+    const snap = await getDocs(collection(db,'shopkeepers'));
+    allShops=[];
+    snap.forEach(d=>{ allShops.push({id:d.id, ...d.data()}); });
+    renderShops(allShops);
+  }catch(e){ grid.innerHTML='<div style="color:#ff8a8a;padding:20px">❌ '+e.message+'</div>'; }
+}
+function renderShops(shops){
+  const grid = document.getElementById('shopsGrid');
+  if(!shops || shops.length===0){ grid.innerHTML='<div style="text-align:center;padding:30px;color:rgba(255,255,255,0.5)">هیچ دکان نینە - ➕ دروست بکە</div>'; return; }
+  grid.innerHTML='';
+  shops.forEach(s=>{
+    const div=document.createElement('div');
+    div.className='shopCard';
+    div.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:start">
+        <div style="flex:1">
+          <div style="font-weight:900;font-size:14px;color:#fff">🏪 ${escapeHtml(s.shopName||'بێ ناڤ')} ${s.isLocked?'🔒 قفل':''}</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px">👤 ${escapeHtml(s.ownerName||'')} | @${s.username||''}</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px">📱 ${s.phone||''} | 📍 ${s.province||''}</div>
+          <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+            <span class="badge" style="background:rgba(91,92,255,0.15);color:#8b8cff">📱 ${s.mobileQuota||0}/${s.mobileTotal||50} مایە</span>
+            <span class="badge" style="background:rgba(247,198,0,0.15);color:#F7C600">🚗 ${s.carQuota||0}/${s.carTotal||50} مایە</span>
+            <span class="badge" style="background:rgba(0,220,120,0.12);color:#00ff99">دان: ${s.mobileGiven||0}/${s.carGiven||0}</span>
+          </div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:8px">ID: ${s.id}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-right:8px">
+          <button onclick="editQuota('${s.id}','mobile',10)" style="height:32px;padding:0 12px;border-radius:10px;border:1px solid rgba(91,92,255,0.3);background:rgba(91,92,255,0.15);color:#8b8cff;font-size:11px;cursor:pointer;font-weight:800">📱 +10</button>
+          <button onclick="editQuota('${s.id}','mobile',-5)" style="height:32px;padding:0 12px;border-radius:10px;border:1px solid rgba(255,100,100,0.3);background:rgba(255,100,100,0.1);color:#ff8a8a;font-size:11px;cursor:pointer">📱 -5</button>
+          <button onclick="editQuota('${s.id}','car',10)" style="height:32px;padding:0 12px;border-radius:10px;border:1px solid rgba(247,198,0,0.3);background:rgba(247,198,0,0.15);color:#F7C600;font-size:11px;cursor:pointer">🚗 +10</button>
+          <button onclick="editQuota('${s.id}','car',-5)" style="height:32px;padding:0 12px;border-radius:10px;border:1px solid rgba(255,100,100,0.3);background:rgba(255,100,100,0.1);color:#ff8a8a;font-size:11px;cursor:pointer">🚗 -5</button>
+          <button onclick="toggleLock('${s.id}')" style="height:32px;padding:0 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:#fff;font-size:11px;cursor:pointer">${s.isLocked?'🔓':'🔒'}</button>
+          <button onclick="deleteShop('${s.id}')" style="height:32px;padding:0 12px;border-radius:10px;border:1px solid rgba(212,16,31,0.3);background:rgba(212,16,31,0.15);color:#ff8a8a;font-size:11px;cursor:pointer">🗑️</button>
+        </div>
+      </div>
+    `;
+    grid.appendChild(div);
+  });
+}
+window.filterShops = function(){
+  const search = document.getElementById('shopSearch').value.toLowerCase();
+  const prov = document.getElementById('shopProvinceFilter').value;
+  let filtered = allShops;
+  if(prov) filtered = filtered.filter(s=>s.province===prov);
+  if(search) filtered = filtered.filter(s=> (s.shopName||'').toLowerCase().includes(search) || (s.ownerName||'').toLowerCase().includes(search) || (s.phone||'').includes(search) || (s.username||'').toLowerCase().includes(search));
+  renderShops(filtered);
+};
+window.createShop = async function(){
+  const username=document.getElementById('newUsername').value.trim().toLowerCase();
+  const shopName=document.getElementById('newShopName').value.trim();
+  const ownerName=document.getElementById('newOwnerName').value.trim();
+  const phone=document.getElementById('newPhone').value.trim();
+  const province=document.getElementById('newProvince').value;
+  const mobileQuota=parseInt(document.getElementById('newMobileQuota').value)||50;
+  const carQuota=parseInt(document.getElementById('newCarQuota').value)||50;
+  if(!username||!shopName||!ownerName||!phone){ alert('هەمی پر بکە'); return; }
+  try{
+    await addDoc(collection(db,'shopkeepers'),{
+      username, shopName, ownerName, phone, province,
+      mobileQuota, carQuota, mobileTotal:mobileQuota, carTotal:carQuota,
+      mobileGiven:0, carGiven:0, isLocked:false, role:'manager',
+      createdAt: serverTimestamp()
+    });
+    alert('✅ دروست بوو');
+    document.getElementById('createShopForm').style.display='none';
+    loadShops(); loadStats();
+  }catch(e){ alert('❌ '+e.message); }
+};
+window.editQuota = async function(id, type, delta){
+  try{
+    const shop = allShops.find(s=>s.id===id);
+    if(!shop) return;
+    const field = type==='mobile'?'mobileQuota':'carQuota';
+    const newVal = Math.max(0, (shop[field]||0)+delta);
+    await updateDoc(doc(db,'shopkeepers',id), {[field]: newVal});
+    shop[field]=newVal;
+    renderShops(allShops);
+  }catch(e){ alert(e.message); }
+};
+window.toggleLock = async function(id){
+  try{
+    const shop = allShops.find(s=>s.id===id);
+    const newLock = !shop.isLocked;
+    await updateDoc(doc(db,'shopkeepers',id), {isLocked:newLock});
+    shop.isLocked=newLock;
+    renderShops(allShops);
+  }catch(e){ alert(e.message); }
+};
+window.deleteShop = async function(id){
+  if(!confirm('دڵنیای دێ دکانێ ژێبی؟')) return;
+  try{
+    await deleteDoc(doc(db,'shopkeepers',id));
+    allShops = allShops.filter(s=>s.id!==id);
+    renderShops(allShops); loadStats();
+  }catch(e){ alert(e.message); }
+};
+
+async function loadPlayers(){
+  try{ await fetch('/api/fix-missing-device'); }catch{}
+  const tbody=document.getElementById('playersTable');
+  tbody.innerHTML='<tr><td colspan="7" class="loading">بار دبیت</td></tr>';
+  try{
+    const snap=await getDocs(query(collection(db,'users'), orderBy('bestScore','desc'), limit(200)));
+    allPlayers=[];
+    snap.forEach(d=>{ allPlayers.push({id:d.id, ...d.data()}); });
+    renderPlayers(allPlayers);
+  }catch(e){ tbody.innerHTML='<tr><td colspan="7" style="color:#ff8a8a">❌ '+e.message+'</td></tr>'; }
+}
+function renderPlayers(players){
+  const tbody=document.getElementById('playersTable');
+  if(!players||players.length===0){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:20px">هیچ یاریکەر نینە</td></tr>'; return; }
+  tbody.innerHTML='';
+  players.forEach(u=>{
+    let lastSeen=null;
+    if(u.lastSeen?.toDate) lastSeen=u.lastSeen.toDate();
+    else if(u.lastSeen?.seconds) lastSeen=new Date(u.lastSeen.seconds*1000);
+    else if(u.lastLogin?.toDate) lastSeen=u.lastLogin.toDate();
+    const online = lastSeen && (new Date()-lastSeen)<10*60*1000;
+    const deviceId = u.lastDeviceId || u.deviceFingerprint || u.originalDeviceId || u.accountCreatedDevice || u.deviceId || (u.deviceIds && u.deviceIds[0]) || u.id || 'نەدیار';
+    const docIdShow = u.id || '';
+    const isBlocked = u.isBlocked===true;
+    const tr=document.createElement('tr');
+    tr.style.background = isBlocked ? 'rgba(212,16,31,0.08)' : '';
+    tr.innerHTML=`
+      <td><div style="display:flex;gap:10px;align-items:center"><div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1a1a3a,#2a2a5a);overflow:hidden;display:flex;align-items:center;justify-content:center;border:2px solid ${isBlocked?'#D4101F':'rgba(247,198,0,0.2)'};position:relative">${u.photoURL?`<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover">`:(u.displayName||u.username||'👤').charAt(0).toUpperCase()}${isBlocked?'<span style="position:absolute;bottom:-4px;right:-4px;background:#D4101F;color:#fff;font-size:8px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid #000">⛔</span>':''}</div><div><div style="font-weight:800;display:flex;align-items:center;gap:6px">${escapeHtml(u.displayName||u.username||'بێ ناڤ')} ${isBlocked?'<span style="background:#D4101F;color:#fff;padding:2px 6px;border-radius:999px;font-size:8px">بلوک</span>':''}</div><div style="font-size:10px;color:rgba(255,255,255,0.5)">@${u.username||''}</div><div style="font-size:9px;color:rgba(255,255,255,0.35);margin-top:2px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${deviceId}">📱 ${deviceId.substring(0,22)}</div><div style="font-size:8px;color:#F7C600;margin-top:2px">🆔 ${docIdShow}</div></div></div></td>
+      <td style="color:#7CFC9A;font-weight:800">${u.bestScoreFree||u.bestScore||0}</td>
+      <td style="color:#8b8cff;font-weight:800">${u.bestScoreMobile||0} ${u.unlockedMobile?'✅':''}</td>
+      <td style="color:#F7C600;font-weight:800">${u.bestScoreCar||0} ${u.unlockedCar?'✅':''}</td>
+      <td>${online?'<span style="background:rgba(0,255,100,0.15);color:#00ff99;padding:5px 10px;border-radius:999px;font-size:10px;font-weight:800;border:1px solid rgba(0,255,100,0.2)">🟢 ئونلاین</span>':'<span style="background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.5);padding:5px 10px;border-radius:999px;font-size:10px">⚫ ئوفلاین</span>'}<br><span style="font-size:10px;color:rgba(255,255,255,0.4)">${lastSeen?lastSeen.toLocaleString('ku-IQ'):''}</span><br><span style="font-size:9px;color:rgba(255,255,255,0.3)">${escapeHtml((u.platform||'').substring(0,20))}</span></td>
+      <td>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <button onclick="resetPlayer('${u.id}','free')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:#fff;font-size:9px;cursor:pointer;font-weight:700">سفر بەلاش</button>
+          ${isBlocked?`<button onclick="unblockPlayer('${u.id}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(0,255,136,0.3);background:rgba(0,255,136,0.15);color:#00ff99;font-size:9px;cursor:pointer;font-weight:800">🔓 ئازاد</button>`:`<button onclick="blockPlayerDevice('${u.id}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(212,16,31,0.3);background:rgba(212,16,31,0.15);color:#ff8a8a;font-size:9px;cursor:pointer;font-weight:800">⛔ بلوک جیهاز</button>`}
+          <button onclick="v53DeletePlayer('${u.id}','${escapeHtml(u.username||u.displayName||'').replace(/'/g, "\\'")}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(239,68,68,0.4);background:#ef4444;color:#fff;font-size:9px;cursor:pointer;font-weight:800">🗑️ ژێبە</button>
+          <button onclick="v53EditPlayer('${u.id}','${escapeHtml(u.username||u.displayName||'').replace(/'/g, "\\'")}','${escapeHtml((u.bio||'').replace(/'/g, "\\'"))}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(59,130,246,0.4);background:#3b82f6;color:#fff;font-size:9px;cursor:pointer;font-weight:800">✏️ گهورە</button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ===== V12 SECURITY: BLOCK DEVICE SYSTEM =====
+let allBlockedDevices = [];
+
+async function loadBlockedDevices(){
+  const listEl = document.getElementById('blockedList');
+  const countEl = document.getElementById('blockedCount');
+  const badgeEl = document.getElementById('blockedCountBadge');
+  if(listEl) listEl.innerHTML='<div class="loading">بار دبیت - بلوک لیست</div>';
+  try{
+    const snap = await getDocs(query(collection(db,'blockedDevices'), orderBy('blockedAt','desc'), limit(100)));
+    allBlockedDevices=[];
+    snap.forEach(d=>{ allBlockedDevices.push({id:d.id, ...d.data()}); });
+    if(countEl) countEl.textContent = allBlockedDevices.length;
+    if(badgeEl) badgeEl.textContent = allBlockedDevices.length;
+    renderBlockedDevices();
+  }catch(e){
+    console.error(e);
+    if(listEl) listEl.innerHTML='<div style="color:#ff8a8a;padding:12px">❌ '+e.message+'<br><small>Firestore rules: allow read,write: if true; for blockedDevices</small></div>';
+  }
+}
+
+function renderBlockedDevices(){
+  const listEl = document.getElementById('blockedList');
+  if(!listEl) return;
+  if(allBlockedDevices.length===0){
+    listEl.innerHTML='<div style="text-align:center;color:rgba(255,255,255,0.4);padding:24px;background:rgba(255,255,255,0.02);border-radius:14px;border:1px dashed rgba(255,255,255,0.1)">✅ چوو جیهاز بلوک نینە - هەمی ئازادن 🔓</div>';
+    return;
+  }
+  listEl.innerHTML='';
+  allBlockedDevices.forEach(b=>{
+    const dateStr = b.blockedAt?.toDate ? b.blockedAt.toDate().toLocaleString('ku-IQ') : (b.blockedAt?.seconds ? new Date(b.blockedAt.seconds*1000).toLocaleString('ku-IQ') : '');
+    const div=document.createElement('div');
+    div.style.cssText='background:linear-gradient(135deg,rgba(212,16,31,0.12),rgba(212,16,31,0.04));border:1.5px solid rgba(212,16,31,0.25);border-radius:16px;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:12px';
+    div.innerHTML=`
+      <div style="flex:1;min-width:0">
+        <div style="color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;gap:8px">⛔ ${escapeHtml(b.playerName||'نەناس')} <span style="background:rgba(212,16,31,0.2);color:#ff8a8a;padding:3px 8px;border-radius:999px;font-size:10px;border:1px solid rgba(212,16,31,0.3)">بلوک</span></div>
+        <div style="color:rgba(255,255,255,0.6);font-size:11px;margin-top:6px;word-break:break-all">📱 Device: <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:6px;color:#F7C600">${escapeHtml(b.deviceId||b.id||'')}</code></div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;margin-top:4px">📝 ${escapeHtml(b.reason||'هاکەر')} | 👤 ID: ${escapeHtml(b.playerId||'')} | 📅 ${dateStr}</div>
+        <div style="color:rgba(255,255,255,0.35);font-size:10px;margin-top:3px">🌐 ${escapeHtml((b.userAgent||'').substring(0,80))} | 📺 ${escapeHtml(b.screenSize||'')}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button onclick="unblockDevice('${b.id}')" style="height:36px;padding:0 14px;border-radius:10px;border:1.5px solid rgba(0,255,136,0.3);background:rgba(0,255,136,0.15);color:#00ff99;font-size:11px;cursor:pointer;font-weight:800">🔓 ئازاد بکە</button>
+        <button onclick="deleteBlockedDevice('${b.id}')" style="height:36px;padding:0 14px;border-radius:10px;border:1.5px solid rgba(212,16,31,0.3);background:rgba(212,16,31,0.15);color:#ff8a8a;font-size:11px;cursor:pointer;font-weight:800">🗑️ ژێبرن</button>
+      </div>
+    `;
+    listEl.appendChild(div);
+  });
+}
+
+window.manualBlockDevice = async function(){
+  const devIdEl = document.getElementById('manualBlockDeviceId');
+  const reasonEl = document.getElementById('manualBlockReason');
+  const deviceId = devIdEl.value.trim();
+  const reason = reasonEl.value.trim()||'هاکەر - بلوک کرنا دەستی';
+  if(!deviceId){ alert('ئایدیێ جیهازێ بنڤیسە'); return; }
+  if(!confirm(`دڵنیای دێ ڤی جیهازی بلوک کەی؟\n${deviceId}\nدائێدی کار ناکەت ⛔`)) return;
+  try{
+    await setDoc(doc(db,'blockedDevices',deviceId), {
+      deviceId: deviceId,
+      playerId: 'manual',
+      playerName: 'دەستی بلوک',
+      reason: reason,
+      userAgent: 'manual block',
+      blockedAt: serverTimestamp(),
+      blockedBy: 'admin',
+      isBlocked: true
+    });
+    devIdEl.value=''; reasonEl.value='';
+    alert('✅ جیهاز هاتە بلوک کرن - دائێدی کار ناکەت ⛔');
+    loadBlockedDevices();
+  }catch(e){ alert('❌ '+e.message); }
+};
+
+window.unblockDevice = async function(deviceId){
+  if(!confirm('دڵنیای دێ ڤی جیهازی ئازاد کەی؟ دێ شێت دیسان یاری بکەت 🔓')) return;
+  try{
+    await deleteDoc(doc(db,'blockedDevices',deviceId));
+    // Also unblock user if exists
+    try{
+      const player = allPlayers.find(p=> (p.lastDeviceId===deviceId) || (p.deviceIds && p.deviceIds.includes(deviceId)) || (p.deviceFingerprint===deviceId));
+      if(player){
+        await updateDoc(doc(db,'users',player.id), {isBlocked:false, blockedAt: null, blockedDeviceId: null});
+      }
+    }catch{}
+    allBlockedDevices = allBlockedDevices.filter(b=>b.id!==deviceId);
+    renderBlockedDevices();
+    document.getElementById('blockedCount').textContent = allBlockedDevices.length;
+    document.getElementById('blockedCountBadge').textContent = allBlockedDevices.length;
+    alert('✅ جیهاز هاتە ئازاد کرن 🔓');
+  }catch(e){ alert('❌ '+e.message); }
+};
+
+window.deleteBlockedDevice = async function(deviceId){
+  if(!confirm('ژێبرن؟')) return;
+  try{
+    await deleteDoc(doc(db,'blockedDevices',deviceId));
+    allBlockedDevices = allBlockedDevices.filter(b=>b.id!==deviceId);
+    renderBlockedDevices();
+    document.getElementById('blockedCount').textContent = allBlockedDevices.length;
+    document.getElementById('blockedCountBadge').textContent = allBlockedDevices.length;
+  }catch(e){ alert(e.message); }
+};
+
+window.blockPlayerDevice = async function(playerId){
+  const player = allPlayers.find(p=>p.id===playerId);
+  if(!player){ alert('یاریکەر نەهاتە دیتن'); return; }
+  const deviceId = player.lastDeviceId || player.deviceFingerprint || player.originalDeviceId || player.accountCreatedDevice || player.deviceId || (player.deviceIds && player.deviceIds[0]) || player.id || '';
+  if(!deviceId){
+    const manualId = prompt(`ئایدیێ جیهازێ یاریکەرێ ${player.username||player.id} نەهاتە دیتن\nئایدیێ ب دەست بنڤیسە (ژ Firestore users->lastDeviceId):`);
+    if(!manualId){ if(!confirm(`دڵنیای دێ ${player.username} بلوک کەی بێ جیهاز؟`)) return; try{ await updateDoc(doc(db,'users',playerId), {isBlocked:true, blockedAt: serverTimestamp()}); alert('✅ '+player.username+' هاتە بلوک کرن (بێ جیهاز)'); loadPlayers(); }catch(e){ alert('❌ '+e.message); } return; }
+    // Use manual
+    if(!confirm(`دڵنیای دێ یاریکەرێ ${player.username} بلوک کەی؟\nجیهاز: ${manualId}\n⛔ دائێدی کار ناکەت`)) return;
+    try{
+      await setDoc(doc(db,'blockedDevices',manualId), {
+        deviceId: manualId,
+        playerId: playerId,
+        playerName: player.username||player.displayName||playerId,
+        reason: 'هاکەر - بلوک کرن ژلایێ ئەدمینی ڤە',
+        userAgent: player.userAgent||'',
+        screenSize: player.screenSize||'',
+        platform: player.platform||'',
+        blockedAt: serverTimestamp(),
+        blockedBy: 'admin',
+        isBlocked: true
+      });
+      await updateDoc(doc(db,'users',playerId), {isBlocked:true, blockedAt: serverTimestamp(), blockedDeviceId: manualId});
+      alert(`✅ ${player.username} هاتە بلوک کرن - جیهاز: ${manualId}`);
+      loadBlockedDevices();
+    }catch(e){ alert('❌ '+e.message); }
+    return;
+  }
+  if(!confirm(`⛔ دڵنیای دێ یاریکەرێ ${player.username||playerId} بلوک کەی؟\n\n📱 Device: ${deviceId}\n👤 ناڤ: ${player.username}\n\nئەڤ جیهازە دائێدی ناشێت یاری بکەت!`)) return;
+  try{
+    await setDoc(doc(db,'blockedDevices',deviceId), {
+      deviceId: deviceId,
+      playerId: playerId,
+      playerName: player.username||player.displayName||playerId,
+      reason: 'هاکەر - بلوک کرن ژلایێ ئەدمینی ڤە',
+      userAgent: player.userAgent||'',
+      screenSize: player.screenSize||'',
+      platform: player.platform||'',
+      blockedAt: serverTimestamp(),
+      blockedBy: 'admin',
+      isBlocked: true
+    });
+    await updateDoc(doc(db,'users',playerId), {isBlocked:true, blockedAt: serverTimestamp(), blockedDeviceId: deviceId});
+    alert(`✅ یاریکەر ${player.username} هاتە بلوک کرن ⛔\nجیهاز: ${deviceId}`);
+    loadBlockedDevices();
+    // Update UI
+    player.isBlocked=true;
+    renderPlayers(allPlayers);
+  }catch(e){ alert('❌ '+e.message); }
+};
+
+window.unblockPlayer = async function(playerId){
+  if(!confirm('ئازادکرن؟')) return;
+  try{
+    const player = allPlayers.find(p=>p.id===playerId);
+    const deviceId = player?.blockedDeviceId || player?.lastDeviceId || '';
+    if(deviceId){
+      try{ await deleteDoc(doc(db,'blockedDevices',deviceId)); }catch{}
+    }
+    await updateDoc(doc(db,'users',playerId), {isBlocked:false, blockedAt: null, blockedDeviceId: null});
+    if(player){ player.isBlocked=false; }
+    renderPlayers(allPlayers);
+    alert('✅ ئازاد بوو 🔓');
+  }catch(e){ alert(e.message); }
+};
+
+window.filterPlayers = function(){
+  const search = document.getElementById('playerSearch').value.toLowerCase();
+  const filter = document.getElementById('playerFilter').value;
+  let filtered = allPlayers;
+  if(search) filtered = filtered.filter(u=> (u.displayName||'').toLowerCase().includes(search) || (u.username||'').toLowerCase().includes(search));
+  if(filter==='mobile') filtered = filtered.filter(u=>u.unlockedMobile);
+  else if(filter==='car') filtered = filtered.filter(u=>u.unlockedCar);
+  else if(filter==='online'){
+    const now=new Date();
+    filtered = filtered.filter(u=>{ let ls=null; if(u.lastSeen?.toDate) ls=u.lastSeen.toDate(); else if(u.lastSeen?.seconds) ls=new Date(u.lastSeen.seconds*1000); return ls && (now-ls)<10*60*1000; });
+  }
+  renderPlayers(filtered);
+};
+window.resetPlayer = async function(id, type){
+  if(!confirm(`سفرکرنا ${type} بو ڤی یاریکەری؟`)) return;
+  try{
+    const ref = doc(db,'users',id);
+    if(type==='free') await updateDoc(ref, {bestScoreFree:0, bestScore:0});
+    else if(type==='mobile') await updateDoc(ref, {bestScoreMobile:0});
+    else await updateDoc(ref, {bestScoreCar:0});
+    const u = allPlayers.find(p=>p.id===id);
+    if(u){
+      if(type==='free'){ u.bestScoreFree=0; u.bestScore=0; }
+      else if(type==='mobile') u.bestScoreMobile=0;
+      else u.bestScoreCar=0;
+    }
+    renderPlayers(allPlayers);
+  }catch(e){ alert(e.message); }
+};
+
+async function loadTransactions(){
+  const tbody = document.getElementById('transTable');
+  if(!tbody) return;
+  tbody.innerHTML='<tr><td colspan="7" class="loading">بار دبیت - حساب دکەم...</td></tr>';
+  const limitVal = parseInt(document.getElementById('transLimitFilter')?.value || '10');
+  const typeFilter = document.getElementById('transTypeFilter')?.value || '';
+  try{
+    let statsQ = query(collection(db,'unlockTransactions'), limit(1000));
+    const statsSnap = await getDocs(statsQ);
+    let count5000 = 0;
+    let count10000 = 0;
+    statsSnap.forEach(d=>{
+      const t=d.data();
+      const tp = (t.type||'').toLowerCase();
+      if(tp==='mobile' || tp.includes('5000')) count5000++;
+      else if(tp==='car' || tp.includes('10000')) count10000++;
+    });
+    const money5000 = count5000 * 5000;
+    const money10000 = count10000 * 10000;
+    const totalCount = count5000 + count10000;
+    const totalMoney = money5000 + money10000;
+    const el5000C = document.getElementById('stat5000Count');
+    const el5000M = document.getElementById('stat5000Money');
+    const el10000C = document.getElementById('stat10000Count');
+    const el10000M = document.getElementById('stat10000Money');
+    const elTotalC = document.getElementById('statTotalCount');
+    const elTotalM = document.getElementById('statTotalMoney');
+    if(el5000C) el5000C.textContent = count5000.toString();
+    if(el5000M) el5000M.textContent = money5000.toLocaleString('en-US') + ' د.ع';
+    if(el10000C) el10000C.textContent = count10000.toString();
+    if(el10000M) el10000M.textContent = money10000.toLocaleString('en-US') + ' د.ع';
+    if(elTotalC) elTotalC.textContent = totalCount.toString();
+    if(elTotalM) elTotalM.textContent = totalMoney.toLocaleString('en-US') + ' د.ع';
+    const infoEl = document.getElementById('transInfo');
+    if(infoEl) infoEl.textContent = 'سەرجەم: ' + totalCount + ' کرین - ' + totalMoney.toLocaleString() + ' د.ع - تەنێ ' + limitVal + ' دیار';
+    let q;
+    if(typeFilter){
+      q = query(collection(db,'unlockTransactions'), where('type','==',typeFilter), limit(limitVal*3));
+    } else {
+      q = query(collection(db,'unlockTransactions'), limit(limitVal*3));
+    }
+    const snap = await getDocs(q);
+    if(snap.empty){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:20px">هیچ کرین نینە</td></tr>'; return; }
+    let docs = [];
+    snap.forEach(d=>{ docs.push({id:d.id, data:d.data()}); });
+    docs.sort((a,b)=>{
+      const ta = a.data.createdAt?.toDate ? a.data.createdAt.toDate().getTime() : (a.data.createdAt?.seconds ? a.data.createdAt.seconds*1000 : 0);
+      const tb = b.data.createdAt?.toDate ? b.data.createdAt.toDate().getTime() : (b.data.createdAt?.seconds ? b.data.createdAt.seconds*1000 : 0);
+      return tb - ta;
+    });
+    docs = docs.slice(0, limitVal);
+    tbody.innerHTML='';
+    docs.forEach(item=>{
+      const t=item.data;
+      const id=item.id;
+      let dateStr = '';
+      if(t.createdAt?.toDate) dateStr = t.createdAt.toDate().toLocaleString('ku-IQ');
+      else if(t.createdAt?.seconds) dateStr = new Date(t.createdAt.seconds*1000).toLocaleString('ku-IQ');
+      else dateStr = 'نەدیار';
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td style="direction:ltr;text-align:right;font-family:monospace;font-size:11px">'+dateStr+'</td><td>'+(t.type==='mobile'?'📱 5000':'🚗 10000')+'</td><td>'+escapeHtml(t.playerName||t.username||'')+'</td><td>'+escapeHtml(t.shopkeeperName||'')+'</td><td>'+escapeHtml(t.shopName||t.shopkeeperName||'Zakho Fon')+'</td><td><button onclick="deleteTrans(\''+id+'\')" class="bqDel" style="width:34px;height:34px;font-size:14px" title="ژێبرن">🗑️</button></td>';
+      tbody.appendChild(tr);
+    });
+  }catch(e){ 
+    console.error(e);
+    tbody.innerHTML='<tr><td colspan="7" style="color:#ff8a8a">❌ '+e.message+'<br><small style=\'font-size:10px\'>'+(e.code||'')+'</small></td></tr>'; 
+  }
+}
+window.loadTransactions = loadTransactions;
+window.deleteTrans = async function(id){
+  if(!confirm('🗑️ دڵنیای دێ ڤی کرینێ ژێبەی؟')) return;
+  try{ await deleteDoc(doc(db,'unlockTransactions', id)); alert('✅ ژێبرا'); loadTransactions(); }catch(e){ alert('❌ '+e.message); }
+};
+window.deleteAllTrans = async function(){
+  const typeFilter = document.getElementById('transTypeFilter')?.value || '';
+  if(!confirm('⚠️ هەمی کرین دێ ژێچن! '+(typeFilter ? '('+typeFilter+')' : '')+' دڵنیای؟')) return;
+  if(!confirm('دیسان دڵنیای؟ ناگەریتەوە!')) return;
+  try{
+    let q = query(collection(db,'unlockTransactions'), limit(400));
+    if(typeFilter) q = query(collection(db,'unlockTransactions'), where('type','==',typeFilter), limit(400));
+    const snap = await getDocs(q);
+    if(snap.empty){ alert('هیچ نینە'); return; }
+    let batch = writeBatch(db);
+    let count=0;
+    snap.forEach(docSnap=>{ batch.delete(docSnap.ref); count++; if(count>=400){ batch.commit(); batch=writeBatch(db); count=0; } });
+    if(count>0) await batch.commit();
+    setTimeout(()=>{ alert('✅ '+snap.size+' دانە ژێبرا'); loadTransactions(); }, 700);
+  }catch(e){ alert('❌ '+e.message); }
+};
+async function loadWinners(){
+  const tbody = document.getElementById('winnersTable');
+  tbody.innerHTML='<tr><td colspan="7" class="loading">بار دبیت</td></tr>';
+  try{
+    const snap = await getDocs(query(collection(db,'winners'), orderBy('createdAt','desc'), limit(30)));
+    if(snap.empty){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:20px">هێشتا براوە نینە</td></tr>'; return; }
+    tbody.innerHTML='';
+    snap.forEach(d=>{
+      const w=d.data();
+      let dateStr='';
+      if(w.createdAt?.toDate) dateStr=w.createdAt.toDate().toLocaleString('ku-IQ');
+      else if(w.createdAt?.seconds) dateStr=new Date(w.createdAt.seconds*1000).toLocaleString('ku-IQ');
+      else if(w.createdAt) dateStr=new Date(w.createdAt).toLocaleString('ku-IQ');
+      const typeLabel = w.type==='free'?'🆓 بەلاش': w.type==='mobile'?'📱 موبایل':'🚗 ترومبێل';
+      const phone = w.winnerPhone||w.phoneNumber||w.phone||'';
+      const phoneDisplay = phone ? `<a href="tel:${phone}" style="color:#7CFC9A;font-weight:800;direction:ltr;text-decoration:none">📱 ${escapeHtml(phone)}</a>` : `<span style="color:rgba(255,255,255,0.3)">----</span>`;
+      const tr=document.createElement('tr');
+      tr.innerHTML = `<td style="font-size:11px;direction:ltr">${dateStr}</td><td>${typeLabel}</td><td style="font-weight:800;color:#F7C600">${escapeHtml(w.winnerName||'')}</td><td style="direction:ltr;font-weight:700">${phoneDisplay}</td><td>${w.winnerScore||0}</td><td>${escapeHtml(w.prize||'')}</td><td><button onclick="deleteWinner('${d.id}')" class="bqDel" style="width:34px;height:34px;font-size:14px">🗑️</button></td>`;
+      tbody.appendChild(tr);
+    });
+  }catch(e){ tbody.innerHTML=`<tr><td colspan="7" style="color:#ff8a8a">❌ ${e.message}</td></tr>`; }
+}
+window.deleteWinner = async function(id){
+  if(!confirm('🗑️ دڵنیای دێ ڤی براوەی ژێبەی؟')) return;
+  try{ await deleteDoc(doc(db,'winners', id)); alert('✅ ژێبرا'); loadWinners(); }catch(e){ alert('❌ '+e.message); }
+};
+
+window.deleteWinner = async function(id){
+  if(!confirm('🗑️ دڵنیای دێ ڤی براوەی ژێبەی؟')) return;
+  try{ await deleteDoc(doc(db,'winners', id)); alert('✅ ژێبرا'); loadWinners(); }catch(e){ alert('❌ '+e.message); }
+};
+window.deleteAllWinners = async function(){
+  if(!confirm('⚠️ هەمی براوەکان دێ ژێچن!')) return;
+  if(!confirm('دیسان دڵنیای؟')) return;
+  try{
+    const snap = await getDocs(collection(db,'winners'));
+    if(snap.empty){ alert('هیچ نینە'); return; }
+    let batch = writeBatch(db);
+    let count=0;
+    snap.forEach(docSnap=>{ batch.delete(docSnap.ref); count++; if(count>=400){ batch.commit(); batch=writeBatch(db); count=0; } });
+    if(count>0) await batch.commit();
+    setTimeout(()=>{ alert('✅ '+snap.size+' دانە ژێبرا'); loadWinners(); }, 700);
+  }catch(e){ alert('❌ '+e.message); }
+};
+
+window.saveSetting
+ = async function(type){
+  const endInput = document.getElementById(type==='free'?'freeEndInput': type==='mobile'?'mobileEndInput':'carEndInput').value;
+  const prizeInput = document.getElementById(type==='free'?'freePrizeInput': type==='mobile'?'mobilePrizeInput':'carPrizeInput').value;
+  const lockCheck = document.getElementById(type+'LockCheck')?.checked || false;
+  const lockMessage = document.getElementById(type+'LockMessageInput')?.value || '';
+  if(!endInput){ alert('بەروار بنڤیسە'); return; }
+  const endDate = new Date(endInput);
+  try{
+    const ref = doc(db,'settings','config');
+    const snap = await getDoc(ref);
+    if(!snap.exists()){
+      await setDoc(ref, {
+        freeEndAt: type==='free'?endDate:new Date(Date.now()+7*24*60*60*1000),
+        mobileEndAt: type==='mobile'?endDate:new Date(Date.now()+7*24*60*60*1000),
+        carEndAt: type==='car'?endDate:new Date(Date.now()+7*24*60*60*1000),
+        freePrize: type==='free'?prizeInput:'100$',
+        mobilePrize: type==='mobile'?prizeInput:'ئایفون 18 پرو ماکس',
+        carPrize: type==='car'?prizeInput:'ترومبێل',
+        freeLocked: type==='free'?lockCheck:false,
+        freeLockMessage: type==='free'?lockMessage:'',
+        mobileLocked: type==='mobile'?lockCheck:false,
+        mobileLockMessage: type==='mobile'?lockMessage:'',
+        carLocked: type==='car'?lockCheck:false,
+        carLockMessage: type==='car'?lockMessage:'',
+        createdAt: serverTimestamp(), freeDurationMs: type==='free'?Math.max(60000, endDate.getTime()-Date.now()):7*24*60*60*1000, mobileDurationMs: type==='mobile'?Math.max(60000, endDate.getTime()-Date.now()):7*24*60*60*1000, carDurationMs: type==='car'?Math.max(60000, endDate.getTime()-Date.now()):7*24*60*60*1000
+      });
+    } else {
+      if(type==='free') await updateDoc(ref, {freeEndAt:endDate, freePrize:prizeInput, freeLocked:lockCheck, freeLockMessage:lockMessage, freeDurationMs: Math.max(60000, endDate.getTime()-Date.now()), freeStartAt: new Date()});
+      else if(type==='mobile') await updateDoc(ref, {mobileEndAt:endDate, mobilePrize:prizeInput, mobileLocked:lockCheck, mobileLockMessage:lockMessage, mobileDurationMs: Math.max(60000, endDate.getTime()-Date.now()), mobileStartAt: new Date()});
+      else await updateDoc(ref, {carEndAt:endDate, carPrize:prizeInput, carLocked:lockCheck, carLockMessage:lockMessage, carDurationMs: Math.max(60000, endDate.getTime()-Date.now()), carStartAt: new Date()});
+    }
+    if(type==='free'){ configData.freeEndAt=endDate; configData.freePrize=prizeInput; configData.freeLocked=lockCheck; configData.freeLockMessage=lockMessage; }
+    else if(type==='mobile'){ configData.mobileEndAt=endDate; configData.mobilePrize=prizeInput; configData.mobileLocked=lockCheck; configData.mobileLockMessage=lockMessage; }
+    else { configData.carEndAt=endDate; configData.carPrize=prizeInput; configData.carLocked=lockCheck; configData.carLockMessage=lockMessage; }
+    alert('✅ هاتە پاشکەفتکرن - قفل: '+(lockCheck?'🔒 قفلە':'🔓 کراوەیە'));
+  }catch(e){ alert('❌ '+e.message); }
+};
+
+// ===== SPONSOR & BROADCAST - V12 FULL =====
+let allSponsorsAdmin = [];
+let selectedIconV12 = '📢';
+let selectedStyleV12 = 'gold';
+let selectedAnimV12 = 'marquee';
+let selectedDirV12 = 'rtl';
+let selectedSecondsV12 = 5;
+let selectedGapV12 = 3;
+let allBroadcastsAdmin = [];
+
+function extractYouTubeIDAdmin(url){
+  if(!url) return '';
+  const m = url.match(/(?:youtube\.com\/.*v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : '';
+}
+async function loadSponsorsAdmin(){
+  const listEl = document.getElementById('sponsorListAdmin');
+  const countEl = document.getElementById('sponsorCount');
+  const badgeEl = document.getElementById('sponsorCountBadge');
+  if(listEl) listEl.innerHTML='<div class="loading">بار دبیت</div>';
+  try{
+    const snap = await getDocs(query(collection(db,'sponsors'), orderBy('createdAt','desc')));
+    allSponsorsAdmin = [];
+    snap.forEach(d=>{ allSponsorsAdmin.push({id:d.id, ...d.data()}); });
+    if(countEl) countEl.textContent = allSponsorsAdmin.length;
+    if(badgeEl) badgeEl.textContent = allSponsorsAdmin.length;
+    renderSponsorsAdmin();
+  }catch(e){
+    if(listEl) listEl.innerHTML='<div style="color:#ff8a8a;padding:12px">❌ '+e.message+'</div>';
+  }
+}
+function renderSponsorsAdmin(){
+  const listEl = document.getElementById('sponsorListAdmin');
+  if(!listEl) return;
+  if(allSponsorsAdmin.length===0){
+    listEl.innerHTML='<div style="text-align:center;color:rgba(255,255,255,0.4);padding:20px">📭 چوو سپونسەر نینە</div>';
+    return;
+  }
+  listEl.innerHTML='';
+  allSponsorsAdmin.forEach(s=>{
+    const isActive = s.active !== false;
+    const thumb = s.youtubeId || extractYouTubeIDAdmin(s.link||s.mp4Url||'') ? '🎬 YouTube' : (s.mp4Url||s.link||'').toLowerCase().endsWith('.mp4') ? '🎥 MP4' : '🔗 لینک';
+    const dateStr = s.createdAt?.toDate ? s.createdAt.toDate().toLocaleString('ku-IQ') : '';
+    const div = document.createElement('div');
+    div.style.cssText='background:linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02));border:1px solid '+(isActive?'rgba(91,92,255,0.25)':'rgba(255,255,255,0.06)')+';border-radius:16px;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:12px';
+    div.innerHTML=`
+      <div style="flex:1;min-width:0">
+        <div style="color:#fff;font-weight:800;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">💰 ${escapeHtml(s.name||'بێ ناڤ')} <span style="font-size:10px;padding:4px 8px;border-radius:999px;background:${isActive?'rgba(91,92,255,0.2)':'rgba(255,255,255,0.08)'};color:${isActive?'#8b8cff':'rgba(255,255,255,0.5)'};border:1px solid ${isActive?'rgba(91,92,255,0.2)':'rgba(255,255,255,0.08)'}">${isActive?'✅ چالاک':'⏸️ راگیراو'}</span></div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${thumb} | ⏱️ ${s.seconds||15}چرکە | 🎁 ${escapeHtml(s.reward||'بەردەوام بە')} | ${escapeHtml((s.link||s.mp4Url||'').substring(0,45))}</div>
+        <div style="color:rgba(255,255,255,0.3);font-size:10px;margin-top:4px">${dateStr} | 👁️ ${s.views||0} بینین</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button onclick="toggleSponsorAdmin('${s.id}')" style="height:36px;padding:0 14px;border-radius:10px;border:1.5px solid ${isActive?'rgba(91,92,255,0.3)':'rgba(0,255,100,0.3)'};background:${isActive?'rgba(91,92,255,0.15)':'rgba(0,255,100,0.15)'};color:${isActive?'#8b8cff':'#00ff99'};font-size:11px;cursor:pointer;font-weight:800">${isActive?'⏸️ راگرتن':'▶️ چالاککرن'}</button>
+        <button onclick="deleteSponsorAdmin('${s.id}')" style="height:36px;padding:0 14px;border-radius:10px;border:1.5px solid rgba(212,16,31,0.3);background:rgba(212,16,31,0.15);color:#ff8a8a;font-size:11px;cursor:pointer;font-weight:800">🗑️ ژێبرن</button>
+      </div>
+    `;
+    listEl.appendChild(div);
+  });
+}
+window.addSponsorAdmin = async function(){
+  const nameEl = document.getElementById('sponsorNameInput');
+  const linkEl = document.getElementById('sponsorLinkInput');
+  const secsEl = document.getElementById('sponsorSecondsInput');
+  const rewardEl = document.getElementById('sponsorRewardInput');
+  const name = nameEl.value.trim();
+  const link = linkEl.value.trim();
+  const secs = parseInt(secsEl.value)||15;
+  const reward = rewardEl.value.trim()||'بەردەوام بە 🚀';
+  if(!name){ alert('ناڤێ سپونسەری بنڤیسە'); return; }
+  if(!link){ alert('لینکێ ڤیدیویێ بنڤیسە'); return; }
+  const youtubeId = extractYouTubeIDAdmin(link);
+  const isMP4 = link.toLowerCase().includes('.mp4') || link.includes('catbox');
+  const newItem = { name, link, mp4Url: isMP4 ? link : '', youtubeId: youtubeId||'', videoUrl: link, seconds: secs, reward, active: true, views: 0, createdAt: serverTimestamp() };
+  try{
+    await addDoc(collection(db,'sponsors'), newItem);
+    nameEl.value=''; linkEl.value=''; rewardEl.value=''; secsEl.value='15'; document.getElementById('sponsorSecondsVal').textContent='15';
+    alert('✅ سپونسەر هاتە زێدەکرن');
+    loadSponsorsAdmin();
+  }catch(e){ alert('❌ '+e.message); }
+};
+window.deleteSponsorAdmin = async function(id){
+  if(!confirm('دڵنیای دێ سپونسەری ژێبی؟')) return;
+  try{
+    await deleteDoc(doc(db,'sponsors',id));
+    allSponsorsAdmin = allSponsorsAdmin.filter(s=>s.id!==id);
+    renderSponsorsAdmin();
+    const badgeEl = document.getElementById('sponsorCountBadge');
+    if(badgeEl) badgeEl.textContent = allSponsorsAdmin.length;
+    document.getElementById('sponsorCount').textContent = allSponsorsAdmin.length;
+  }catch(e){ alert('❌ '+e.message); }
+};
+window.toggleSponsorAdmin = async function(id){
+  const s = allSponsorsAdmin.find(x=>x.id===id);
+  if(!s) return;
+  const newActive = !(s.active!==false);
+  try{
+    await updateDoc(doc(db,'sponsors',id), {active: newActive});
+    s.active = newActive;
+    renderSponsorsAdmin();
+  }catch(e){ alert('❌ '+e.message); }
+};
+
+function initIconsV12(){
+  const icons=['📢','🔥','⭐','🎉','⚠️','🏆','💎','🚀','❤️','✨','🎯','💰'];
+  const grid=document.getElementById('iconGrid');
+  if(!grid) return; 
+  if(grid.dataset.inited) return;
+  grid.innerHTML='';
+  icons.forEach(ic=>{
+    const d=document.createElement('div'); d.className='iconOpt'+(ic===selectedIconV12?' sel':''); d.textContent=ic;
+    d.onclick=()=>{ selectedIconV12=ic; document.querySelectorAll('.iconOpt').forEach(e=>e.classList.remove('sel')); d.classList.add('sel'); updatePreviewV12(); };
+    grid.appendChild(d);
+  });
+  grid.dataset.inited='1';
+  const styles=[{id:'gold',name:'زێڕین ✨',cls:'gold'},{id:'red',name:'سور 🚨',cls:'red'},{id:'green',name:'کەسک ✅',cls:'green'},{id:'purple',name:'مۆر 💜',cls:'purple'},{id:'blackgold',name:'رەش و زێڕ 👑',cls:'blackgold'},{id:'rainbow',name:'رەنگاوڕەنگ 🌈',cls:'rainbow'}];
+  const sGrid=document.getElementById('styleGrid');
+  if(sGrid && !sGrid.dataset.inited){ sGrid.innerHTML=''; styles.forEach(st=>{ const d=document.createElement('div'); d.className='styleOpt '+st.cls+(st.id===selectedStyleV12?' sel':''); d.textContent=st.name; d.dataset.style=st.id; d.onclick=()=>{ selectedStyleV12=st.id; document.querySelectorAll('.styleOpt').forEach(e=>e.classList.remove('sel')); d.classList.add('sel'); updatePreviewV12(); }; sGrid.appendChild(d); }); sGrid.dataset.inited='1'; }
+}
+
+window.selectAnimV12 = function(el){
+  document.querySelectorAll('.animOpt').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedAnimV12 = el.dataset.anim;
+  updatePreviewV12();
+};
+window.selectDirV12 = function(el){
+  document.querySelectorAll('.dirOpt').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedDirV12 = el.dataset.dir;
+  updatePreviewV12();
+};
+function updatePreviewV12(){
+  const input=document.getElementById('broadcastInput');
+  const text=input?.value.trim()||'پێشبینین ل ڤێرێ...';
+  const preview=document.getElementById('broadcastPreview');
+  if(!preview) return;
+  preview.className='previewBox style-'+selectedStyleV12;
+  preview.textContent = selectedIconV12 + ' ' + text + '  ['+selectedAnimV12+'] ' + (selectedDirV12==='rtl'?'➡️':'⬅️');
+}
+async function loadBroadcastsAdmin(){
+  const listEl = document.getElementById('broadcastQueueList');
+  const countEl = document.getElementById('broadcastQueueCount');
+  const badgeEl = document.getElementById('broadcastCountBadge');
+  if(listEl) listEl.innerHTML='<div class="loading">بار دبیت</div>';
+  try{
+    const snap = await getDocs(query(collection(db,'broadcasts'), orderBy('createdAt','desc'), limit(100)));
+    allBroadcastsAdmin = [];
+    snap.forEach(d=>{ allBroadcastsAdmin.push({id:d.id, ...d.data()}); });
+    if(countEl) countEl.textContent = allBroadcastsAdmin.length;
+    if(badgeEl) badgeEl.textContent = allBroadcastsAdmin.length;
+    renderBroadcastsV12();
+  }catch(e){
+    if(listEl) listEl.innerHTML='<div style="color:#ff8a8a;padding:12px">❌ '+e.message+'</div>';
+  }
+}
+function renderBroadcastsV12(){
+  const listEl = document.getElementById('broadcastQueueList');
+  if(!listEl) return;
+  if(allBroadcastsAdmin.length===0){
+    listEl.innerHTML='<div style="text-align:center;color:rgba(255,255,255,0.4);padding:24px;background:rgba(255,255,255,0.02);border-radius:14px;border:1px dashed rgba(255,255,255,0.1)">📭 چوو شریت نینە - یەکێ نوو زێدە بکە 📢</div>';
+    return;
+  }
+  listEl.innerHTML='';
+  allBroadcastsAdmin.forEach(b=>{
+    const dateStr = b.createdAt?.toDate ? b.createdAt.toDate().toLocaleString('ku-IQ') : '';
+    const icon = b.icon || '📢';
+    const styleName = b.style || 'gold';
+    const anim = b.anim || 'marquee';
+    const dir = b.dir || 'rtl';
+    const div = document.createElement('div');
+    div.className='broadcastQueueItem';
+    div.innerHTML=`
+      <div class="bqIcon">${icon}</div>
+      <div class="bqText" style="flex:1">
+        <div style="font-weight:800;color:#fff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(b.text||b.message||'')}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.45);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap"><span>🎨 ${styleName}</span><span>🎬 ${anim}</span><span>${dir==='rtl'?'➡️ راست':'⬅️ چەپ'}</span><span>⏱️ ${b.seconds||b.duration||5}چ</span><span style="opacity:0.6">${dateStr}</span></div>
+      </div>
+      <div class="bqDir">${b.seconds||5}چ</div>
+      <button class="bqDel" onclick="deleteBroadcastV12('${b.id}')">✕</button>
+    `;
+    listEl.appendChild(div);
+  });
+}
+window.addBroadcastV12 = async function(){
+  const inputEl = document.getElementById('broadcastInput');
+  const textVal = inputEl.value.trim();
+  if(!textVal){ alert('نامەیا شریتێ بنڤیسە ✍️'); return; }
+  const newItem = {
+    text: textVal,
+    message: textVal,
+    icon: selectedIconV12,
+    style: selectedStyleV12,
+    anim: selectedAnimV12,
+    dir: selectedDirV12,
+    seconds: selectedSecondsV12,
+    duration: selectedSecondsV12,
+    gap: selectedGapV12,
+    createdAt: serverTimestamp()
+  };
+  try{
+    await addDoc(collection(db,'broadcasts'), newItem);
+    inputEl.value='';
+    updatePreviewV12();
+    alert('✅ شریت هاتە زێدەکرن بۆ هەمیان 📢 - '+selectedIconV12+' '+textVal);
+    loadBroadcastsAdmin();
+  }catch(e){ alert('❌ '+e.message); }
+};
+window.deleteBroadcastV12 = async function(id){
+  if(!confirm('دڵنیای دێ شریتێ ژێبی؟')) return;
+  try{
+    await deleteDoc(doc(db,'broadcasts',id));
+    allBroadcastsAdmin = allBroadcastsAdmin.filter(b=>b.id!==id);
+    renderBroadcastsV12();
+    const countEl = document.getElementById('broadcastQueueCount');
+    const badgeEl = document.getElementById('broadcastCountBadge');
+    if(countEl) countEl.textContent = allBroadcastsAdmin.length;
+    if(badgeEl) badgeEl.textContent = allBroadcastsAdmin.length;
+  }catch(e){ alert('❌ '+e.message); }
+};
+window.clearBroadcastV12 = async function(){
+  if(!confirm('دڵنیای دێ هەمی شریتان ژێبی؟ بۆ هەمیان')) return;
+  try{
+    const batch = writeBatch(db);
+    allBroadcastsAdmin.forEach(b=>{
+      batch.delete(doc(db,'broadcasts',b.id));
+    });
+    await batch.commit();
+    allBroadcastsAdmin = [];
+    renderBroadcastsV12();
+    document.getElementById('broadcastQueueCount').textContent='0';
+    document.getElementById('broadcastCountBadge').textContent='0';
+    alert('✅ هەمی شریت هاتنە ژێبرن');
+  }catch(e){ alert('❌ '+e.message); }
+};
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  const input = document.getElementById('broadcastInput');
+  if(input){
+    input.addEventListener('input', updatePreviewV12);
+  }
+  // Init icons after short delay to ensure DOM
+  setTimeout(initIconsV12, 300);
+});
+
+function escapeHtml(s){ if(!s) return ''; return s.toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+
+// ===== V13 NEW - SOCIAL ACCOUNTS SYSTEM - 2 BUTTONS =====
+async function loadSocialLinksAdmin(){
+  try{
+    const snap = await getDoc(doc(db,'settings','social'));
+    if(snap.exists()){
+      const data = snap.data();
+      document.getElementById('tiktokLinkInput').value = data.tiktok || data.tiktokLink || '';
+      document.getElementById('facebookLinkInput').value = data.facebook || data.facebookLink || '';
+      document.getElementById('instagramLinkInput').value = data.instagram || data.instagramLink || '';
+      updateSocialPreview();
+      console.log('✅ Social links loaded from settings/social');
+    } else {
+      // try config fallback
+      const snap2 = await getDoc(doc(db,'settings','config'));
+      if(snap2.exists()){
+        const d2 = snap2.data();
+        document.getElementById('tiktokLinkInput').value = d2.tiktokLink || d2.tiktok || '';
+        document.getElementById('facebookLinkInput').value = d2.facebookLink || d2.facebook || '';
+        document.getElementById('instagramLinkInput').value = d2.instagramLink || d2.instagram || '';
+        updateSocialPreview();
+      }
+    }
+  }catch(e){
+    console.error('loadSocial error', e);
+    const statusEl = document.getElementById('socialSaveStatus');
+    if(statusEl){ statusEl.style.display='block'; statusEl.style.background='rgba(212,16,31,0.15)'; statusEl.style.border='1px solid rgba(212,16,31,0.3)'; statusEl.style.color='#ff8a8a'; statusEl.textContent='❌ هەلە: '+e.message; }
+  }
+}
+
+function updateSocialPreview(){
+  const tiktok = document.getElementById('tiktokLinkInput')?.value || '';
+  const fb = document.getElementById('facebookLinkInput')?.value || '';
+  const insta = document.getElementById('instagramLinkInput')?.value || '';
+  const pt = document.getElementById('previewTiktok');
+  const pf = document.getElementById('previewFacebook');
+  const pi = document.getElementById('previewInsta');
+  if(pt) pt.textContent = tiktok ? tiktok : 'TikTok لینک نەهاتە دانان';
+  if(pf) pf.textContent = fb ? fb : 'Facebook لینک نەهاتە دانان';
+  if(pi) pi.textContent = insta ? insta : 'Instagram لینک نەهاتە دانان';
+}
+
+window.saveSocialLinksAdmin = async function(){
+  const tiktok = document.getElementById('tiktokLinkInput').value.trim();
+  const facebook = document.getElementById('facebookLinkInput').value.trim();
+  const instagram = document.getElementById('instagramLinkInput').value.trim();
+  const statusEl = document.getElementById('socialSaveStatus');
+  
+  // Validate URLs if provided
+  const urlPattern = /^https?:\/\/.+/;
+  if(tiktok && !urlPattern.test(tiktok)){ alert('❌ لینکێ TikTok دروست نیە - دڤێت ب https:// دەستپێبکەت'); return; }
+  if(facebook && !urlPattern.test(facebook)){ alert('❌ لینکێ Facebook دروست نیە'); return; }
+  if(instagram && !urlPattern.test(instagram)){ alert('❌ لینکێ Instagram دروست نیە'); return; }
+  
+  try{
+    if(statusEl){ statusEl.style.display='block'; statusEl.style.background='rgba(247,198,0,0.15)'; statusEl.style.border='1px solid rgba(247,198,0,0.3)'; statusEl.style.color='#F7C600'; statusEl.textContent='⏳ پاشکەفت دبیت...'; }
+    
+    await setDoc(doc(db,'settings','social'), {
+      tiktok: tiktok,
+      tiktokLink: tiktok,
+      facebook: facebook,
+      facebookLink: facebook,
+      instagram: instagram,
+      instagramLink: instagram,
+      updatedAt: serverTimestamp()
+    }, {merge:true});
+    
+    // Also save to config for backward compatibility
+    await setDoc(doc(db,'settings','config'), {
+      tiktokLink: tiktok,
+      facebookLink: facebook,
+      instagramLink: instagram,
+      tiktok: tiktok,
+      facebook: facebook,
+      instagram: instagram
+    }, {merge:true});
+    
+    if(statusEl){ statusEl.style.background='rgba(0,255,136,0.12)'; statusEl.style.border='1px solid rgba(0,255,136,0.25)'; statusEl.style.color='#00ff88'; statusEl.textContent='✅ هاتە پاشکەفتکرن - نها ل یاریێ دیار دبیت ل بوتنا "ئەکاونتێن مە" 🎉'; }
+    updateSocialPreview();
+    setTimeout(()=>{ if(statusEl) statusEl.style.display='none'; }, 4000);
+    alert('✅ ئەکاونت هاتنە پاشکەفتکرن\n\n📱 نها ل یاریێ ل بوتنا "ئەکاونتێن مە" دیار دبن\n🔗 یاریکەر دشێن کلیک بکەن و بچنە سەر لینکێن تە');
+  }catch(e){
+    console.error(e);
+    if(statusEl){ statusEl.style.background='rgba(212,16,31,0.15)'; statusEl.style.border='1px solid rgba(212,16,31,0.3)'; statusEl.style.color='#ff8a8a'; statusEl.textContent='❌ هەلە: '+e.message; }
+    alert('❌ هەلە: '+e.message);
+  }
+};
+
+// Auto update preview on input
+document.addEventListener('input', (e)=>{
+  if(['tiktokLinkInput','facebookLinkInput','instagramLinkInput'].includes(e.target.id)){
+    updateSocialPreview();
+  }
+});
+
+// ===== WINNER DISPLAY - PHONE HIDDEN FROM PUBLIC, VISIBLE TO ADMIN =====
+// Override loadWinners to show phone for admin but note hidden from public
+const originalLoadWinners = window.loadWinners;
+window.loadWinners = async function(){
+  const tbody = document.getElementById('winnersTable');
+  if(tbody) tbody.innerHTML='<tr><td colspan="7" class="loading">بار دبیت - براوەکان + ژمارا موبایلێ بۆ ئەدمین</td></tr>';
+  try{
+    const snap = await getDocs(query(collection(db,'winners'), orderBy('createdAt','desc'), limit(100)));
+    const winners = [];
+    snap.forEach(d=>{ winners.push({id:d.id, ...d.data()}); });
+    if(!tbody) return;
+    if(winners.length===0){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:20px;color:rgba(255,255,255,0.5)">هیچ براوە نینە - چاوەڕێی یەکەمێ رێزبەندیێ بە</td></tr>'; return; }
+    tbody.innerHTML='';
+    winners.forEach(w=>{
+      const dateStr = w.createdAt?.toDate ? w.createdAt.toDate().toLocaleString('ku-IQ') : (w.date||'');
+      const phone = w.phone || w.phoneNumber || w.mobile || w.playerPhone || 'نەدیار';
+      const name = w.winnerName || w.name || w.displayName || 'نەدیار';
+      const score = w.score || w.winnerScore || 0;
+      const rankType = w.rankType || w.type || 'free';
+      const prize = w.prize || (rankType==='free'?'100$':rankType==='mobile'?'ئایفون':'ترومبێل');
+      const tr = document.createElement('tr');
+      tr.innerHTML=`
+        <td style="font-size:11px">${dateStr}</td>
+        <td><span style="padding:4px 8px;border-radius:999px;font-size:10px;font-weight:800;background:${rankType==='free'?'rgba(124,252,154,0.15)':rankType==='mobile'?'rgba(139,140,255,0.15)':'rgba(247,198,0,0.15)'};color:${rankType==='free'?'#7CFC9A':rankType==='mobile'?'#8b8cff':'#F7C600'}">${rankType==='free'?'🆓 بەلاش':rankType==='mobile'?'📱 موبایل':'🚗 ترومبێل'}</span></td>
+        <td><div style="font-weight:800;color:#fff">${escapeHtml(name)}</div><div style="font-size:10px;color:#F7C600">🔒 تەنێ بۆ ئەدمین: <span style="color:#00ff88;direction:ltr">${escapeHtml(phone)}</span></div></td>
+        <td style="font-weight:900;color:#00ff88">${score}</td>
+        <td style="font-size:11px;color:#F7C600">${escapeHtml(prize)}</td>
+        <td><button onclick="deleteWinner('${w.id}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(212,16,31,0.3);background:rgba(212,16,31,0.15);color:#ff8a8a;font-size:10px;cursor:pointer">🗑️</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }catch(e){
+    console.error(e);
+    if(tbody) tbody.innerHTML='<tr><td colspan="7" style="color:#ff8a8a;padding:12px">❌ '+e.message+'</td></tr>';
+  }
+};
+
+
+
+init();
+
+
+// ===== V58 FIX - Buttons that were not defined =====
+window.v53EditPlayer = async function(id, username, bio){
+  const newName = prompt('ناڤێ نوو (ID و کود ناهێتە گهورین):', username||'');
+  if(newName===null) return;
+  const newBio = prompt('بایۆ نوو:', bio||'');
+  if(newBio===null) return;
+  try{ await updateDoc(doc(db,'users',id), {username:newName.trim(), usernameLower:newName.trim().toLowerCase(), bio:newBio}); alert('✅ گهورا'); if(typeof loadPlayers==='function') loadPlayers(); }catch(e){ alert('❌ '+e.message); }
+};
+window.v53DeletePlayer = async function(id, username){
+  if(!confirm('دڵنیای دێ یاریکەرێ '+ (username||id) + ' ژێبی؟')) return;
+  try{ await deleteDoc(doc(db,'users',id)); alert('✅ ژێبرا'); if(typeof loadPlayers==='function') loadPlayers(); }catch(e){ alert('❌ '+e.message); }
+};
+window.editPlayer = window.v53EditPlayer;
+window.deletePlayer = window.v53DeletePlayer;
+window.showPlayer = function(id){ const u = (typeof allPlayers!=='undefined' ? allPlayers.find(p=>p.id===id) : null); if(u) alert('👤 '+ (u.username||u.displayName||id) + '\n📱 ' + (u.phoneNumber||u.phone||'') + '\n🏆 ' + (u.bestScore||0)); else alert('یاریکەر: '+id); };
+window.openShop = function(id){ const s = (typeof allShops!=='undefined' ? allShops.find(x=>x.id===id) : null); if(s) alert('🏪 '+ (s.shopName||id) + '\n👤 ' + (s.ownerName||'')); else if(typeof switchTab==='function') switchTab('shops'); };
+window.loadPlayers = loadPlayers;
+window.loadSocialLinksAdmin = loadSocialLinksAdmin;
+
+</script>
+
+</body>
+
+</html>
