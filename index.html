@@ -6924,6 +6924,28 @@ window.deleteShopkeeperNew = async function(id){
 // ===== STRICT FIX V3 - Shopkeeper ONLY - 2026-10-26 =====
 // Ev script her tiştî override dike - tenê dikan-dar dibînin
 (function(){
+
+  // Deduplicate: remove any duplicate managerBtn / shop buttons
+  try{
+    setInterval(function(){
+      try{
+        var all = document.querySelectorAll('#managerBtn, button[title="دکاندار"], button[onclick*="openManagerModal"]');
+        // Keep only the verified one if exists, else remove all
+        if(window.__SHOP_VERIFIED!==true){
+          all.forEach(function(b){ try{ b.remove(); }catch(e){} });
+          var ph = document.getElementById('managerBtnPlaceholder');
+          if(!ph){
+            var tp = document.querySelector('.topActions');
+            if(tp){ var s=document.createElement('span'); s.id='managerBtnPlaceholder'; tp.appendChild(s); }
+          }
+        } else {
+          // Verified: keep only first
+          for(var i=1;i<all.length;i++){ try{ all[i].remove(); }catch(e){} }
+        }
+      }catch(e){}
+    }, 1000);
+  }catch(e){}
+
   window.__SHOP_VERIFIED = false;
   window.__SHOP_CHECK_DONE = false;
   // 1. Patch parseUserDoc to keep role/isManager (original dropped them)
