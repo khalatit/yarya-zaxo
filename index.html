@@ -5611,7 +5611,7 @@ window.addEventListener('appinstalled', ()=>{
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
-    // disabled - SIMPLE - navigator.serviceWorker.register('/sw.js?v=v49-icon').then(r=>console.log('✅ SW V27 registered - کێم-مەسرەف', r.scope)).catch(e=>console.log('SW fail', e));
+    // disabled - SIMPLE - navigator.serviceWorker.register('/sw.js?v=v4-icon-2026').then(r=>console.log('✅ SW V27 registered - کێم-مەسرەف', r.scope)).catch(e=>console.log('SW fail', e));
   });
 }
 
@@ -7008,7 +7008,7 @@ window.deleteShopkeeperNew = async function(id){
       if(window.__SHOP_VERIFIED===true){
         btn.classList.add('is-shopkeeper'); btn.style.setProperty('display','flex','important'); btn.style.visibility='visible'; btn.style.opacity='1';
       } else {
-        btn.classList.remove('is-shopkeeper'); btn.style.setProperty('display','none','important'); btn.style.visibility='hidden';
+        btn.classList.remove('is-shopkeeper'); btn.style.setProperty('display','none','important'); btn.style.visibility='hidden'; try{ if(window.__SHOP_CHECK_DONE){ btn.removeAttribute('onclick'); btn.onclick=null; } }catch(e){}
         var modal = document.getElementById('managerModal');
         if(modal && modal.classList.contains('show') && window.__SHOP_CHECK_DONE){ modal.classList.remove('show'); }
       }
