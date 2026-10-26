@@ -811,7 +811,7 @@ setTimeout(()=>{
   <div id="adminSeparator" style="width:1px;height:22px;background:rgba(255,255,255,0.1);margin:0 4px;display:none"></div>
   <button class="iconBtn small fullscreen" onclick="tryAutoFullscreen()" title="فول سکرین">⛶</button>
   <button class="iconBtn small" onclick="openLeaderboard()" style="background:rgba(247,198,0,0.15);border-color:rgba(247,198,0,0.3);color:#F7C600" title="رێزبەندی">🏆</button>
-  <button class="iconBtn small" id="managerBtn" onclick="openManagerModal()" style="background:rgba(0,220,120,0.15);border-color:rgba(0,220,120,0.3);color:#00ff99;display:none" title="دکاندار">🏪</button>
+  <span id="managerBtnPlaceholder"></span>
   <button class="iconBtn small" onclick="openProfile()" style="background:rgba(46,158,68,0.12);border-color:rgba(46,158,68,0.25);color:#00ff88">👤</button>
   </div>
   </div>
@@ -7003,12 +7003,21 @@ window.deleteShopkeeperNew = async function(id){
   // 3. Visibility enforcer
   window.updateManagerBtnVisibilityStrict = function(){
     try{
+      var ph = document.getElementById('managerBtnPlaceholder');
       var btn = document.getElementById('managerBtn');
-      if(!btn) return;
       if(window.__SHOP_VERIFIED===true){
-        btn.classList.add('is-shopkeeper'); btn.style.setProperty('display','flex','important'); btn.style.visibility='visible'; btn.style.opacity='1';
+        if(!btn && ph){
+          btn = document.createElement('button');
+          btn.id='managerBtn'; btn.className='iconBtn small is-shopkeeper';
+          btn.style.cssText='background:rgba(0,220,120,0.15);border-color:rgba(0,220,120,0.3);color:#00ff99;display:flex';
+          btn.title='دکاندار'; btn.textContent='🏪';
+          btn.onclick = function(){ window.openManagerModal(); };
+          ph.replaceWith(btn);
+        } else if(btn){
+          btn.classList.add('is-shopkeeper'); btn.style.setProperty('display','flex','important'); btn.style.visibility='visible';
+        }
       } else {
-        btn.classList.remove('is-shopkeeper'); btn.style.setProperty('display','none','important'); btn.style.visibility='hidden'; try{ if(window.__SHOP_CHECK_DONE){ btn.removeAttribute('onclick'); btn.onclick=null; } }catch(e){}
+        if(btn) btn.remove();
         var modal = document.getElementById('managerModal');
         if(modal && modal.classList.contains('show') && window.__SHOP_CHECK_DONE){ modal.classList.remove('show'); }
       }
