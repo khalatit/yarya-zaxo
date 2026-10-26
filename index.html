@@ -743,16 +743,7 @@ body{
 }
 </style>
 
-
-<style>
-/* V10: No close buttons at bottom of winner modals - so no one can remove */
-#winnerModalPRO .winnerBottom, #winnerDisplayModal .winnerBottom, #winnerModalPRO .winnerCloseBtn, #winnerDisplayModal .winnerCloseBtn { display: none !important; }
-#winnerModalPRO, #winnerDisplayModal { pointer-events: auto; }
-/* V10: Beautiful top X for leaderboard - not sticky, centered, gold */
-#leaderboardModal .leaderHead button { width: 38px !important; height: 38px !important; border-radius: 50% !important; background: linear-gradient(135deg, #F7C600, #ffe066) !important; color: #1a1200 !important; font-weight: 900 !important; font-size: 16px !important; border: 2px solid rgba(255,255,255,0.9) !important; box-shadow: 0 4px 14px rgba(247,198,0,0.45) !important; display: flex !important; align-items: center !important; justify-content: center !important; margin: 0 !important; flex-shrink: 0 !important; cursor: pointer !important; }
-#leaderboardModal .leaderHead { padding: 14px 16px !important; gap: 10px !important; }
-</style>
-</head>
+<style>#leaderboardModal .leaderHead button { width:38px !important; height:38px !important; border-radius:50% !important; background:linear-gradient(135deg,#F7C600,#ffe066) !important; color:#1a1200 !important; font-weight:900 !important; font-size:16px !important; border:2px solid rgba(255,255,255,0.9) !important; box-shadow:0 4px 14px rgba(247,198,0,0.45) !important; display:flex !important; align-items:center !important; justify-content:center !important; margin:0 !important; flex-shrink:0 !important; cursor:pointer !important; } #leaderboardModal .leaderHead { padding:14px 16px !important; gap:10px !important; }</style></head>
 <body>
 <div id="loadingScreen" class="loadingScreen"><div style="color:#fff;font-weight:900;font-size:20px">👨‍👩‍👧‍👦 هەڤرکیا <span style="color:#F7C600">خێزانێ</span></div><div class="spinner"></div><div style="color:rgba(255,255,255,0.3);font-size:11px">MSG SHOW NOW - ULTIMATE FIX</div></div>
 <script>
@@ -5854,7 +5845,7 @@ window.searchShopkeepersNew = async function(){
 
 
 <!-- ===== PRO V2 WINNER MODAL 20 SECONDS + AUTO RESET ===== -->
-<div id="winnerModalPRO" class="winnerModalPRO" onclick="event.stopPropagation()">
+<div id="winnerModalPRO" class="winnerModalPRO" onclick="if(event.target===this){ window.proHideWinnerModal(); }">
 <div class="winnerCardPRO">
 <div class="winnerTop">
 <div class="winnerCrown">👑</div>
@@ -5870,7 +5861,7 @@ window.searchShopkeepersNew = async function(){
 <div class="progress"><div class="progressBar" id="winnerProgressPRO"></div></div>
 </div>
 <div class="winnerBottom">
-<!-- winner close removed V10 - no one can close -->
+<button class="winnerCloseBtn" onclick="window.proHideWinnerModal(); event.stopPropagation();">✕ داخستن</button>
 </div>
 </div>
 </div>
@@ -6840,7 +6831,7 @@ window.deleteShopkeeper=async function(id){if(!confirm('دڵنیای؟'))return;
 </div>
 
 <!-- WINNER DISPLAY MODAL - ONLY WINNER NAME (PUBLIC) -->
-<div id="winnerDisplayModal" class="winnerModalPRO" onclick="event.stopPropagation()" style="z-index:99997">
+<div id="winnerDisplayModal" class="winnerModalPRO" onclick="if(event.target===this) closeWinnerDisplayModal()" style="z-index:99997">
 <div class="winnerCardPRO" onclick="event.stopPropagation()">
 <div class="winnerTop">
 <div class="winnerCrown">🏆</div>
@@ -6861,7 +6852,7 @@ window.deleteShopkeeper=async function(id){if(!confirm('دڵنیای؟'))return;
 <div id="displayWinnerNote" style="margin-top:12px;padding:10px;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.15);border-radius:12px;color:#00ff88;font-size:11px;font-weight:700;text-align:center">✅ ئەڤ ناڤە خوکار دێت - تەنێ یێ بوویە یەکەم - چ ناڤێ دی ناچیتە تێدا</div>
 </div>
 <div class="winnerBottom">
-<!-- winner display close removed V10 -->
+<button class="winnerCloseBtn" onclick="closeWinnerDisplayModal()">✕ داخستن</button>
 </div>
 </div>
 </div>
