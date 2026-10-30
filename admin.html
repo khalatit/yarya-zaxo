@@ -13,7 +13,6 @@ body{background:radial-gradient(140% 100% at 20% 0%, #2a1a4a 0%, #151a33 35%, #0
 ::-webkit-scrollbar-track{background:rgba(0,0,0,0.2);border-radius:999px}
 ::-webkit-scrollbar-thumb{background:rgba(247,198,0,0.2);border-radius:999px}
 ::-webkit-scrollbar-thumb:hover{background:rgba(247,198,0,0.35)}
-
 /* HEADER */
 .header{height:68px;background:linear-gradient(90deg,rgba(26,26,58,0.95),rgba(18,18,42,0.98));backdrop-filter:blur(20px);border-bottom:2px solid var(--gold);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.4)}
 .header h1{font-size:18px;font-weight:900;color:var(--gold);display:flex;align-items:center;gap:8px;letter-spacing:0.3px}
@@ -23,7 +22,6 @@ body{background:radial-gradient(140% 100% at 20% 0%, #2a1a4a 0%, #151a33 35%, #0
 .btn.gold:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(247,198,0,0.4)}
 .btn.dark{background:rgba(255,255,255,0.06);color:#fff;border:1.5px solid rgba(255,255,255,0.12);backdrop-filter:blur(10px)}
 .btn.dark:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);transform:translateY(-1px)}
-
 /* LAYOUT */
 .container{display:flex;min-height:calc(100vh - 68px)}
 .sidebar{width:270px;background:linear-gradient(180deg,#10102a,#0d0d24);border-left:1px solid var(--border);padding:16px;display:flex;flex-direction:column;gap:8px;position:sticky;top:68px;height:calc(100vh - 68px);overflow-y:auto}
@@ -34,7 +32,6 @@ body{background:radial-gradient(140% 100% at 20% 0%, #2a1a4a 0%, #151a33 35%, #0
 .sItem:hover:not(.active){background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.1);color:#fff;transform:translateX(-2px)}
 .sItem span.badge{margin-right:auto;background:var(--gold);color:#000;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:900;min-width:26px;text-align:center}
 .main{flex:1;padding:24px;overflow-y:auto;max-width:100%}
-
 /* DASHBOARD */
 .countGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
 @media(max-width:1000px){.countGrid{grid-template-columns:1fr}}
@@ -50,7 +47,6 @@ body{background:radial-gradient(140% 100% at 20% 0%, #2a1a4a 0%, #151a33 35%, #0
 .cdCard.mobile .timer{color:#8b8cff}
 .cdCard.car .timer{color:#F7C600}
 .cdCard .date{font-size:11px;color:rgba(255,255,255,0.4);margin-top:8px;background:rgba(0,0,0,0.25);padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.05)}
-
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
 @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.cards{grid-template-columns:1fr}.container{flex-direction:column}.sidebar{width:100%;height:auto;position:relative;top:0;flex-direction:row;overflow-x:auto;flex-wrap:nowrap;padding:12px;gap:8px;border-left:0;border-bottom:1px solid var(--border)}.sItem{white-space:nowrap;flex-shrink:0;height:44px}.main{padding:16px}}
@@ -67,13 +63,11 @@ body{background:radial-gradient(140% 100% at 20% 0%, #2a1a4a 0%, #151a33 35%, #0
 .card.purple{--accent:#a78bfa;--bg:rgba(167,139,250,0.15)}
 .card.red{--accent:#ff6b8a;--bg:rgba(255,107,138,0.12)}
 .card.orange{--accent:#ffb86a;--bg:rgba(255,184,106,0.12)}
-
 /* SECTION */
 .section{background:linear-gradient(180deg,#12122e, #0f0f28);border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:20px;margin-bottom:20px;box-shadow:0 8px 25px rgba(0,0,0,0.2);position:relative;overflow:hidden}
 .section::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg, transparent, rgba(247,198,0,0.2), transparent)}
 .section h3{font-size:15px;font-weight:900;margin-bottom:16px;display:flex;align-items:center;gap:10px;color:#fff}
 .section h3::after{content:'';flex:1;height:1px;background:linear-gradient(90deg, rgba(255,255,255,0.1), transparent);margin-right:10px}
-
 /* TOOLBAR */
 .toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
 .searchBox{flex:1;min-width:220px;height:48px;border-radius:14px;border:1.5px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.35);color:#fff;padding:0 44px 0 16px;font-size:13px;font-family:'Noto Sans Arabic';outline:none;transition:all 0.2s}
@@ -93,14 +87,12 @@ tr:hover{background:rgba(255,255,255,0.03)}
 .input:focus{border-color:var(--gold);background:rgba(0,0,0,0.5);box-shadow:0 0 0 3px rgba(247,198,0,0.15)}
 .formRow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
 @media(max-width:600px){.formRow{grid-template-columns:1fr}}
-
 /* ===== BROADCAST / SHRIT - FIXED BEAUTIFUL DESIGN ===== */
 .adminSection{margin-bottom:20px}
 .adminLabel{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:rgba(255,255,255,0.9);margin-bottom:12px;letter-spacing:0.2px}
 .adminTextarea{width:100%;min-height:100px;border-radius:16px;border:1.5px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.4);color:#fff;padding:14px 16px;font-family:'Noto Sans Arabic';font-size:14px;line-height:1.7;outline:none;resize:vertical;transition:all 0.2s;box-shadow:inset 0 2px 8px rgba(0,0,0,0.3)}
 .adminTextarea::placeholder{color:rgba(255,255,255,0.4)}
 .adminTextarea:focus{border-color:var(--gold);background:rgba(0,0,0,0.55);box-shadow:0 0 0 3px rgba(247,198,0,0.15), inset 0 2px 8px rgba(0,0,0,0.3)}
-
 .iconGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
 @media(max-width:600px){.iconGrid{grid-template-columns:repeat(4,1fr)}}
 .iconOpt{height:50px;border-radius:14px;background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;transition:all 0.2s;position:relative;overflow:hidden}
@@ -108,7 +100,6 @@ tr:hover{background:rgba(255,255,255,0.03)}
 .iconOpt:hover{transform:translateY(-2px) scale(1.02);background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.15);box-shadow:0 6px 20px rgba(0,0,0,0.2)}
 .iconOpt:hover::before{opacity:1}
 .iconOpt.sel{background:#fff;border-color:var(--gold);box-shadow:0 6px 20px rgba(247,198,0,0.4), 0 0 0 2px var(--gold);transform:scale(1.08) translateY(-1px);color:#000}
-
 .styleGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 @media(max-width:700px){.styleGrid{grid-template-columns:repeat(2,1fr)}}
 .styleOpt{padding:14px 10px;border-radius:14px;font-size:12px;font-weight:800;cursor:pointer;border:2px solid transparent;text-align:center;transition:all 0.25s;position:relative;overflow:hidden;min-height:48px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
@@ -122,14 +113,12 @@ tr:hover{background:rgba(255,255,255,0.03)}
 .styleOpt.blackgold{background:linear-gradient(135deg,#000 0%, #1a1a1a 100%);color:#F7C600;border:2px solid #F7C600;box-shadow:0 0 15px rgba(247,198,0,0.2)}
 .styleOpt.rainbow{background:linear-gradient(90deg,#ff3b3b,#ff9f1c,#ffde59,#2ecc71,#3498db,#9b59b6);color:#fff;border-color:rgba(255,255,255,0.3);background-size:200% 100%;animation:rainbowMove 3s linear infinite}
 .styleOpt.sel{border-color:#fff;box-shadow:0 0 0 3px var(--gold), 0 10px 30px rgba(247,198,0,0.5);transform:scale(1.05) translateY(-2px);z-index:2}
-
 .animRow,.directionRow{display:flex;gap:10px;flex-wrap:wrap}
 .animOpt,.dirOpt{flex:1;min-width:90px;height:48px;border-radius:14px;border:1.5px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#fff;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;font-family:'Noto Sans Arabic';position:relative;overflow:hidden}
 .animOpt::before,.dirOpt::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.08),transparent);opacity:0;transition:opacity 0.2s}
 .animOpt:hover,.dirOpt:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);transform:translateY(-1px)}
 .animOpt:hover::before,.dirOpt:hover::before{opacity:1}
 .animOpt.sel,.dirOpt.sel{background:#fff;color:#12122a;border-color:#fff;box-shadow:0 6px 20px rgba(255,255,255,0.25);transform:translateY(-1px) scale(1.02);font-weight:900}
-
 /* SLIDERS - Beautiful */
 .sliderWrap{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.08);border-radius:14px;padding:12px 16px;transition:all 0.2s}
 .sliderWrap:hover{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.12)}
@@ -138,7 +127,6 @@ tr:hover{background:rgba(255,255,255,0.03)}
 .sliderWrap input[type="range"]{flex:1;accent-color:var(--gold);height:6px;cursor:pointer}
 .sliderWrap input[type="range"].purpleRange{accent-color:#a78bfa}
 .sliderInfo{color:rgba(255,255,255,0.4);font-size:11px;min-width:45px;text-align:left;background:rgba(0,0,0,0.2);padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,0.05)}
-
 /* PREVIEW BOX */
 .previewBox{background:rgba(0,0,0,0.4);border:2px dashed rgba(247,198,0,0.35);border-radius:16px;padding:18px;text-align:center;font-weight:900;min-height:70px;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1.6;transition:all 0.4s;position:relative;overflow:hidden;box-shadow:inset 0 2px 10px rgba(0,0,0,0.2)}
 .previewBox::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);transition:left 0.6s}
@@ -149,7 +137,6 @@ tr:hover{background:rgba(255,255,255,0.03)}
 .previewBox.style-purple{background:linear-gradient(135deg,#5B5CFF 0%,#a78bfa 100%);color:#fff;border-style:solid;border-color:#8b8cff;box-shadow:0 8px 30px rgba(91,92,255,0.4)}
 .previewBox.style-blackgold{background:linear-gradient(135deg,#000 0%,#1a1a1a 100%);color:#F7C600;border:1px solid #F7C600;box-shadow:0 0 25px rgba(247,198,0,0.25), inset 0 1px 0 rgba(247,198,0,0.1)}
 .previewBox.style-rainbow{background:linear-gradient(90deg,#ff3b3b,#ff9f1c,#ffde59,#2ecc71,#3498db,#9b59b6);background-size:300% 100%;color:#fff;border-style:solid;border-color:#fff;animation:rainbowMove 4s linear infinite;box-shadow:0 8px 30px rgba(0,0,0,0.3)}
-
 /* BROADCAST LIST */
 .broadcastQueueItem{background:linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:14px;display:flex;align-items:center;gap:14px;transition:all 0.3s;position:relative;overflow:hidden}
 .broadcastQueueItem::before{content:'';position:absolute;right:0;top:0;bottom:0;width:3px;background:var(--gold);opacity:0;transition:opacity 0.2s}
@@ -160,21 +147,27 @@ tr:hover{background:rgba(255,255,255,0.03)}
 .bqDir{background:linear-gradient(135deg,rgba(247,198,0,0.2),rgba(247,198,0,0.1));color:var(--gold);padding:8px 12px;border-radius:999px;font-size:11px;font-weight:900;border:1.5px solid rgba(247,198,0,0.25);box-shadow:0 2px 8px rgba(247,198,0,0.15)}
 .bqDel{width:36px;height:36px;border-radius:10px;border:1.5px solid rgba(212,16,31,0.3);background:linear-gradient(135deg,rgba(212,16,31,0.2),rgba(212,16,31,0.1));color:#ff8a8a;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:900;transition:all 0.2s;flex-shrink:0}
 .bqDel:hover{background:linear-gradient(135deg,rgba(212,16,31,0.35),rgba(212,16,31,0.2));transform:scale(1.1) rotate(90deg);box-shadow:0 4px 15px rgba(212,16,31,0.3);color:#fff}
-
 /* WINNER BANNER */
 .winnerBanner{position:fixed;top:84px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#F7C600,#ffe27a);color:#000;padding:18px 28px;border-radius:18px;font-weight:900;box-shadow:0 15px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(247,198,0,0.3);z-index:200;display:none;max-width:90%;text-align:center;border:2px solid #fff}
 .winnerBanner.show{display:block;animation:pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)}
 @keyframes pop{0%{transform:translateX(-50%) scale(0.7) translateY(-20px);opacity:0}100%{transform:translateX(-50%) scale(1) translateY(0);opacity:1}}
 @keyframes rainbowMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 @keyframes twinkle{0%,100%{opacity:0.3}50%{opacity:1}}
-
 .loading{padding:24px;text-align:center;color:rgba(255,255,255,0.5);font-size:13px}
 .loading::after{content:'';display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin-right:8px;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
-
 /* SPECIAL CARDS */
 .glowGold{box-shadow:0 0 30px rgba(247,198,0,0.15);border-color:rgba(247,198,0,0.2) !important}
 .glowBlue{box-shadow:0 0 30px rgba(91,92,255,0.15);border-color:rgba(91,92,255,0.2) !important}
+/* SCORE CONTROL BUTTONS - NEW */
+.sBtn{height:26px;padding:0 6px;border-radius:7px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#fff;font-size:9px;font-weight:800;cursor:pointer;transition:all 0.15s;min-width:32px}
+.sBtn:hover{transform:translateY(-1px);border-color:rgba(255,255,255,0.2)}
+.sBtn.sPos{background:rgba(0,255,136,0.12);border-color:rgba(0,255,136,0.25);color:#7CFC9A}
+.sBtn.sPos:hover{background:rgba(0,255,136,0.2)}
+.sBtn.sNeg{background:rgba(255,107,138,0.1);border-color:rgba(255,107,138,0.25);color:#ff8a8a}
+.sBtn.sNeg:hover{background:rgba(255,107,138,0.18)}
+.sBtn.sZero{background:rgba(212,16,31,0.15);border-color:rgba(212,16,31,0.3);color:#ff8a8a}
+.sBtn.sEdit{background:rgba(247,198,0,0.15);border-color:rgba(247,198,0,0.3);color:#F7C600}
 </style>
 </head>
 <body>
@@ -202,7 +195,6 @@ async function checkAdminPwd(){
   }catch(e){ document.getElementById('adminPwdErr').textContent='❌ '+e.message; }
 }
 </script>
-
 <div class="header">
 <h1>👑 ئەدمین داشبورد PRO <span>V12 ULTIMATE</span> - دیارە</h1>
 <div style="display:flex;gap:10px">
@@ -211,7 +203,6 @@ async function checkAdminPwd(){
 <button class="btn gold" onclick="location.reload()">🔄 نوێکردنەوە</button>
 </div>
 </div>
-
 <div class="container">
 <div class="sidebar">
 <button class="sItem active" id="sDash" onclick="switchTab('dash')">📊 دەشبورد <span style="background:rgba(255,255,255,0.15);color:#fff">6</span></button>
@@ -225,19 +216,15 @@ async function checkAdminPwd(){
 <button class="sItem" id="sBroadcast" onclick="switchTab('broadcast')">📢 شریت <span id="broadcastCountBadge" class="badge" style="background:var(--gold);color:#000">0</span></button>
 <button class="sItem" id="sBlocked" onclick="switchTab('blocked')">⛔ بلوک <span id="blockedCountBadge" class="badge" style="background:#D4101F;color:#fff">0</span></button>
 </div>
-
 <div class="main">
-
 <!-- DASHBOARD TAB -->
 <div id="tabDash">
 <h2 style="font-size:20px;margin-bottom:18px;display:flex;align-items:center;gap:10px">📊 دەشبوردەکێ جوان <span style="font-size:11px;background:rgba(247,198,0,0.15);border:1px solid rgba(247,198,0,0.3);padding:4px 10px;border-radius:999px;color:var(--gold)">هەمی دیارن - V12</span></h2>
-
 <div class="countGrid">
 <div class="cdCard free"><div class="title">🆓 بەلاش - 100$ - ژ سفرێ</div><div class="timer" id="cdFree">--:--:--</div><div class="date" id="cdFreeDate">بار دبیت...</div><div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:10px;background:rgba(124,252,154,0.08);padding:6px 10px;border-radius:999px;display:inline-block">⚡ چرکە چرکە دێتە خار</div></div>
 <div class="cdCard mobile"><div class="title">📱 ئایفون 18 پرو ماکس - 5000</div><div class="timer" id="cdMobile">--:--:--</div><div class="date" id="cdMobileDate">بار دبیت...</div><div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:10px;background:rgba(139,140,255,0.08);padding:6px 10px;border-radius:999px;display:inline-block">⚡ چرکە چرکە دێتە خار</div></div>
 <div class="cdCard car"><div class="title">🚗 ترومبێل - 10000</div><div class="timer" id="cdCar">--:--:--</div><div class="date" id="cdCarDate">بار دبیت...</div><div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:10px;background:rgba(247,198,0,0.08);padding:6px 10px;border-radius:999px;display:inline-block">⚡ چرکە چرکە دێتە خار</div></div>
 </div>
-
 <div class="cards">
 <div class="card gold"><div class="top"><div class="icon">🏪</div><div style="font-size:10px;color:rgba(255,255,255,0.4);background:rgba(0,0,0,0.2);padding:4px 8px;border-radius:999px">دکاندار</div></div><div class="num" id="statShops">0</div><div class="label">🏪 چەند دکاندار هەنە - هەمی د جهەکێ دا</div></div>
 <div class="card purple"><div class="top"><div class="icon">👥</div><div style="font-size:10px;color:rgba(255,255,255,0.4);background:rgba(0,0,0,0.2);padding:4px 8px;border-radius:999px">یاریکەر</div></div><div class="num" id="statPlayers">0</div><div class="label">👥 چەند یاریکەر هەنە</div></div>
@@ -246,7 +233,6 @@ async function checkAdminPwd(){
 <div class="card orange"><div class="top"><div class="icon">🚗</div><div style="font-size:10px;color:rgba(255,255,255,0.4);background:rgba(0,0,0,0.2);padding:4px 8px;border-radius:999px">10000</div></div><div class="num" id="statUnlockCar">0</div><div class="label">🚗 چەندان 10000 ڤەکرینە - ژ سفرێ</div></div>
 <div class="card red"><div class="top"><div class="icon">💰</div><div style="font-size:10px;color:rgba(255,255,255,0.4);background:rgba(0,0,0,0.2);padding:4px 8px;border-radius:999px">پارە</div></div><div class="num" id="statMoney">0</div><div class="label">💰 سەرجەمێ کرینان / پارە</div></div>
 </div>
-
 <div class="section">
 <h3>🏪 پاشکەفتێن دکانان - کورتی</h3>
 <div id="shopStatsList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">
@@ -254,7 +240,6 @@ async function checkAdminPwd(){
 </div>
 </div>
 </div>
-
 <!-- SHOPS TAB -->
 <div id="tabShops" style="display:none">
 <div class="section">
@@ -274,7 +259,6 @@ async function checkAdminPwd(){
 <div id="shopsGrid" class="shopGrid"><div class="loading">بار دبیت - هەمی دکان</div></div>
 </div>
 </div>
-
 <!-- PLAYERS TAB -->
 <div id="tabPlayers" style="display:none">
 <div class="section">
@@ -287,7 +271,6 @@ async function checkAdminPwd(){
 <div class="tableWrap"><table><thead><tr><th>یاریکەر + جیهاز</th><th>🆓 بەلاش</th><th>📱 موبایل</th><th>🚗 ترومبێل</th><th>ستاتوس + سیستەم</th><th>کردار + بلوک</th></tr></thead><tbody id="playersTable"><tr><td colspan="7" class="loading">بار دبیت</td></tr></tbody></table></div>
 </div>
 </div>
-
 <!-- TRANS TAB - V20 NO INDEX -->
 <div id="tabTrans" style="display:none">
 <div class="section">
@@ -332,7 +315,6 @@ async function checkAdminPwd(){
 <div class="tableWrap"><table><thead><tr><th>روژ / بەروار</th><th>جور</th><th>یاریکەر</th><th>دکاندار</th><th>دکان</th><th>ژێبرن</th></tr></thead><tbody id="transTable"><tr><td colspan="7" class="loading">بار دبیت</td></tr></tbody></table></div>
 </div>
 </div>
-
 <!-- SETTINGS TAB -->
 <div id="tabSettings" style="display:none">
 <div class="section">
@@ -402,7 +384,6 @@ async function checkAdminPwd(){
 </div>
 </div>
 </div>
-
 <!-- WINNERS TAB - WITH DELETE -->
 <div id="tabWinners" style="display:none">
 <div class="section">
@@ -416,7 +397,6 @@ async function checkAdminPwd(){
 <div class="tableWrap"><table><thead><tr><th>روژ / بەروار / دەمژمێر</th><th>رێزبەندی</th><th>براوە</th><th>📱 ژمارا موبایل</th><th>سکۆر</th><th>خەلات</th><th>ژێبرن</th></tr></thead><tbody id="winnersTable"><tr><td colspan="7" class="loading">بار دبیت</td></tr></tbody></table></div>
 </div>
 </div>
-
 <!-- SPONSOR TAB -->
 <div id="tabSponsor" style="display:none">
 <div class="section glowBlue" style="border-color:rgba(91,92,255,0.25);background:linear-gradient(135deg,rgba(91,92,255,0.08),rgba(91,92,255,0.02))">
@@ -440,30 +420,24 @@ async function checkAdminPwd(){
 </div>
 </div>
 </div>
-
 <!-- BROADCAST / SHRIT TAB - FIXED BEAUTIFUL V12 -->
 <div id="tabBroadcast" style="display:none">
 <div class="section glowGold" style="border-color:rgba(247,198,0,0.3);background:linear-gradient(135deg,rgba(247,198,0,0.08),rgba(247,198,0,0.02))">
 <h3>📢 شریت - نامەیا گشتی - V12 ULTIMATE - وەک یاریێ <span style="background:var(--gold);color:#000;padding:3px 10px;border-radius:999px;font-size:10px;margin-right:8px">PRO</span></h3>
 <p style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:18px;background:rgba(0,0,0,0.2);padding:10px 14px;border-radius:10px;border:1px solid rgba(247,198,0,0.1)">✨ هەمان شریتا ناف یاریێ - ب ئایکون و 6 شێواز و جوڵە و لایێ هاتنێ - جوان کراوە 💛</p>
-
 <div style="background:rgba(0,0,0,0.3);padding:20px;border-radius:18px;border:1px solid rgba(255,255,255,0.06);margin-bottom:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05)">
-
 <div class="adminSection">
 <label class="adminLabel">✍️ نامەیا گشتی (شریت): <span style="font-size:10px;background:rgba(247,198,0,0.15);color:var(--gold);padding:3px 8px;border-radius:999px;border:1px solid rgba(247,198,0,0.2)">200 پیت</span></label>
 <textarea id="broadcastInput" class="adminTextarea" placeholder="نامەیا گشتی بنڤیسە... بۆ نموونە: سلاڤ بکارهێنەرێت هێژا 👋 - بخێرهاتن بۆ YARYA ZAXO PRO 🎮" maxlength="200"></textarea>
 </div>
-
 <div class="adminSection">
 <label class="adminLabel">📢 ئایکون - حەز ژێ بکە:</label>
 <div class="iconGrid" id="iconGrid"></div>
 </div>
-
 <div class="adminSection">
 <label class="adminLabel">🎨 شێواز - 6 جورێن جوان و مودێرن:</label>
 <div class="styleGrid" id="styleGrid"></div>
 </div>
-
 <div class="adminSection">
 <label class="adminLabel">🎬 جوڵە - چاوا بهێت؟</label>
 <div class="animRow">
@@ -472,7 +446,6 @@ async function checkAdminPwd(){
 <button class="animOpt" data-anim="pulse" onclick="selectAnimV12(this)">✨ بریسکە</button>
 </div>
 </div>
-
 <div class="adminSection">
 <label class="adminLabel">🧭 لایێ هاتنێ:</label>
 <div class="directionRow">
@@ -480,7 +453,6 @@ async function checkAdminPwd(){
 <button class="dirOpt" data-dir="ltr" onclick="selectDirV12(this)"><span>⬅️</span> ژ چەپێ</button>
 </div>
 </div>
-
 <div class="adminSection">
 <label class="adminLabel">⏱️ ماوەیا شریتێ و ناڤبەر:</label>
 <div style="display:grid;gap:10px">
@@ -488,66 +460,50 @@ async function checkAdminPwd(){
 <div class="sliderWrap"><span style="font-size:11px;color:rgba(255,255,255,0.6)">⏳ ناڤبەر:</span><span id="broadcastGapVal" class="sliderVal purple">3 چرکە</span><input type="range" id="broadcastGapInput" min="1" max="10" value="3" class="purpleRange" oninput="document.getElementById('broadcastGapVal').textContent=this.value+' چرکە'; selectedGapV12=parseInt(this.value);"><span class="sliderInfo">1-10</span></div>
 </div>
 </div>
-
 <div class="adminSection">
 <label class="adminLabel">👁️ پێشبینین - وەک یاریێ دیار دبیت:</label>
 <div class="previewBox style-gold" id="broadcastPreview">📢 پێشبینین ل ڤێرێ... - شریتێ تە ل ڤێرێ دیار دبیت ✨</div>
 </div>
-
 <div style="display:flex;gap:12px;margin-top:20px">
 <button onclick="addBroadcastV12()" style="flex:1;height:54px;border-radius:999px;border:0;background:linear-gradient(180deg,#ffe27a,#F7C600);color:#1a1200;font-weight:900;cursor:pointer;font-family:'Noto Sans Arabic';font-size:14px;box-shadow:0 6px 20px rgba(247,198,0,0.4);transition:all 0.2s">➕ زێدە بکە بۆ لیستێ (بۆ هەمیان) 📢</button>
 <button onclick="clearBroadcastV12()" style="width:120px;height:54px;border-radius:999px;border:1.5px solid rgba(212,16,31,0.3);background:rgba(212,16,31,0.12);color:#ff8a8a;font-weight:800;cursor:pointer;font-family:'Noto Sans Arabic';font-size:12px;transition:all 0.2s">🗑️ پاک بکە</button>
 </div>
-
 </div>
-
 <div class="section">
 <h3>📋 لیستا شریتان (<span id="broadcastQueueCount">0</span>) - گشتی بۆ هەمیان 📡</h3>
 <div id="broadcastQueueList" style="display:grid;gap:10px;max-height:600px;overflow-y:auto;padding:4px"><div class="loading">بار دبیت</div></div>
 </div>
-
 </div>
 </div>
-
 </div>
 </div>
-
-
-
 <!-- SOCIAL ACCOUNTS TAB - NEW V13 - 2 BUTTONS SYSTEM -->
 <div id="tabSocial" style="display:none">
 <div class="section glowGold" style="border-color:rgba(91,92,255,0.3);background:linear-gradient(135deg,rgba(91,92,255,0.08),rgba(91,92,255,0.02))">
 <h3>📱 ئەکاونتێن سوشیال - بۆ بوتنا خوارێ <span style="background:#5B5CFF;color:#fff;padding:3px 10px;border-radius:999px;font-size:10px;margin-right:8px">V13 NEW - 2 Buttons</span></h3>
 <p style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:18px;background:rgba(0,0,0,0.2);padding:10px 14px;border-radius:10px;border:1px solid rgba(91,92,255,0.15)">🔗 لێرە لینکێن TikTok و Facebook و Instagram دانە - دێ ل بوتنا "ئەکاونتێن مە" ل یاریێ دیار بن - یاریکەر دێ کلیک بکەن و بچنە سەر ئەکاونتێن تە ✅</p>
-
 <div style="background:rgba(0,0,0,0.3);padding:20px;border-radius:18px;border:1px solid rgba(255,255,255,0.06);margin-bottom:18px">
 <h4 style="font-size:14px;margin-bottom:16px;color:#8b8cff;display:flex;align-items:center;gap:8px">🔗 لینکێن سوشیال میدیا - V13</h4>
-
 <div class="adminSection" style="margin-bottom:16px">
 <label class="adminLabel">🎵 TikTok لینک:</label>
 <input id="tiktokLinkInput" class="input" placeholder="https://www.tiktok.com/@yourname" style="direction:ltr;text-align:left">
 <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:6px">مثال: https://www.tiktok.com/@yaryazaxo</div>
 </div>
-
 <div class="adminSection" style="margin-bottom:16px">
 <label class="adminLabel">📘 Facebook لینک:</label>
 <input id="facebookLinkInput" class="input" placeholder="https://www.facebook.com/yourpage" style="direction:ltr;text-align:left">
 <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:6px">مثال: https://www.facebook.com/yaryazaxo</div>
 </div>
-
 <div class="adminSection" style="margin-bottom:16px">
 <label class="adminLabel">📸 Instagram لینک:</label>
 <input id="instagramLinkInput" class="input" placeholder="https://www.instagram.com/yourname" style="direction:ltr;text-align:left">
 <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:6px">مثال: https://www.instagram.com/yaryazaxo</div>
 </div>
-
 <div style="display:flex;gap:10px;margin-top:20px">
 <button onclick="saveSocialLinksAdmin()" style="flex:1;height:54px;border-radius:999px;border:0;background:linear-gradient(180deg,#8b8cff,#5B5CFF);color:#fff;font-weight:900;cursor:pointer;font-family:'Noto Sans Arabic';font-size:14px;box-shadow:0 6px 20px rgba(91,92,255,0.4)">💾 پاشکەفت بکە - بۆ یاریکەران دیار بیت</button>
 <button onclick="loadSocialLinksAdmin()" style="width:120px;height:54px;border-radius:999px;border:1.5px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:#fff;font-weight:800;cursor:pointer;font-family:'Noto Sans Arabic'">🔄 نوێکردن</button>
 </div>
-
 <div id="socialSaveStatus" style="display:none;margin-top:14px;padding:12px;border-radius:12px;text-align:center;font-size:12px;font-weight:800"></div>
-
 <div style="margin-top:20px;padding:14px;background:rgba(247,198,0,0.08);border:1px solid rgba(247,198,0,0.15);border-radius:14px">
 <div style="font-size:12px;color:#F7C600;font-weight:800;margin-bottom:8px">💡 چاوا کار دکەت؟</div>
 <div style="font-size:11px;color:rgba(255,255,255,0.6);line-height:1.8">
@@ -557,9 +513,7 @@ async function checkAdminPwd(){
 4. بوتنا دووێ "براوە" یە - ناڤێ یەکەمێ رێزبەندیێ خوکار دچیتە تێدا - ژمارا موبایلێ تەنێ بۆ تە دیارە
 </div>
 </div>
-
 </div>
-
 <div class="section">
 <h3>👁️ پێشبینین - وەک ل یاریێ دیار دبیت</h3>
 <div style="background:rgba(0,0,0,0.3);padding:16px;border-radius:16px;border:1px solid rgba(255,255,255,0.06)">
@@ -583,17 +537,13 @@ async function checkAdminPwd(){
 </div>
 </div>
 </div>
-
 </div>
 </div>
-
-
 <!-- BLOCKED DEVICES TAB - NEW V12 SECURITY -->
 <div id="tabBlocked" style="display:none">
 <div class="section" style="border-color:rgba(212,16,31,0.3);background:linear-gradient(135deg,rgba(212,16,31,0.08),rgba(212,16,31,0.02))">
 <h3>⛔ جیهازێن بلوک کری - پاراستنا دژی هاکەر <span style="background:#D4101F;color:#fff;padding:3px 10px;border-radius:999px;font-size:10px;margin-right:8px">SECURITY</span></h3>
 <p style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:18px;background:rgba(0,0,0,0.2);padding:10px 14px;border-radius:10px;border:1px solid rgba(212,16,31,0.15)">🔒 ئەڤ لیستە هەمی موبایلێن بلوک کری نیشان ددەت - ئەو جیهازە دائێدی ناشێت یاری بکەت - تە دێ هاکەران ل ڤێرێ بلوک کەی ⛔</p>
-
 <div style="background:rgba(0,0,0,0.3);padding:18px;border-radius:16px;border:1px solid rgba(255,255,255,0.06);margin-bottom:18px">
 <h4 style="font-size:13px;margin-bottom:14px;color:#ff8a8a;display:flex;align-items:center;gap:8px">➕ بلوک کرنا جیهازەکێ ب دەست - ب ئایدی</h4>
 <div class="formRow">
@@ -602,19 +552,14 @@ async function checkAdminPwd(){
 </div>
 <button class="btn gold" style="width:100%;height:50px;margin-top:12px;background:linear-gradient(135deg,#D4101F,#ff6b8a);color:#fff;box-shadow:0 6px 20px rgba(212,16,31,0.3)" onclick="manualBlockDevice()">⛔ بلوک بکە - جیهاز دائێدی کار ناکەت</button>
 </div>
-
 <div class="section">
 <h3>📋 لیستا جیهازێن بلوک کری (<span id="blockedCount">0</span>) - هەمی قفل</h3>
 <div id="blockedList" style="display:grid;gap:12px;max-height:700px;overflow-y:auto;padding:4px"><div class="loading">بار دبیت - بلوک لیست</div></div>
 </div>
 </div>
 </div>
-
 <div id="winnerBanner" class="winnerBanner"></div>
-
-
 <script type="module">
-
 import { initializeApp, getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, orderBy, limit, getDocs, addDoc, serverTimestamp, deleteDoc, writeBatch } from "./firebase-shim.js";
 const firebaseConfig = {
   apiKey: "AIzaSyB5y-soQQwolnaRLPcARamLXq-YbGFph74",
@@ -626,13 +571,11 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
 let allShops = [];
 let allPlayers = [];
 let configData = {};
 let countdownInterval = null;
 let isResetting = false;
-
 window.switchTab = function(tab){
   document.querySelectorAll('.sItem').forEach(b=>b.classList.remove('active'));
   const id = 's'+tab.charAt(0).toUpperCase()+tab.slice(1);
@@ -657,12 +600,10 @@ window.switchTab = function(tab){
   if(tab==='broadcast'){ loadBroadcastsAdmin(); setTimeout(initIconsV12, 100); }
   if(tab==='blocked') loadBlockedDevices();
 };
-
 window.toggleCreateForm = function(){
   const f = document.getElementById('createShopForm');
   f.style.display = f.style.display==='none'?'block':'none';
 };
-
 async function init(){
   document.getElementById('statShops').textContent = '⏳';
   document.getElementById('statPlayers').textContent = '⏳';
@@ -676,7 +617,6 @@ async function init(){
   startCountdown();
   setTimeout(initIconsV12, 500);
 }
-
 async function loadConfig(){
   try{
     const snap = await getDoc(doc(db,'settings','config'));
@@ -730,7 +670,6 @@ async function loadConfig(){
     configData.freeEndAt = def; configData.mobileEndAt = def; configData.carEndAt = def;
   }
 }
-
 function toLocalInput(date){
   if(!date) return '';
   try{
@@ -739,7 +678,6 @@ function toLocalInput(date){
     return local.toISOString().slice(0,16);
   }catch(e){ return ''; }
 }
-
 function startCountdown(){
   if(countdownInterval) clearInterval(countdownInterval);
   countdownInterval = setInterval(()=>{
@@ -748,7 +686,6 @@ function startCountdown(){
   },1000);
   updateCountdowns();
 }
-
 function formatCountdown(end){
   if(!end) return '--:--:--';
   if(typeof end==='string') end = new Date(end);
@@ -762,7 +699,6 @@ function formatCountdown(end){
   if(d>0) return `${d}ر ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
   return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
-
 function updateCountdowns(){
   try{
     if(configData.freeEndAt){
@@ -794,7 +730,6 @@ function updateCountdowns(){
     }
   }catch(e){}
 }
-
 async function checkWinners(){
   if(isResetting) return;
   const now = new Date();
@@ -806,7 +741,6 @@ async function checkWinners(){
     await handleWinner('car');
   }
 }
-
 async function handleWinner(type){
   if(isResetting) return;
   isResetting = true;
@@ -882,8 +816,6 @@ async function handleWinner(type){
     isResetting = false;
   }
 }
-
-
 function showWinnerBanner(type, name, score, prize){
   const el = document.getElementById('winnerBanner');
   el.innerHTML = `🏆 براوەی ${type==='free'?'بەلاش': type==='mobile'?'موبایل':'ترومبێل'}: <b>${name}</b> - ${score} خال - 🎁 ${prize} <br><small>20 چرکە و پاشان سفر دبیت...</small>`;
@@ -920,7 +852,6 @@ window.resetRankingManual = async function(type){
   if(!confirm(`دڵنیای دڤێت رێزبەندیا ${type} سفر بکەی؟`)) return;
   await resetRanking(type);
 };
-
 async function loadStats(){
   try{
     const shopsSnap = await getDocs(collection(db,'shopkeepers'));
@@ -980,7 +911,6 @@ async function loadStats(){
     document.getElementById('shopStatsList').innerHTML = '<div style="color:#ff8a8a">❌ خەلەت: '+e.message+'</div>';
   }
 }
-
 async function loadShops(){
   const grid = document.getElementById('shopsGrid');
   grid.innerHTML='<div class="loading">بار دبیت - هەمی دکان د جهەکێ دا</div>';
@@ -1081,7 +1011,6 @@ window.deleteShop = async function(id){
     renderShops(allShops); loadStats();
   }catch(e){ alert(e.message); }
 };
-
 async function loadPlayers(){
   try{ await fetch('/api/fix-missing-device'); }catch{}
   const tbody=document.getElementById('playersTable');
@@ -1106,30 +1035,247 @@ function renderPlayers(players){
     const deviceId = u.lastDeviceId || u.deviceFingerprint || u.originalDeviceId || u.accountCreatedDevice || u.deviceId || (u.deviceIds && u.deviceIds[0]) || u.id || 'نەدیار';
     const docIdShow = u.id || '';
     const isBlocked = u.isBlocked===true;
+    const freeScore = u.bestScoreFree ?? u.bestScore ?? 0;
+    const mobScore = u.bestScoreMobile ?? 0;
+    const carScore = u.bestScoreCar ?? 0;
     const tr=document.createElement('tr');
     tr.style.background = isBlocked ? 'rgba(212,16,31,0.08)' : '';
     tr.innerHTML=`
-      <td><div style="display:flex;gap:10px;align-items:center"><div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1a1a3a,#2a2a5a);overflow:hidden;display:flex;align-items:center;justify-content:center;border:2px solid ${isBlocked?'#D4101F':'rgba(247,198,0,0.2)'};position:relative">${u.photoURL?`<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover">`:(u.displayName||u.username||'👤').charAt(0).toUpperCase()}${isBlocked?'<span style="position:absolute;bottom:-4px;right:-4px;background:#D4101F;color:#fff;font-size:8px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid #000">⛔</span>':''}</div><div><div style="font-weight:800;display:flex;align-items:center;gap:6px">${escapeHtml(u.displayName||u.username||'بێ ناڤ')} ${isBlocked?'<span style="background:#D4101F;color:#fff;padding:2px 6px;border-radius:999px;font-size:8px">بلوک</span>':''}</div><div style="font-size:10px;color:rgba(255,255,255,0.5)">@${u.username||''}</div><div style="font-size:9px;color:rgba(255,255,255,0.35);margin-top:2px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${deviceId}">📱 ${deviceId.substring(0,22)}</div><div style="font-size:8px;color:#F7C600;margin-top:2px">🆔 ${docIdShow}</div></div></div></td>
-      <td style="color:#7CFC9A;font-weight:800">${u.bestScoreFree||u.bestScore||0}</td>
-      <td style="color:#8b8cff;font-weight:800">${u.bestScoreMobile||0} ${u.unlockedMobile?'✅':''}</td>
-      <td style="color:#F7C600;font-weight:800">${u.bestScoreCar||0} ${u.unlockedCar?'✅':''}</td>
-      <td>${online?'<span style="background:rgba(0,255,100,0.15);color:#00ff99;padding:5px 10px;border-radius:999px;font-size:10px;font-weight:800;border:1px solid rgba(0,255,100,0.2)">🟢 ئونلاین</span>':'<span style="background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.5);padding:5px 10px;border-radius:999px;font-size:10px">⚫ ئوفلاین</span>'}<br><span style="font-size:10px;color:rgba(255,255,255,0.4)">${lastSeen?lastSeen.toLocaleString('ku-IQ'):''}</span><br><span style="font-size:9px;color:rgba(255,255,255,0.3)">${escapeHtml((u.platform||'').substring(0,20))}</span></td>
+      <td>
+        <div style="display:flex;gap:10px;align-items:center">
+          <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#1a1a3a,#2a2a5a);overflow:hidden;display:flex;align-items:center;justify-content:center;border:2px solid ${isBlocked?'#D4101F':'rgba(247,198,0,0.2)'};position:relative;flex-shrink:0">
+            ${u.photoURL?`<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover">`:(u.displayName||u.username||'👤').charAt(0).toUpperCase()}
+            ${isBlocked?'<span style="position:absolute;bottom:-4px;right:-4px;background:#D4101F;color:#fff;font-size:8px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid #000">⛔</span>':''}
+          </div>
+          <div style="min-width:0">
+            <div style="font-weight:800;display:flex;align-items:center;gap:6px;font-size:12px">${escapeHtml(u.displayName||u.username||'بێ ناڤ')} ${isBlocked?'<span style="background:#D4101F;color:#fff;padding:2px 6px;border-radius:999px;font-size:8px">بلوک</span>':''}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.5)">@${escapeHtml(u.username||'')}</div>
+            <div style="font-size:8px;color:rgba(255,255,255,0.35);margin-top:2px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(deviceId)}">📱 ${escapeHtml(deviceId.substring(0,20))}</div>
+            <div style="font-size:7px;color:#F7C600;margin-top:1px">🆔 ${escapeHtml(docIdShow.substring(0,12))}</div>
+            <button onclick="openScoreEditor('${u.id}')" style="margin-top:6px;height:26px;padding:0 10px;border-radius:999px;border:1.5px solid #F7C600;background:linear-gradient(180deg,#ffe27a,#F7C600);color:#000;font-size:9px;font-weight:900;cursor:pointer">⚙️ گهورینا سکۆران</button>
+          </div>
+        </div>
+      </td>
+      
+      <!-- FREE SCORE WITH CONTROLS -->
+      <td style="min-width:150px">
+        <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+          <div style="font-size:18px;font-weight:900;color:#7CFC9A;text-shadow:0 0 8px rgba(124,252,154,0.3)">${freeScore}</div>
+          <div style="display:flex;gap:3px;flex-wrap:wrap;justify-content:center">
+            <button onclick="adjustScore('${u.id}','free',-1000)" class="sBtn sNeg">-1000</button>
+            <button onclick="adjustScore('${u.id}','free',-100)" class="sBtn sNeg">-100</button>
+            <button onclick="adjustScore('${u.id}','free',-10)" class="sBtn sNeg">-10</button>
+            <button onclick="adjustScore('${u.id}','free',10)" class="sBtn sPos">+10</button>
+            <button onclick="adjustScore('${u.id}','free',100)" class="sBtn sPos">+100</button>
+            <button onclick="adjustScore('${u.id}','free',1000)" class="sBtn sPos">+1000</button>
+          </div>
+          <div style="display:flex;gap:3px;width:100%">
+            <button onclick="resetPlayer('${u.id}','free')" class="sBtn sZero" style="flex:1">سفر 0</button>
+            <button onclick="promptSetScore('${u.id}','free',${freeScore})" class="sBtn sEdit" style="flex:1">✏️ دانان</button>
+          </div>
+        </div>
+      </td>
+      <!-- MOBILE SCORE -->
+      <td style="min-width:150px">
+        <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+          <div style="font-size:18px;font-weight:900;color:#8b8cff;text-shadow:0 0 8px rgba(139,140,255,0.3)">${mobScore} ${u.unlockedMobile?'<span style="font-size:10px">✅</span>':''}</div>
+          <div style="display:flex;gap:3px;flex-wrap:wrap;justify-content:center">
+            <button onclick="adjustScore('${u.id}','mobile',-1000)" class="sBtn sNeg">-1000</button>
+            <button onclick="adjustScore('${u.id}','mobile',-100)" class="sBtn sNeg">-100</button>
+            <button onclick="adjustScore('${u.id}','mobile',-10)" class="sBtn sNeg">-10</button>
+            <button onclick="adjustScore('${u.id}','mobile',10)" class="sBtn sPos">+10</button>
+            <button onclick="adjustScore('${u.id}','mobile',100)" class="sBtn sPos">+100</button>
+            <button onclick="adjustScore('${u.id}','mobile',1000)" class="sBtn sPos">+1000</button>
+          </div>
+          <div style="display:flex;gap:3px;width:100%">
+            <button onclick="resetPlayer('${u.id}','mobile')" class="sBtn sZero" style="flex:1">سفر 0</button>
+            <button onclick="promptSetScore('${u.id}','mobile',${mobScore})" class="sBtn sEdit" style="flex:1">✏️ دانان</button>
+          </div>
+        </div>
+      </td>
+      <!-- CAR SCORE -->
+      <td style="min-width:150px">
+        <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+          <div style="font-size:18px;font-weight:900;color:#F7C600;text-shadow:0 0 8px rgba(247,198,0,0.3)">${carScore} ${u.unlockedCar?'<span style="font-size:10px">✅</span>':''}</div>
+          <div style="display:flex;gap:3px;flex-wrap:wrap;justify-content:center">
+            <button onclick="adjustScore('${u.id}','car',-1000)" class="sBtn sNeg">-1000</button>
+            <button onclick="adjustScore('${u.id}','car',-100)" class="sBtn sNeg">-100</button>
+            <button onclick="adjustScore('${u.id}','car',-10)" class="sBtn sNeg">-10</button>
+            <button onclick="adjustScore('${u.id}','car',10)" class="sBtn sPos">+10</button>
+            <button onclick="adjustScore('${u.id}','car',100)" class="sBtn sPos">+100</button>
+            <button onclick="adjustScore('${u.id}','car',1000)" class="sBtn sPos">+1000</button>
+          </div>
+          <div style="display:flex;gap:3px;width:100%">
+            <button onclick="resetPlayer('${u.id}','car')" class="sBtn sZero" style="flex:1">سفر 0</button>
+            <button onclick="promptSetScore('${u.id}','car',${carScore})" class="sBtn sEdit" style="flex:1">✏️ دانان</button>
+          </div>
+        </div>
+      </td>
+      <td style="text-align:center">
+        ${online?'<span style="background:rgba(0,255,100,0.15);color:#00ff99;padding:5px 10px;border-radius:999px;font-size:10px;font-weight:800;border:1px solid rgba(0,255,100,0.2)">🟢 ئونلاین</span>':'<span style="background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.5);padding:5px 10px;border-radius:999px;font-size:10px">⚫ ئوفلاین</span>'}
+        <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:4px">${lastSeen?lastSeen.toLocaleString('ku-IQ'):''}</div>
+        <div style="margin-top:6px;display:flex;flex-direction:column;gap:3px">
+          <button onclick="resetAllScores('${u.id}')" style="height:26px;padding:0 8px;border-radius:8px;border:1px solid rgba(255,184,106,0.3);background:rgba(255,184,106,0.12);color:#ffb86a;font-size:9px;cursor:pointer;font-weight:800">🔄 هەمی سفر</button>
+        </div>
+      </td>
       <td>
         <div style="display:flex;flex-direction:column;gap:4px">
-          <button onclick="resetPlayer('${u.id}','free')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:#fff;font-size:9px;cursor:pointer;font-weight:700">سفر بەلاش</button>
           ${isBlocked?`<button onclick="unblockPlayer('${u.id}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(0,255,136,0.3);background:rgba(0,255,136,0.15);color:#00ff99;font-size:9px;cursor:pointer;font-weight:800">🔓 ئازاد</button>`:`<button onclick="blockPlayerDevice('${u.id}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(212,16,31,0.3);background:rgba(212,16,31,0.15);color:#ff8a8a;font-size:9px;cursor:pointer;font-weight:800">⛔ بلوک جیهاز</button>`}
           <button onclick="v53DeletePlayer('${u.id}','${escapeHtml(u.username||u.displayName||'').replace(/'/g, "\\'")}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(239,68,68,0.4);background:#ef4444;color:#fff;font-size:9px;cursor:pointer;font-weight:800">🗑️ ژێبە</button>
-          <button onclick="v53EditPlayer('${u.id}','${escapeHtml(u.username||u.displayName||'').replace(/'/g, "\\'")}','${escapeHtml((u.bio||'').replace(/'/g, "\\'"))}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(59,130,246,0.4);background:#3b82f6;color:#fff;font-size:9px;cursor:pointer;font-weight:800">✏️ گهورە</button>
+          <button onclick="v53EditPlayer('${u.id}','${escapeHtml(u.username||u.displayName||'').replace(/'/g, "\\'")}','${escapeHtml((u.bio||'').replace(/'/g, "\\'"))}')" style="height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(59,130,246,0.4);background:#3b82f6;color:#fff;font-size:9px;cursor:pointer;font-weight:800">✏️ ناڤ/بایۆ</button>
         </div>
       </td>
     `;
     tbody.appendChild(tr);
   });
 }
-
+// ===== SCORE MANAGEMENT SYSTEM - FULL CONTROL =====
+window.adjustScore = async function(playerId, type, delta){
+  const player = allPlayers.find(p=>p.id===playerId);
+  if(!player) return;
+  let current = 0;
+  if(type==='free') current = player.bestScoreFree ?? player.bestScore ?? 0;
+  else if(type==='mobile') current = player.bestScoreMobile ?? 0;
+  else current = player.bestScoreCar ?? 0;
+  let newScore = current + delta;
+  if(newScore < 0) newScore = 0;
+  await setPlayerScore(playerId, type, newScore);
+};
+window.promptSetScore = async function(playerId, type, current){
+  const label = type==='free'?'بەلاش 🆓': type==='mobile'?'موبایل 📱':'ترومبێل 🚗';
+  const input = prompt(`دانانا سکۆرێ ${label} بۆ یاریکەر\nسکۆرێ نها: ${current}\n\nژمارا نوو بنڤیسە:`, current);
+  if(input===null) return;
+  const num = parseInt(input.trim());
+  if(isNaN(num) || num < 0){ alert('❌ ژمارە نەدروستە - دڤێت 0 یان پتر بیت'); return; }
+  if(num > 9999999){ if(!confirm('⚠️ ژمارە گەلەک مەزنە ('+num+') - دڵنیای؟')) return; }
+  await setPlayerScore(playerId, type, num);
+};
+window.setPlayerScore = async function(playerId, type, newScore){
+  try{
+    const ref = doc(db,'users',playerId);
+    let updates = {};
+    if(type==='free'){
+      updates.bestScoreFree = newScore;
+      updates.bestScore = newScore; // keep legacy in sync
+      updates.totalPoints = newScore; // optional sync
+    }else if(type==='mobile'){
+      updates.bestScoreMobile = newScore;
+    }else{
+      updates.bestScoreCar = newScore;
+    }
+    updates.updatedAt = serverTimestamp();
+    await updateDoc(ref, updates);
+    
+    // Update local cache immediately
+    const p = allPlayers.find(x=>x.id===playerId);
+    if(p){
+      if(type==='free'){ p.bestScoreFree = newScore; p.bestScore = newScore; }
+      else if(type==='mobile') p.bestScoreMobile = newScore;
+      else p.bestScoreCar = newScore;
+    }
+    renderPlayers(allPlayers);
+    
+    // Small toast
+    const t = document.createElement('div');
+    t.textContent = `✅ ${type==='free'?'بەلاش':type==='mobile'?'موبایل':'ترومبێل'} بوو ${newScore}`;
+    t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#00ff88;color:#000;padding:10px 18px;border-radius:999px;font-weight:900;font-size:12px;z-index:9999;box-shadow:0 8px 20px rgba(0,0,0,0.4)';
+    document.body.appendChild(t);
+    setTimeout(()=>t.remove(),2500);
+  }catch(e){
+    alert('❌ هەلە: '+e.message);
+  }
+};
+window.resetAllScores = async function(playerId){
+  const p = allPlayers.find(x=>x.id===playerId);
+  const name = p?.username || p?.displayName || playerId;
+  if(!confirm(`⚠️ دڵنیای دڤێت هەمی سکۆرێن یاریکەرێ "${name}" سفر بکەی؟\n\n🆓 بەلاش + 📱 موبایل + 🚗 ترومبێل\nهەمی دێ بنە 0`)) return;
+  try{
+    const ref = doc(db,'users',playerId);
+    await updateDoc(ref, {
+      bestScoreFree:0,
+      bestScore:0,
+      bestScoreMobile:0,
+      bestScoreCar:0,
+      totalPoints:0,
+      updatedAt: serverTimestamp()
+    });
+    if(p){ p.bestScoreFree=0; p.bestScore=0; p.bestScoreMobile=0; p.bestScoreCar=0; p.totalPoints=0; }
+    renderPlayers(allPlayers);
+    alert('✅ هەمی سکۆر سفر بوون');
+  }catch(e){ alert('❌ '+e.message); }
+};
+window.openScoreEditor = function(playerId){
+  const p = allPlayers.find(x=>x.id===playerId);
+  if(!p) return;
+  const free = p.bestScoreFree ?? p.bestScore ?? 0;
+  const mob = p.bestScoreMobile ?? 0;
+  const car = p.bestScoreCar ?? 0;
+  
+  const modal = document.getElementById('scoreEditorModal');
+  if(!modal){
+    // create modal if not exists
+    const div = document.createElement('div');
+    div.id='scoreEditorModal';
+    div.innerHTML=`
+      <div id="scoreEditorOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:9998;display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this) closeScoreEditor()">
+        <div style="background:linear-gradient(180deg,#1a1a3a,#12122e);border:1.5px solid rgba(247,198,0,0.25);border-radius:22px;padding:20px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+          <h3 style="color:#F7C600;font-weight:900;font-size:16px;text-align:center;margin-bottom:12px">⚙️ گهورینا سکۆران</h3>
+          <div id="scoreEditorContent"></div>
+          <button onclick="closeScoreEditor()" style="width:100%;margin-top:14px;height:44px;border-radius:999px;border:1.5px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:#fff;font-weight:800;cursor:pointer">داخستن</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(div);
+  }
+  
+  const content = document.getElementById('scoreEditorContent');
+  if(!content) return;
+  document.getElementById('scoreEditorModal').style.display='block';
+  content.innerHTML=`
+    <div style="text-align:center;margin-bottom:14px">
+      <div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#2a2a5a,#1a1a3a);margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:22px;border:2px solid #F7C600">${(p.displayName||p.username||'?').charAt(0).toUpperCase()}</div>
+      <div style="color:#fff;font-weight:800;margin-top:8px">${escapeHtml(p.displayName||p.username||'بێ ناڤ')}</div>
+      <div style="color:rgba(255,255,255,0.5);font-size:11px">@${escapeHtml(p.username||'')}</div>
+    </div>
+    
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="background:rgba(124,252,154,0.08);border:1.5px solid rgba(124,252,154,0.2);border-radius:14px;padding:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="color:#7CFC9A;font-weight:800;font-size:12px">🆓 بەلاش</span><span style="color:#7CFC9A;font-weight:900;font-size:18px">${free}</span></div>
+        <div style="display:flex;gap:6px"><input id="editFree" type="number" min="0" value="${free}" style="flex:1;height:40px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.3);color:#fff;padding:0 12px;font-weight:800"><button onclick="setPlayerScore('${p.id}','free',parseInt(document.getElementById('editFree').value)||0); closeScoreEditor()" style="height:40px;padding:0 14px;border-radius:10px;border:0;background:#7CFC9A;color:#000;font-weight:900;cursor:pointer">✅ دانان</button></div>
+        <div style="display:flex;gap:4px;margin-top:8px">
+          <button onclick="document.getElementById('editFree').value=Math.max(0,parseInt(document.getElementById('editFree').value||0)-100)" style="flex:1;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:#fff;font-size:11px;cursor:pointer">-100</button>
+          <button onclick="document.getElementById('editFree').value=0" style="flex:1;height:32px;border-radius:8px;border:1px solid rgba(212,16,31,0.3);background:rgba(212,16,31,0.15);color:#ff8a8a;font-size:11px;cursor:pointer">سفر</button>
+          <button onclick="document.getElementById('editFree').value=parseInt(document.getElementById('editFree').value||0)+100" style="flex:1;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:#fff;font-size:11px;cursor:pointer">+100</button>
+        </div>
+      </div>
+      <div style="background:rgba(139,140,255,0.08);border:1.5px solid rgba(139,140,255,0.2);border-radius:14px;padding:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="color:#8b8cff;font-weight:800;font-size:12px">📱 موبایل</span><span style="color:#8b8cff;font-weight:900;font-size:18px">${mob}</span></div>
+        <div style="display:flex;gap:6px"><input id="editMob" type="number" min="0" value="${mob}" style="flex:1;height:40px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.3);color:#fff;padding:0 12px;font-weight:800"><button onclick="setPlayerScore('${p.id}','mobile',parseInt(document.getElementById('editMob').value)||0); closeScoreEditor()" style="height:40px;padding:0 14px;border-radius:10px;border:0;background:#8b8cff;color:#fff;font-weight:900;cursor:pointer">✅ دانان</button></div>
+        <div style="display:flex;gap:4px;margin-top:8px">
+          <button onclick="document.getElementById('editMob').value=Math.max(0,parseInt(document.getElementById('editMob').value||0)-100)" style="flex:1;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:#fff;font-size:11px;cursor:pointer">-100</button>
+          <button onclick="document.getElementById('editMob').value=0" style="flex:1;height:32px;border-radius:8px;border:1px solid rgba(212,16,31,0.3);background:rgba(212,16,31,0.15);color:#ff8a8a;font-size:11px;cursor:pointer">سفر</button>
+          <button onclick="document.getElementById('editMob').value=parseInt(document.getElementById('editMob').value||0)+100" style="flex:1;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:#fff;font-size:11px;cursor:pointer">+100</button>
+        </div>
+      </div>
+      <div style="background:rgba(247,198,0,0.08);border:1.5px solid rgba(247,198,0,0.2);border-radius:14px;padding:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="color:#F7C600;font-weight:800;font-size:12px">🚗 ترومبێل</span><span style="color:#F7C600;font-weight:900;font-size:18px">${car}</span></div>
+        <div style="display:flex;gap:6px"><input id="editCar" type="number" min="0" value="${car}" style="flex:1;height:40px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.3);color:#fff;padding:0 12px;font-weight:800"><button onclick="setPlayerScore('${p.id}','car',parseInt(document.getElementById('editCar').value)||0); closeScoreEditor()" style="height:40px;padding:0 14px;border-radius:10px;border:0;background:#F7C600;color:#000;font-weight:900;cursor:pointer">✅ دانان</button></div>
+        <div style="display:flex;gap:4px;margin-top:8px">
+          <button onclick="document.getElementById('editCar').value=Math.max(0,parseInt(document.getElementById('editCar').value||0)-100)" style="flex:1;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:#fff;font-size:11px;cursor:pointer">-100</button>
+          <button onclick="document.getElementById('editCar').value=0" style="flex:1;height:32px;border-radius:8px;border:1px solid rgba(212,16,31,0.3);background:rgba(212,16,31,0.15);color:#ff8a8a;font-size:11px;cursor:pointer">سفر</button>
+          <button onclick="document.getElementById('editCar').value=parseInt(document.getElementById('editCar').value||0)+100" style="flex:1;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:#fff;font-size:11px;cursor:pointer">+100</button>
+        </div>
+      </div>
+      <button onclick="resetAllScores('${p.id}'); closeScoreEditor()" style="width:100%;height:44px;border-radius:12px;border:1.5px solid rgba(255,184,106,0.3);background:rgba(255,184,106,0.12);color:#ffb86a;font-weight:800;cursor:pointer">🔄 هەمی سکۆران سفر بکە</button>
+    </div>
+  `;
+};
+window.closeScoreEditor = function(){
+  const m = document.getElementById('scoreEditorModal');
+  if(m) m.style.display='none';
+};
 // ===== V12 SECURITY: BLOCK DEVICE SYSTEM =====
 let allBlockedDevices = [];
-
 async function loadBlockedDevices(){
   const listEl = document.getElementById('blockedList');
   const countEl = document.getElementById('blockedCount');
@@ -1147,7 +1293,6 @@ async function loadBlockedDevices(){
     if(listEl) listEl.innerHTML='<div style="color:#ff8a8a;padding:12px">❌ '+e.message+'<br><small>Firestore rules: allow read,write: if true; for blockedDevices</small></div>';
   }
 }
-
 function renderBlockedDevices(){
   const listEl = document.getElementById('blockedList');
   if(!listEl) return;
@@ -1175,7 +1320,6 @@ function renderBlockedDevices(){
     listEl.appendChild(div);
   });
 }
-
 window.manualBlockDevice = async function(){
   const devIdEl = document.getElementById('manualBlockDeviceId');
   const reasonEl = document.getElementById('manualBlockReason');
@@ -1199,7 +1343,6 @@ window.manualBlockDevice = async function(){
     loadBlockedDevices();
   }catch(e){ alert('❌ '+e.message); }
 };
-
 window.unblockDevice = async function(deviceId){
   if(!confirm('دڵنیای دێ ڤی جیهازی ئازاد کەی؟ دێ شێت دیسان یاری بکەت 🔓')) return;
   try{
@@ -1218,7 +1361,6 @@ window.unblockDevice = async function(deviceId){
     alert('✅ جیهاز هاتە ئازاد کرن 🔓');
   }catch(e){ alert('❌ '+e.message); }
 };
-
 window.deleteBlockedDevice = async function(deviceId){
   if(!confirm('ژێبرن؟')) return;
   try{
@@ -1229,7 +1371,6 @@ window.deleteBlockedDevice = async function(deviceId){
     document.getElementById('blockedCountBadge').textContent = allBlockedDevices.length;
   }catch(e){ alert(e.message); }
 };
-
 window.blockPlayerDevice = async function(playerId){
   const player = allPlayers.find(p=>p.id===playerId);
   if(!player){ alert('یاریکەر نەهاتە دیتن'); return; }
@@ -1280,7 +1421,6 @@ window.blockPlayerDevice = async function(playerId){
     renderPlayers(allPlayers);
   }catch(e){ alert('❌ '+e.message); }
 };
-
 window.unblockPlayer = async function(playerId){
   if(!confirm('ئازادکرن؟')) return;
   try{
@@ -1295,7 +1435,6 @@ window.unblockPlayer = async function(playerId){
     alert('✅ ئازاد بوو 🔓');
   }catch(e){ alert(e.message); }
 };
-
 window.filterPlayers = function(){
   const search = document.getElementById('playerSearch').value.toLowerCase();
   const filter = document.getElementById('playerFilter').value;
@@ -1310,10 +1449,11 @@ window.filterPlayers = function(){
   renderPlayers(filtered);
 };
 window.resetPlayer = async function(id, type){
-  if(!confirm(`سفرکرنا ${type} بو ڤی یاریکەری؟`)) return;
+  const typeLabel = type==='free'?'بەلاش 🆓': type==='mobile'?'موبایل 📱':'ترومبێل 🚗';
+  if(!confirm(`دڵنیای دڤێت سکۆرێ ${typeLabel} سفر بکەی؟`)) return;
   try{
     const ref = doc(db,'users',id);
-    if(type==='free') await updateDoc(ref, {bestScoreFree:0, bestScore:0});
+    if(type==='free') await updateDoc(ref, {bestScoreFree:0, bestScore:0, totalPoints:0});
     else if(type==='mobile') await updateDoc(ref, {bestScoreMobile:0});
     else await updateDoc(ref, {bestScoreCar:0});
     const u = allPlayers.find(p=>p.id===id);
@@ -1325,7 +1465,6 @@ window.resetPlayer = async function(id, type){
     renderPlayers(allPlayers);
   }catch(e){ alert(e.message); }
 };
-
 async function loadTransactions(){
   const tbody = document.getElementById('transTable');
   if(!tbody) return;
@@ -1441,7 +1580,6 @@ window.deleteWinner = async function(id){
   if(!confirm('🗑️ دڵنیای دێ ڤی براوەی ژێبەی؟')) return;
   try{ await deleteDoc(doc(db,'winners', id)); alert('✅ ژێبرا'); loadWinners(); }catch(e){ alert('❌ '+e.message); }
 };
-
 window.deleteWinner = async function(id){
   if(!confirm('🗑️ دڵنیای دێ ڤی براوەی ژێبەی؟')) return;
   try{ await deleteDoc(doc(db,'winners', id)); alert('✅ ژێبرا'); loadWinners(); }catch(e){ alert('❌ '+e.message); }
@@ -1459,7 +1597,6 @@ window.deleteAllWinners = async function(){
     setTimeout(()=>{ alert('✅ '+snap.size+' دانە ژێبرا'); loadWinners(); }, 700);
   }catch(e){ alert('❌ '+e.message); }
 };
-
 window.saveSetting
  = async function(type){
   const endInput = document.getElementById(type==='free'?'freeEndInput': type==='mobile'?'mobileEndInput':'carEndInput').value;
@@ -1498,7 +1635,6 @@ window.saveSetting
     alert('✅ هاتە پاشکەفتکرن - قفل: '+(lockCheck?'🔒 قفلە':'🔓 کراوەیە'));
   }catch(e){ alert('❌ '+e.message); }
 };
-
 // ===== SPONSOR & BROADCAST - V12 FULL =====
 let allSponsorsAdmin = [];
 let selectedIconV12 = '📢';
@@ -1508,7 +1644,6 @@ let selectedDirV12 = 'rtl';
 let selectedSecondsV12 = 5;
 let selectedGapV12 = 3;
 let allBroadcastsAdmin = [];
-
 function extractYouTubeIDAdmin(url){
   if(!url) return '';
   const m = url.match(/(?:youtube\.com\/.*v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
@@ -1600,7 +1735,6 @@ window.toggleSponsorAdmin = async function(id){
     renderSponsorsAdmin();
   }catch(e){ alert('❌ '+e.message); }
 };
-
 function initIconsV12(){
   const icons=['📢','🔥','⭐','🎉','⚠️','🏆','💎','🚀','❤️','✨','🎯','💰'];
   const grid=document.getElementById('iconGrid');
@@ -1617,7 +1751,6 @@ function initIconsV12(){
   const sGrid=document.getElementById('styleGrid');
   if(sGrid && !sGrid.dataset.inited){ sGrid.innerHTML=''; styles.forEach(st=>{ const d=document.createElement('div'); d.className='styleOpt '+st.cls+(st.id===selectedStyleV12?' sel':''); d.textContent=st.name; d.dataset.style=st.id; d.onclick=()=>{ selectedStyleV12=st.id; document.querySelectorAll('.styleOpt').forEach(e=>e.classList.remove('sel')); d.classList.add('sel'); updatePreviewV12(); }; sGrid.appendChild(d); }); sGrid.dataset.inited='1'; }
 }
-
 window.selectAnimV12 = function(el){
   document.querySelectorAll('.animOpt').forEach(b=>b.classList.remove('sel'));
   el.classList.add('sel');
@@ -1733,7 +1866,6 @@ window.clearBroadcastV12 = async function(){
     alert('✅ هەمی شریت هاتنە ژێبرن');
   }catch(e){ alert('❌ '+e.message); }
 };
-
 document.addEventListener('DOMContentLoaded', ()=>{
   const input = document.getElementById('broadcastInput');
   if(input){
@@ -1742,10 +1874,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // Init icons after short delay to ensure DOM
   setTimeout(initIconsV12, 300);
 });
-
 function escapeHtml(s){ if(!s) return ''; return s.toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-
 // ===== V13 NEW - SOCIAL ACCOUNTS SYSTEM - 2 BUTTONS =====
 async function loadSocialLinksAdmin(){
   try{
@@ -1774,7 +1903,6 @@ async function loadSocialLinksAdmin(){
     if(statusEl){ statusEl.style.display='block'; statusEl.style.background='rgba(212,16,31,0.15)'; statusEl.style.border='1px solid rgba(212,16,31,0.3)'; statusEl.style.color='#ff8a8a'; statusEl.textContent='❌ هەلە: '+e.message; }
   }
 }
-
 function updateSocialPreview(){
   const tiktok = document.getElementById('tiktokLinkInput')?.value || '';
   const fb = document.getElementById('facebookLinkInput')?.value || '';
@@ -1786,7 +1914,6 @@ function updateSocialPreview(){
   if(pf) pf.textContent = fb ? fb : 'Facebook لینک نەهاتە دانان';
   if(pi) pi.textContent = insta ? insta : 'Instagram لینک نەهاتە دانان';
 }
-
 window.saveSocialLinksAdmin = async function(){
   const tiktok = document.getElementById('tiktokLinkInput').value.trim();
   const facebook = document.getElementById('facebookLinkInput').value.trim();
@@ -1832,14 +1959,12 @@ window.saveSocialLinksAdmin = async function(){
     alert('❌ هەلە: '+e.message);
   }
 };
-
 // Auto update preview on input
 document.addEventListener('input', (e)=>{
   if(['tiktokLinkInput','facebookLinkInput','instagramLinkInput'].includes(e.target.id)){
     updateSocialPreview();
   }
 });
-
 // ===== WINNER DISPLAY - PHONE HIDDEN FROM PUBLIC, VISIBLE TO ADMIN =====
 // Override loadWinners to show phone for admin but note hidden from public
 const originalLoadWinners = window.loadWinners;
@@ -1876,12 +2001,7 @@ window.loadWinners = async function(){
     if(tbody) tbody.innerHTML='<tr><td colspan="7" style="color:#ff8a8a;padding:12px">❌ '+e.message+'</td></tr>';
   }
 };
-
-
-
 init();
-
-
 // ===== V58 FIX - Buttons that were not defined =====
 window.v53EditPlayer = async function(id, username, bio){
   const newName = prompt('ناڤێ نوو (ID و کود ناهێتە گهورین):', username||'');
@@ -1900,9 +2020,6 @@ window.showPlayer = function(id){ const u = (typeof allPlayers!=='undefined' ? a
 window.openShop = function(id){ const s = (typeof allShops!=='undefined' ? allShops.find(x=>x.id===id) : null); if(s) alert('🏪 '+ (s.shopName||id) + '\n👤 ' + (s.ownerName||'')); else if(typeof switchTab==='function') switchTab('shops'); };
 window.loadPlayers = loadPlayers;
 window.loadSocialLinksAdmin = loadSocialLinksAdmin;
-
 </script>
-
 </body>
-
 </html>
