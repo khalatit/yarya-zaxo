@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 10000;
-const DB_FILE = process.env.DB_PATH || (fs.existsSync('/data') ? path.join('/data', 'db.json') : path.join(__dirname, 'db.json'));
+const DB_FILE = path.join(__dirname, 'db.json');
 let db = {};
 try { if(fs.existsSync(DB_FILE)){ db = JSON.parse(fs.readFileSync(DB_FILE,'utf8')); } } catch(e){ console.log('DB load error', e); }
 if(!db.users) db.users = {};
@@ -22,7 +22,7 @@ if(!db.settings) db.settings = {};
 if(!db.leaderboard) db.leaderboard = {};
 
 
-// --- V58: Admin NOT in code - Password from Environment Variable ONLY ---
+// --- V49: Admin NOT in code - Password from Environment Variable ONLY ---
 // Set in Render: Settings -> Environment -> ADMIN_PASSWORD = your secret
 // No hardcoded username/password in code - Safe
 function isAdminRequest(req){
@@ -83,46 +83,7 @@ function getCollection(col){
   }
   return db[col];
 }
-
-// ===== V58 - 1 DEVICE = 1 ACCOUNT - HELPERS =====
-function checkDuplicateName(colName, plain, currentId){
-  if(colName!=='users') return null;
-  const low = (plain.usernameLower || plain.username || '').toString().toLowerCase().trim();
-  if(!low) return null;
-  const col = getCollection('users');
-  for(const k in col){
-    if(currentId && String(k)===String(currentId)) continue;
-    const u = col[k];
-    const uLow = (u.usernameLower || u.username || '').toString().toLowerCase().trim();
-    if(uLow===low) return k;
-  }
-  return null;
-}
-function findAccountByDevice(deviceId){
-  if(!deviceId) return null;
-  const did = String(deviceId).trim();
-  if(!did) return null;
-  const col = getCollection('users');
-  for(const k in col){
-    const u = col[k];
-    if(!u) continue;
-    const last = (u.lastDeviceId||'').toString().trim();
-    const orig = (u.originalDeviceId||'').toString().trim();
-    const acc = (u.accountCreatedDevice||'').toString().trim();
-    const fp = (u.deviceFingerprint||'').toString().trim();
-    const arr = Array.isArray(u.deviceIds) ? u.deviceIds.map(x=>String(x).trim()) : [];
-    if(last===did || orig===did || acc===did || fp===did || arr.includes(did)){
-      return { id: k, ...u };
-    }
-  }
-  return null;
-}
-function extractDeviceIdFromData(d){
-  if(!d) return '';
-  return (d.lastDeviceId || d.deviceId || d.originalDeviceId || d.accountCreatedDevice || d.deviceFingerprint || (Array.isArray(d.deviceIds) && d.deviceIds[0]) || '').toString().trim();
-}
 function docToFirestore(col, id, data){
-
   return { name: `projects/yarya-zaxo/databases/(default)/documents/${col}/${encodeURIComponent(id)}`, fields: toFirestoreFields(data) };
 }
 function matchesFilter(docData, filter){
@@ -150,58 +111,7 @@ function matchesFilter(docData, filter){
   return true;
 }
 
-
-// V58 ADMIN EDIT - Rate Limit + Cheat Check + Admin Protection
-const rateMap = new Map();
-function rateLimit(req,res,next){
-  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
-  const now = Date.now();
-  const key = ip + ':' + (req.path||'');
-  if(!rateMap.has(key)) rateMap.set(key, []);
-  const arr = rateMap.get(key).filter(t=> now - t < 60000);
-  arr.push(now);
-  rateMap.set(key, arr);
-  if(arr.length > 100){
-    return res.status(429).json({error:'RATE_LIMIT', message:'زێدە Request - 5 خولەک چاڤەرێ بکە'});
-  }
-  next();
-}
-// Blocked users map
-const blockedUsers = new Set();
-function checkCheatScore(req,res,next){
-  if(req.method==='PATCH' && req.originalUrl.includes('/api/firestore/users')){
-    try{
-      const fields = req.body.fields || {};
-      const plain = toPlain(fields);
-      delete plain.id; delete plain.code; delete plain.userId;
-      delete plain.privateCode; // V58.1 keep device for new
-      if(req.body.fields){
-        delete req.body.fields.id; delete req.body.fields.code; delete req.body.fields.userId;
-        delete req.body.fields.privateCode;
-      }
-      let curId = null;
-      try{ const ex = extractId(req); curId = ex.id; }catch{}
-      const dupId = checkDuplicateName('users', plain, curId);
-      if(dupId){ return res.status(409).json({error:'DUPLICATE_NAME', message:'ئەڤ ناڤە هەیە - ناڤێ دی بکە - نابیت دوبارە بیت'}); }
-      const newScore = plain.bestScore || plain.bestScoreFree || plain.bestScoreMobile || plain.bestScoreCar || 0;
-      if(newScore > 10000){ return res.status(403).json({error:'CHEAT', message:'سکۆر گومان - Cheat'}); }
-    }catch(e){}
-  }
-  next();
-}
-// rateLimit after json - will be added after express.json
-// V58: Admin API already protected via isAdminRequest - ensure /api/users needs password
-// Also add unblock endpoint
-app.post('/api/unblock/:id', (req,res)=>{
-  if(!isAdminRequest(req)) return res.status(401).json({error:'UNAUTHORIZED'});
-  const id = req.params.id;
-  blockedUsers.delete(id);
-  res.json({ok:true, unblocked:id});
-});
-
 app.use(express.json({limit:'10mb'}));
-app.use(rateLimit);
-app.use(checkCheatScore);
 app.use(express.static(path.join(__dirname,'public')));
 
 // Helper to extract doc ID from original URL safely (handles / ? % chars)
@@ -244,7 +154,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
     const collection = getCollection(col);
     let data = collection[id];
     let foundId = id;
-    // V58 FIX: If not found by ID, search by usernameLower/phoneNumber (for users)
+    // V49 FIX: If not found by ID, search by usernameLower/phoneNumber (for users)
     if(!data && col==='users'){
       const foundKey = Object.keys(collection).find(k=>{
         const u = collection[k];
@@ -258,7 +168,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
       if(foundKey){
         return res.json(docToFirestore(col,foundKey,collection[foundKey]));
       }
-      // V58: For settings docs, return empty 200 instead of 404 - avoids console spam
+      // V49: For settings docs, return empty 200 instead of 404 - avoids console spam
       if(col==='settings' || col==='winners'){
         return res.json({name: `projects/yarya-zaxo/databases/(default)/documents/${col}/${encodeURIComponent(id)}`, fields: {}});
       }
@@ -268,7 +178,7 @@ app.get(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
   }catch(e){ console.error('get doc error', e); res.status(500).json({error:e.message}); }
 });
 
-// POST create - V58 ADMIN EDIT - NO MERGE - SAME NAME FORBIDDEN
+// POST create - V49 ICON FIX - NO MERGE - SAME NAME FORBIDDEN
 app.post('/api/firestore/:col', (req,res)=>{
   try{
     const col = safeDecode(req.params.col);
@@ -286,22 +196,15 @@ app.post('/api/firestore/:col', (req,res)=>{
           console.log(`[STRICT] REJECTED duplicate username: ${low} - QeDexeye!`);
           return res.status(409).json({error:'USERNAME_TAKEN', message:'ئەم ناڤە هاتیە گرتن - قەدەغەیە - ناڤەکێ دی هەلبژێرە'});
         }
-        /* V58: PHONE ALLOWED SHARED - باب و کور/کچ دبێت ١ ژمارا موبایلێ بکاربینن */
-      }
-      // V58: DEVICE CHECK - 1 DEVICE = 1 ACCOUNT
-      const devId = extractDeviceIdFromData(plainData);
-      if(devId){
-        const existing = findAccountByDevice(devId);
-        if(existing){
-          console.log(`[V58] BLOCKED new account on device ${devId} - already has ${existing.username}`);
-          return res.status(409).json({error:'DEVICE_ALREADY_HAS_ACCOUNT', message:'⛔ ئەڤ جیهازە ئەکاونتێ هەیە - ١ جیهاز = ١ ئەکاونت - دێ زڤریتە سەر یا رەسەن', existingId: existing.id, existingUsername: existing.username, existingUsernameLower: existing.usernameLower, existingCode: existing.privateCode || '', existingPhone: existing.phoneNumber || '', existingPhoto: existing.photoBase64 || ''});
+        if(phone && phone.length>=7 && uPhone===phone){
+          console.log(`[STRICT] REJECTED duplicate phone: ${phone}`);
+          return res.status(409).json({error:'PHONE_TAKEN', message:'ئەم ژمارا موبایلێ هاتیە گرتن - قەدەغەیە'});
         }
       }
       // Each account is PRIVATE - Random ID so scores are separate, not shared
       const id = 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
       // Store usernameLower as unique key but keep ID separate - so 1 name cannot be reused
-      const finalDev = extractDeviceIdFromData(plainData) || '';
-      collection[id]= {...plainData, usernameLower: low, lastDeviceId: finalDev, originalDeviceId: finalDev, accountCreatedDevice: finalDev, deviceFingerprint: finalDev, deviceIds: finalDev ? [finalDev] : [], isOriginal: true};
+      collection[id]= {...plainData, usernameLower: low};
       saveDB();
       console.log(`[STRICT] New PRIVATE account: ${low} ID=${id} - Score separate`);
       return res.json(docToFirestore(col,id,collection[id]));
@@ -323,77 +226,10 @@ app.get('/api/check-username/:low', (req,res)=>{
   }catch(e){ res.status(500).json({error:e.message}); }
 });
 
-
-
-// V58.1: Fix missing deviceId
-app.get('/api/fix-missing-device', (req,res)=>{
-  try{
-    const col = getCollection('users');
-    let fixed=0;
-    for(const k in col){
-      const u = col[k];
-      const hasDev = u.lastDeviceId || u.deviceFingerprint || u.originalDeviceId || (Array.isArray(u.deviceIds) && u.deviceIds.length>0 && u.deviceIds[0]);
-      if(!hasDev){ const fb='missing_'+k; u.lastDeviceId=fb; u.originalDeviceId=fb; u.accountCreatedDevice=fb; u.deviceFingerprint=fb; u.deviceIds=[fb]; fixed++; }
-      else { const dev=(u.lastDeviceId||u.deviceFingerprint||u.originalDeviceId||u.deviceIds[0]).toString().trim(); if(dev){ u.lastDeviceId=dev; u.originalDeviceId=u.originalDeviceId||dev; u.accountCreatedDevice=u.accountCreatedDevice||dev; u.deviceFingerprint=u.deviceFingerprint||dev; if(!u.deviceIds||u.deviceIds.length===0) u.deviceIds=[dev]; } }
-    }
-    saveDB(); res.json({ok:true, fixed, total:Object.keys(col).length});
-  }catch(e){ res.status(500).json({error:e.message}); }
-});
-
-// --- V58: DEVICE CHECK - 1 DEVICE = 1 ACCOUNT ---
-app.get('/api/check-device/:deviceId', (req,res)=>{
-  try{
-    const dev = safeDecode(req.params.deviceId).trim();
-    const existing = findAccountByDevice(dev);
-    if(existing){
-      return res.json({hasAccount:true, taken:true, exists:true, user:{id:existing.id, username:existing.username, usernameLower:existing.usernameLower, privateCode:existing.privateCode||'', phoneNumber:existing.phoneNumber||'', photoBase64:existing.photoBase64||'', bio:existing.bio||'', bestScore:existing.bestScore||0, bestScoreFree:existing.bestScoreFree||0, bestScoreMobile:existing.bestScoreMobile||0, bestScoreCar:existing.bestScoreCar||0, deviceIds:existing.deviceIds||[], lastDeviceId:existing.lastDeviceId||'', isAdmin:existing.isAdmin||false}, message:'ئەڤ جیهازە ئەکاونتێ هەیە'});
-    }
-    return res.json({hasAccount:false, taken:false, exists:false});
-  }catch(e){ res.status(500).json({error:e.message}); }
-});
-app.get('/api/device-account/:deviceId', (req,res)=>{
-  try{
-    const dev = safeDecode(req.params.deviceId).trim();
-    const existing = findAccountByDevice(dev);
-    if(!existing) return res.status(404).json({hasAccount:false, message:'ئەڤ جیهازە ئەکاونت نینە'});
-    return res.json({hasAccount:true, user:existing});
-  }catch(e){ res.status(500).json({error:e.message}); }
-});
-app.get('/api/check-phone/:phone', (req,res)=>{
-  return res.json({available:true, taken:false, allowed:true, message:'ژمارا موبایلێ دبێت باب و کور بکاربینن - ئازایە'});
-});
-app.post('/api/rename-account', (req,res)=>{
-  try{
-    const {oldId, oldUsernameLower, newName, newPhone, newBio, newPhoto} = req.body || {};
-    const col = getCollection('users');
-    const searchLow = (oldUsernameLower || oldId || '').toString().toLowerCase().trim();
-    let foundId = null;
-    if(oldId && col[oldId]) foundId = oldId;
-    if(!foundId){ foundId = Object.keys(col).find(k=> (col[k].usernameLower||col[k].username||'').toString().toLowerCase().trim()===searchLow); }
-    if(!foundId) return res.status(404).json({error:'NOT_FOUND', message:'ئەکاونت نەهاتە دیتن'});
-    const user = col[foundId];
-    if(newName && newName.trim()){
-      const newLow = newName.trim().toLowerCase();
-      const oldLow = (user.usernameLower||user.username||'').toString().toLowerCase().trim();
-      if(newLow!==oldLow){
-        const dup = Object.keys(col).find(k=> k!==foundId && (col[k].usernameLower||col[k].username||'').toString().toLowerCase().trim()===newLow);
-        if(dup) return res.status(409).json({error:'USERNAME_TAKEN', message:'ئەڤ ناڤە هاتیە گرتن - قەدەغەیە - ناڤێ دی بکە'});
-        user.username = newName.trim();
-        user.usernameLower = newLow;
-      }
-    }
-    if(newPhone!==undefined) user.phoneNumber = newPhone ? String(newPhone).trim() : user.phoneNumber;
-    if(newBio!==undefined) user.bio = newBio;
-    if(newPhoto) user.photoBase64 = newPhoto;
-    saveDB();
-    return res.json({ok:true, user});
-  }catch(e){ res.status(500).json({error:e.message}); }
-});
-
 // --- V32: PATCH strict - do not allow changing username to taken one ---
 // GET leaderboard - ensure each doc is separate, no merging
 
-// V58 ADMIN EDIT - Direct config endpoint - NO cache - for ALL players
+// V49 ICON FIX - Direct config endpoint - NO cache - for ALL players
 app.get('/api/config', (req,res)=>{
   try{
     const cfg = (db.settings && db.settings.config) || {};
@@ -407,7 +243,7 @@ app.get('/api/config-version', (req,res)=>{
 });
 
 
-// V58 ADMIN EDIT - Force reset ranking + new timer - server side (no batch bug)
+// V49 ICON FIX - Force reset ranking + new timer - server side (no batch bug)
 app.post('/api/reset-ranking/:type', (req,res)=>{
   try{
     const type = req.params.type;
@@ -446,7 +282,7 @@ app.get('/api/leaderboard/:type', (req,res)=>{
 });
 
 
-// V58 ADMIN EDIT - Pick winner = Highest score among ALL users, for ALL rankings
+// V49 ICON FIX - Pick winner = Highest score among ALL users, for ALL rankings
 app.post('/api/pick-winner/:type', (req,res)=>{
   try{
     const type = req.params.type;
@@ -522,22 +358,6 @@ app.patch(/^\/api\/firestore\/([^\/]+)\/(.+)$/, (req,res)=>{
     const collection = getCollection(col);
     const plainData = toPlain(req.body.fields || {});
     if(!collection[id]) collection[id]={};
-    if(col==='users'){ 
-      const isNewUserDoc = !collection[id];
-      const oldUser = collection[id] || {};
-      delete plainData.privateCode; delete plainData.id; delete plainData.code; delete plainData.userId;
-      if(!isNewUserDoc){
-        delete plainData.originalDeviceId; delete plainData.accountCreatedDevice; delete plainData.deviceFingerprint; delete plainData.deviceIds; delete plainData.lastDeviceId;
-        if(oldUser.lastDeviceId) plainData.lastDeviceId = oldUser.lastDeviceId;
-        if(oldUser.originalDeviceId) plainData.originalDeviceId = oldUser.originalDeviceId;
-        if(oldUser.accountCreatedDevice) plainData.accountCreatedDevice = oldUser.accountCreatedDevice;
-        if(oldUser.deviceFingerprint) plainData.deviceFingerprint = oldUser.deviceFingerprint;
-        if(oldUser.deviceIds) plainData.deviceIds = oldUser.deviceIds;
-      } else {
-        const devForNew = extractDeviceIdFromData(plainData) || '';
-        if(devForNew){ plainData.lastDeviceId = devForNew; plainData.originalDeviceId = devForNew; plainData.accountCreatedDevice = devForNew; plainData.deviceFingerprint = devForNew; plainData.deviceIds = [devForNew]; }
-      }
-      const dupId = checkDuplicateName('users', plainData, id); if(dupId){ return res.status(409).json({error:'DUPLICATE_NAME', message:'ئەڤ ناڤە هەیە - نابیت دوبارە بیت'}); } }
     Object.assign(collection[id], plainData);
     if(col==='settings' && id==='config'){ collection[id]._version = (collection[id]._version||0)+1; collection[id]._updatedAt = Date.now(); }
     saveDB();
@@ -599,7 +419,7 @@ app.post('/api/firestore-query', (req,res)=>{
 });
 
 
-// --- V58 ADMIN: List users ---
+// --- V49 ADMIN: List users ---
 app.get('/api/users', (req,res)=>{ if(!isAdminRequest(req)) return res.status(401).json({error:'UNAUTHORIZED', message:'Password پێویستە'});
   try{
     const col = getCollection('users');
@@ -608,7 +428,7 @@ app.get('/api/users', (req,res)=>{ if(!isAdminRequest(req)) return res.status(40
     res.json({users, total: users.length});
   }catch(e){ res.status(500).json({error:e.message}); }
 });
-// --- V58 ADMIN: Set isAdmin ---
+// --- V49 ADMIN: Set isAdmin ---
 app.post('/api/set-admin', (req,res)=>{ if(!isAdminRequest(req)) return res.status(401).json({error:'UNAUTHORIZED', message:'Password پێویستە'});
   try{
     const {usernameLower, isAdmin} = req.body;
@@ -632,7 +452,7 @@ app.get('/api/leaderboard', (req,res)=>{
 app.get('/api/stats', (req,res)=>{
   const users = getCollection('users');
   const winners = getCollection('winners');
-  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V58 ADMIN EDIT URI' });
+  res.json({ totalUsers: Object.keys(users).length, totalWinners: Object.keys(winners).length, hosting:'Render $7 - 512MB - Never sleeps', firebaseCost:0, costReduction:'100% Firebase $0 - Same game!!', version:'V49 ICON FIX URI' });
 });
 app.post('/api/auth', (req,res)=>{
   const {username, phone, password}=req.body;
@@ -665,6 +485,6 @@ app.get('*', (req,res)=>{
   return res.sendFile(path.join(__dirname,'public','index.html'));
 });
 app.listen(PORT, '0.0.0.0', ()=>{
-  console.log('V61 RESTORE-BTN - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
-  console.log(`V61 RESTORE-BTN - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
+  console.log('V49 ICON FIX - YARYA ZAXO - NO FIREBASE - $0 - https://yarya-zaxo.onrender.com');
+  console.log(`V49 ICON FIX - live on ${PORT} - DB collections: ${Object.keys(db).join(', ')}`);
 });
