@@ -45,7 +45,7 @@ html, body { touch-action: manipulation !important; -webkit-touch-callout: none 
 canvas, #gameCanvas { touch-action: none !important; }
 input, textarea { font-size: 16px !important; }
 </style>
-<title>V30 - YARYA ZAXO PRO - هەفرکیا خێزانێ 🏆🐥 - V27 کێم-مەسرەف</title>
+<title>YARYA ZAXO</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@600;800;900&family=Inter:wght@800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -194,6 +194,11 @@ canvas{display:block;touch-action:none}
 .profileWrap{width:100%;max-width:400px;background:linear-gradient(180deg, rgba(22,22,52,0.98), rgba(12,12,32,0.99));border:1px solid rgba(247,198,0,0.2);border-radius:24px;display:flex;flex-direction:column;overflow:hidden;max-height:90dvh}
 .profileHead{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0}
 .profileBody{padding:16px;overflow-y:auto;flex:1;overscroll-behavior:contain}
+
+.profileFooter{position:sticky;bottom:0;background:linear-gradient(180deg, rgba(18,18,42,0.98), rgba(12,12,32,1));padding:12px 16px;border-top:1px solid rgba(247,198,0,0.25);display:flex;gap:10px;z-index:5;flex-shrink:0}
+.profileFooter .btn{flex:1;margin:0}
+.profileFooter .btnCancel{flex:1;height:44px;border-radius:999px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:#fff;font-weight:800;cursor:pointer}
+
 .profileAvatarLarge{width:90px;height:90px;border-radius:50%;overflow:hidden;margin:0 auto 12px;border:3px solid rgba(247,198,0,0.35);display:flex;align-items:center;justify-content:center;background:#1a1a32;cursor:pointer;position:relative}
 .profileAvatarLarge img{width:100%;height:100%;object-fit:cover}
 .profileAvatarLarge:after{content:'📸';position:absolute;bottom:0;right:0;width:28px;height:28px;background:#F7C600;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid #12122a}
@@ -738,7 +743,7 @@ body{
 }
 </style>
 
-</head>
+<style>#leaderboardModal .leaderHead button { width:38px !important; height:38px !important; border-radius:50% !important; background:linear-gradient(135deg,#F7C600,#ffe066) !important; color:#1a1200 !important; font-weight:900 !important; font-size:16px !important; border:2px solid rgba(255,255,255,0.9) !important; box-shadow:0 4px 14px rgba(247,198,0,0.45) !important; display:flex !important; align-items:center !important; justify-content:center !important; margin:0 !important; flex-shrink:0 !important; cursor:pointer !important; } #leaderboardModal .leaderHead { padding:14px 16px !important; gap:10px !important; }</style></head>
 <body>
 <div id="loadingScreen" class="loadingScreen"><div style="color:#fff;font-weight:900;font-size:20px">👨‍👩‍👧‍👦 هەڤرکیا <span style="color:#F7C600">خێزانێ</span></div><div class="spinner"></div><div style="color:rgba(255,255,255,0.3);font-size:11px">MSG SHOW NOW - ULTIMATE FIX</div></div>
 <script>
@@ -806,7 +811,7 @@ setTimeout(()=>{
   <div id="adminSeparator" style="width:1px;height:22px;background:rgba(255,255,255,0.1);margin:0 4px;display:none"></div>
   <button class="iconBtn small fullscreen" onclick="tryAutoFullscreen()" title="فول سکرین">⛶</button>
   <button class="iconBtn small" onclick="openLeaderboard()" style="background:rgba(247,198,0,0.15);border-color:rgba(247,198,0,0.3);color:#F7C600" title="رێزبەندی">🏆</button>
-  <button class="iconBtn small" id="managerBtn" onclick="openManagerModal()" style="background:rgba(0,220,120,0.15);border-color:rgba(0,220,120,0.3);color:#00ff99;display:none" title="دکاندار">🏪</button>
+  <span id="managerBtnPlaceholder"></span>
   <button class="iconBtn small" onclick="openProfile()" style="background:rgba(46,158,68,0.12);border-color:rgba(46,158,68,0.25);color:#00ff88">👤</button>
   </div>
   </div>
@@ -824,12 +829,11 @@ setTimeout(()=>{
       <div id="profilePhoneNumber" style="color:rgba(255,255,255,0.7);font-size:12px;margin-top:4px;direction:ltr">📱 ----</div>
       <div style="color:rgba(255,255,255,0.5);font-size:10px;margin-top:4px">ڤی کودی ب پارێزە - هەر موبایلەکێ کودەکێ جدا هەیە</div>
     </div>
-    <div class="field lockedField"><input id="profileNameInput" placeholder="ناڤ" dir="rtl" readonly disabled><i>👤</i><span class="lockedBadge">🔒 ناگهورە</span></div>
-    <div class="field lockedField"><input id="profilePhoneDisplay" placeholder="📱 ژمارا موبایلێ" dir="rtl" readonly disabled><i>📱</i><span class="lockedBadge">🔒 ناگهورە</span></div>
+    <div class="field"><input id="profileNameInput" placeholder="ناڤ - دشێی بگهوری" dir="rtl"><i>👤</i><span style="color:#00ff99;font-size:10px;font-weight:800">✅ دشێت بگهوریت</span></div>
+    <div class="field"><input id="profilePhoneDisplay" placeholder="📱 ژمارا موبایلێ - دشێی بگهوری" dir="rtl"><i>📱</i><span style="color:#00ff99;font-size:10px;font-weight:800">✅ دشێت بگهوریت</span></div>
     <div class="field textarea"><textarea id="profileBioInput" placeholder="بایۆ..." dir="rtl" maxlength="120"></textarea><i>📝</i></div>
     <div id="profileError" class="err"></div>
-    <button class="btn" id="profileSaveBtn" onclick="saveProfile()">پاشکەوتکرن ✅</button>
-  </div></div></div>
+  </div><div class="profileFooter"><button class="btn" id="profileSaveBtn" onclick="saveProfile()">پاشکەوتکرن ✅</button><button class="btnCancel" onclick="closeProfile()">ژ سەر راکرن ✕</button></div></div></div>
 
   
 <!-- REMOVED friendsModal -->
@@ -6367,7 +6371,7 @@ window.closeIOSModal=closeIOSModal;
 window.showAndroidModal=showAndroidModal;
 window.closeAndroidModal=closeAndroidModal;
 
-window.addEventListener('beforeinstallprompt', (e)=>{
+window.addEventListener('beforeinstallprompt-disabled', (e)=>{
   e.preventDefault();
   deferredPrompt=e;
   console.log('✅ V27 PWA installable - 73% cost saving banner');
@@ -6449,7 +6453,7 @@ window.addEventListener('appinstalled', ()=>{
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('/sw.js?v=v49-icon').then(r=>console.log('✅ SW V27 registered - کێم-مەسرەف', r.scope)).catch(e=>console.log('SW fail', e));
+    // disabled - SIMPLE - navigator.serviceWorker.register('/sw.js?v=v49-icon').then(r=>console.log('✅ SW V27 registered - کێم-مەسرەف', r.scope)).catch(e=>console.log('SW fail', e));
   });
 }
 
@@ -6573,7 +6577,129 @@ console.log('✅ V31 ALL FIXES APPLIED');
 })();
 </script>
 
+
+<script>
+// YARYA ZAXO PLAYER EDIT - Player can change name/mobile/bio, NOT ID/code
+window.YARYA_ZAXO_PLAYER = {
+  async editProfile(){
+    const current = window.currentUser || JSON.parse(localStorage.getItem('yarya_user')||'{}');
+    if(!current.username){ alert('بەرێ خو تومار بکە'); return; }
+    const newName = prompt('ناڤێ نوو (ID و کود ناهێتە گهورین):', current.username);
+    if(newName===null) return;
+    if(newName.trim().toLowerCase()===current.username.toLowerCase()){ alert('ئەڤە هەمان ناڤە'); return; }
+    const newMobile = prompt('ژمارا موبایلێ نوو:', current.mobile||'');
+    const newBio = prompt('بایو نوو:', current.bio||'');
+    const res = await fetch('/api/firestore/users/'+encodeURIComponent(current.id||current.usernameLower), {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({fields:{username:{stringValue:newName}, usernameLower:{stringValue:newName.toLowerCase()}, mobile:{stringValue:newMobile}, bio:{stringValue:newBio}}})
+    });
+    if(res.status===409){ alert('⚠️ ئەڤ ناڤە هەیە! - ناڤێ دی بکە - Blocked'); return; }
+    if(res.ok){ alert('گهورین درست ✅ - ID و کود نەگهورین'); const u = {...current, username:newName, usernameLower:newName.toLowerCase(), mobile:newMobile, bio:newBio}; localStorage.setItem('yarya_user', JSON.stringify(u)); location.reload(); }
+    else { alert('نەبوو ❌'); }
+  }
+};
+</script>
+
+<script>
+// ===== V9 STRICT SHOP FIX - from ORIGINAL - no duplicate buttons =====
+(function(){
+  window.__SHOP_VERIFIED = false;
+  window.__SHOP_CHECK_DONE = false;
+  window.checkShopkeeperStrict = async function(){
+    try{
+      var cu = window.currentUser || (typeof currentUser !== 'undefined' ? currentUser : null);
+      if(!cu || !cu.usernameLower) { window.__SHOP_VERIFIED=false; window.__SHOP_CHECK_DONE=true; window.updateManagerBtnVisibilityStrict(); return false; }
+      if(cu.isManager===true || cu.isShopkeeper===true) { window.__SHOP_VERIFIED=true; window.__SHOP_CHECK_DONE=true; window.updateManagerBtnVisibilityStrict(); return true; }
+      var r = (cu.role||'').toString().toLowerCase();
+      if(r==='manager' || r==='admin' || r==='owner') { window.__SHOP_VERIFIED=true; window.__SHOP_CHECK_DONE=true; window.updateManagerBtnVisibilityStrict(); return true; }
+      try{
+        var qUrl = '/api/firestore/shopkeepers?key=' + (window.firebaseConfig && window.firebaseConfig.apiKey || '');
+        var res = await fetch(qUrl);
+        var data = await res.json();
+        var docs = (data && data.documents) || [];
+        var found = docs.some(function(d){
+          var f = d.fields||{};
+          var u = (f.username && f.username.stringValue || '').toLowerCase();
+          var un = (f.usernameLower && f.usernameLower.stringValue || '').toLowerCase();
+          return u===cu.usernameLower || un===cu.usernameLower;
+        });
+        window.__SHOP_VERIFIED = !!found;
+        window.__SHOP_CHECK_DONE = true;
+        window.updateManagerBtnVisibilityStrict();
+        return found;
+      }catch(e){ window.__SHOP_VERIFIED=false; window.__SHOP_CHECK_DONE=true; window.updateManagerBtnVisibilityStrict(); return false; }
+    }catch(e){ window.__SHOP_VERIFIED=false; window.__SHOP_CHECK_DONE=true; window.updateManagerBtnVisibilityStrict(); return false; }
+  };
+  window.updateManagerBtnVisibilityStrict = function(){
+    try{
+      var ph = document.getElementById('managerBtnPlaceholder');
+      var btn = document.getElementById('managerBtn');
+      if(window.__SHOP_VERIFIED===true){
+        if(!btn && ph){
+          btn = document.createElement('button');
+          btn.id='managerBtn'; btn.className='iconBtn small is-shopkeeper';
+          btn.style.cssText='background:rgba(0,220,120,0.15);border-color:rgba(0,220,120,0.3);color:#00ff99;display:flex';
+          btn.title='دکاندار'; btn.textContent='🏪';
+          btn.onclick = function(){ window.openManagerModal(); };
+          ph.replaceWith(btn);
+        } else if(btn){
+          btn.classList.add('is-shopkeeper'); btn.style.setProperty('display','flex','important'); btn.style.visibility='visible';
+        }
+      } else {
+        if(btn) btn.remove();
+        var modal = document.getElementById('managerModal');
+        if(modal && modal.classList.contains('show') && window.__SHOP_CHECK_DONE){ modal.classList.remove('show'); }
+        // Remove duplicates
+        try{
+          var all = document.querySelectorAll('button[onclick*="openManagerModal"], button[title="دکاندار"]');
+          all.forEach(function(b){ try{ b.remove(); }catch(e){} });
+        }catch(e){}
+      }
+    }catch(e){}
+  };
+  window.updateManagerBtnVisibility = window.updateManagerBtnVisibilityStrict;
+  window.checkShopkeeperInFirestore = window.checkShopkeeperStrict;
+  var _origOpen = window.openManagerModal;
+  window.openManagerModal = async function(){
+    var verified = window.__SHOP_VERIFIED;
+    if(!window.__SHOP_CHECK_DONE || verified!==true){ verified = await window.checkShopkeeperStrict(); }
+    if(!verified){
+      try{ alert('⛔ تەنێ دکاندار دشێت ڤێ پانێلێ ڤەکەت'); }catch(e){}
+      window.updateManagerBtnVisibilityStrict();
+      var m = document.getElementById('managerModal'); if(m) m.classList.remove('show');
+      return;
+    }
+    try{ var modal = document.getElementById('managerModal'); if(!modal) return; modal.classList.add('show'); var info = document.getElementById('myShopInfo'); if(info) info.innerHTML='⏳ بار دبیت...'; if(typeof loadMyShopInfoNew==='function') await loadMyShopInfoNew(); if(typeof loadMySalesListNew==='function') loadMySalesListNew(); }catch(e){}
+  };
+  try{
+    var _obs = new MutationObserver(function(){
+      if(window.__SHOP_VERIFIED!==true && window.__SHOP_CHECK_DONE){
+        var mm = document.getElementById('managerModal');
+        if(mm && mm.classList.contains('show')) mm.classList.remove('show');
+      }
+      window.updateManagerBtnVisibilityStrict();
+    });
+    document.addEventListener('DOMContentLoaded', function(){
+      var mm = document.getElementById('managerModal');
+      if(mm) _obs.observe(mm, {attributes:true, attributeFilter:['class']});
+    });
+    setTimeout(function(){ var mm2 = document.getElementById('managerModal'); if(mm2) _obs.observe(mm2, {attributes:true, attributeFilter:['class']}); }, 2000);
+  }catch(e){}
+  setInterval(function(){
+    try{
+      if(window.__SHOP_VERIFIED!==true){
+        var all = document.querySelectorAll('#managerBtn, button[onclick*="openManagerModal"]');
+        all.forEach(function(b){ try{ b.remove(); }catch(e){} });
+      }
+    }catch(e){}
+  }, 1000);
+  setInterval(function(){ window.checkShopkeeperStrict(); }, 5000);
+  setTimeout(function(){ window.checkShopkeeperStrict(); }, 1000);
+})();
+</script>
 </body>
+
 
 
 <script>

@@ -1,12 +1,15 @@
-
 {
-  "name": "yarya-zaxo-render-only",
-  "version": "1.0.0",
+  "name": "yarya-zaxo",
+  "version": "57.0.0",
+  "description": "YARYA ZAXO SIMPLE - No PWA popup, Simple title",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
