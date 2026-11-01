@@ -39,6 +39,34 @@ canvas, #gameCanvas { touch-action: none !important; }
 input, textarea { font-size: 16px !important; }
 </style>
 <title>YARYA ZAXO PRO - هەفرکیا خێزانێ 🏆🐥 - V27 کێم-مەسرەف</title>
+
+<script>
+// GLOBAL switchTab for inline onclick - must be before HTML
+function switchTab(tab){
+  try{
+    window.currentTab = tab;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    const el1 = document.getElementById('tab'+tab.charAt(0).toUpperCase()+tab.slice(1));
+    const el2 = document.getElementById('tabLogin');
+    const el3 = document.getElementById('tabRegister');
+    if(tab==='login' && el2) el2.classList.add('active');
+    if(tab==='register' && el3) el3.classList.add('active');
+    // Show/hide fields
+    const phoneRow = document.getElementById('phoneRow');
+    const photoRow = document.getElementById('photoRow');
+    const bioRow = document.getElementById('bioRow');
+    if(phoneRow) phoneRow.style.display = tab==='register' ? 'block' : 'none';
+    if(photoRow) photoRow.style.display = tab==='register' ? 'flex' : 'none';
+    if(bioRow) bioRow.style.display = tab==='register' ? 'block' : 'none';
+    const mainBtn = document.getElementById('mainBtn');
+    if(mainBtn) mainBtn.textContent = tab==='login' ? 'چوونەژوور' : 'تۆمارکرن';
+    console.log('Switched to', tab);
+  }catch(e){ console.log('switchTab error', e); }
+}
+window.switchTab = switchTab;
+console.log('✅ switchTab global ready');
+</script>
+
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@600;800;900&family=Inter:wght@800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
