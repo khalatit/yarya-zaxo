@@ -1,24 +1,15 @@
 {
-  "id": "/",
-  "name": "YARYA ZAXO PRO",
+  "name": "YARYA ZAXO - یاریا زاخۆ",
   "short_name": "YARYA ZAXO",
-  "description": "یاریا خێزانی - چیچک د کاسا سەرکەفتنێ دا 🏆🐥 - V27 کێم-مەسرەف",
-  "start_url": "/",
+  "description": "YARYA ZAXO PRO - یاریا زاخۆ - بەلاش، موبایل، ترومبێل",
+  "start_url": "/?utm_source=pwa",
   "scope": "/",
   "display": "standalone",
-  "display_override": [
-    "standalone",
-    "minimal-ui"
-  ],
-  "orientation": "any",
-  "background_color": "#070a1a",
+  "orientation": "portrait",
+  "background_color": "#0a0a0f",
   "theme_color": "#F7C600",
   "lang": "ku",
   "dir": "rtl",
-  "categories": [
-    "games",
-    "entertainment"
-  ],
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
@@ -51,16 +42,10 @@
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-180x180.png",
-      "sizes": "180x180",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
       "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-384x384.png",
