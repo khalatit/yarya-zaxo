@@ -1747,45 +1747,34 @@ function startGlobalListeners(){
   }catch(e){ console.error('Failed to start global listeners', e); }
 }
 
+
+
 async function pollBroadcastsFallback(){
   try{
-    const sb = window.supabaseClient || (window.supabase ? window.supabase.createClient('https://blrubofyabwgwdkefamm.supabase.co', 'sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN') : null);
+    const sb = window.supabaseClient;
     if(!sb) return;
     const { data } = await sb.from('broadcasts').select('*').eq('enabled', true).order('ts', {ascending:true});
-    if(data & data.length>0){
+    if(data && data.length>0){
       const queue = data.map(d => ({ id:d.id, text:d.text||'', icon:d.icon||'📢', style:d.style||'gold', anim:d.anim||'marquee', dir:d.dir||'rtl', seconds:d.seconds||5, gap:d.gap||3, enabled:d.enabled!==false, ts:d.ts||0 }));
       if(window.saveBroadcastQueue) saveBroadcastQueue(queue);
       if(window.startBroadcastRotation) startBroadcastRotation();
       if(window.renderBroadcastQueueList) renderBroadcastQueueList();
     }
-  }catch(e){ console.log('pollBroadcasts', e); }
+  }catch(e){}
 }
 async function pollSponsorsFallback(){
   try{
-    const sb = window.supabaseClient || (window.supabase ? window.supabase.createClient('https://blrubofyabwgwdkefamm.supabase.co', 'sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN') : null);
+    const sb = window.supabaseClient;
     if(!sb){ if(window.renderSponsors) renderSponsors(); return; }
     const { data } = await sb.from('sponsors').select('*').eq('active', true).order('ts', {ascending:true});
-    if(data & data.length>0){ localStorage.setItem('msg_show_sponsors_v2', JSON.stringify(data)); if(window.renderSponsors) renderSponsors(); }
+    if(data && data.length>0){ localStorage.setItem('msg_show_sponsors_v2', JSON.stringify(data)); if(window.renderSponsors) renderSponsors(); }
     else { if(window.renderSponsors) renderSponsors(); }
   }catch(e){ if(window.renderSponsors) renderSponsors(); }
 }
 
-async function pollSponsorsFallback(){ return; // SUPABASE DISABLED
-async function _pollSponsorsFallback_DISABLED(){
-  try{
-    const res = await fetch(`${DOCS_URL}/sponsors`);
-    if(!res.ok){ console.log('sponsor poll fail', res.status); renderSponsors(); return; }
-    const data = await res.json();
-    if(!data.documents){ console.log('sponsor poll no docs - using defaults'); renderSponsors(); return; }
-    const arr = data.documents.map(d=>{
-      const f=d.fields||{}; const getStr=(f,k)=>f[k]?.stringValue||''; const getInt=(f,k)=>parseInt(f[k]?.integerValue||'0');
-      return {id: d.name.split('/').pop(), name:getStr(f,'name'), youtubeId:getStr(f,'youtubeId'), mp4Url:getStr(f,'mp4Url')||getStr(f,'videoUrl')||'', link:getStr(f,'link'), seconds:getInt(f,'seconds')||15, reward:getStr(f,'reward')||'بەردەوام بە', active:f.active?.booleanValue!==false, views:getInt(f,'views'), ts:getInt(f,'ts')||0};
-    }).filter(x=>x.name & (x.youtubeId || x.mp4Url));
-    arr.sort((a,b)=>(a.ts||0)-(b.ts||0));
-    if(arr.length>0){ console.log('💰 Sponsor poll found', arr.length); localStorage.setItem('msg_show_sponsors_v2', JSON.stringify(arr)); renderSponsors(); }
-    else { console.log('sponsor poll empty - using defaults'); renderSponsors(); }
-  }catch(e){ console.log('sponsor poll error', e); renderSponsors(); }
-}
+
+
+
 
 
 // SUPABASE FIXED - 'https://blrubofyabwgwdkefamm.supabase.co/rest/v1/users' removed
@@ -2303,7 +2292,7 @@ async function fetchAllData(){
   }
   updateBadges();
 }
-async function fetchAllUsers(){try{const res=await fetch(`${DOCS_URL}/users&pageSize=50`);if(!res.ok) return;const data=await res.json();if(!data.documents) return;allUsersCache=data.documents.map(d=>parseUserDoc(d)).filter(Boolean);}catch{}}
+async function fetchAllUsers(){ try{ const sb=window.supabaseClient; if(!sb) return; const {data}=await sb.from('users').select('*').limit(200); if(data) allUsersCache=data.map(r=>({username:r.username, docId:r.id, bestScore:r.best_score, bestScoreFree:r.best_score_free, bestScoreMobile:r.best_score_mobile, bestScoreCar:r.best_score_car, photoBase64:r.photo_base64, bio:r.bio})).filter(Boolean); }catch(e){} }
 async function fetchPendingRequests(){
   if(!currentUser) return;
   const results=await firestoreQuerySimple('friendRequests','toId',currentUser.usernameLower,20);
@@ -2364,8 +2353,8 @@ async function sendFriendRequest(toId){
   const docId=`${currentUser.usernameLower}_${toId}`;
   const reverseId=`${toId}_${currentUser.usernameLower}`;
   try{
-    const existing=await fetch(`${DOCS_URL}/friendRequests/${docId}`);
-    const existing2=await fetch(`${DOCS_URL}/friendRequests/${reverseId}`);
+    const existing=await fetch(`${DOCS_URL}/friendRequests/${docId}`, { headers: { 'apikey':'sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN', 'Authorization':'Bearer sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN' } });
+    const existing2=await fetch(`${DOCS_URL}/friendRequests/${reverseId}`, { headers: { 'apikey':'sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN', 'Authorization':'Bearer sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN' } });
     if(existing.ok || existing2.ok){alert('داخوازی هەیە');return;}
   }catch{}
   const fields={fromId:{stringValue:currentUser.usernameLower},fromName:{stringValue:currentUser.username},fromPhoto:{stringValue:currentUser.photoBase64||''},fromBio:{stringValue:currentUser.bio||''},toId:{stringValue:toId},toName:{stringValue:user.username},toPhoto:{stringValue:user.photoBase64||''},toBio:{stringValue:user.bio||''},status:{stringValue:'pending'},createdAt:{timestampValue:new Date().toISOString()}};
@@ -3164,7 +3153,7 @@ tryAutoLogin();
 
 async function fetchLeaderboard(){
   try{
-    const res=await fetch(`${DOCS_URL}/users&pageSize=10`);
+    const res=await fetch(`${DOCS_URL}/users?pageSize=10`, { headers: { 'apikey':'sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN', 'Authorization':'Bearer sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN' } });
     const data=await res.json();if(!data.documents) return [];
     const results=data.documents.map(d=>parseUserDoc(d)).filter(Boolean);
     results.sort((a,b)=>b.bestScore-a.bestScore);
@@ -5288,10 +5277,11 @@ async function fetchLeaderboardSeparate(type){
       }catch(e){ console.log('V31 SDK fetch error, fallback REST', e); }
     }
     // Fallback REST
-    const res = await fetch(`${DOCS_URL}/users&pageSize=200`);
-    const data = await res.json();
-    if(!data.documents) return [];
-    let results = data.documents.map(d=>parseUserDoc(d)).filter(Boolean);
+    const sb = window.supabaseClient;
+    if(!sb) return [];
+    const { data: supData } = await sb.from('users').select('*').limit(200);
+    if(!supData) return [];
+    let results = supData.map(r=>({username:r.username, docId:r.id, bestScore:r.best_score, bestScoreFree:r.best_score_free, bestScoreMobile:r.best_score_mobile, bestScoreCar:r.best_score_car, photoBase64:r.photo_base64, bio:r.bio})).filter(Boolean);
     if(type==='free'){
       results = results.filter(u=> (u.bestScoreFree||u.bestScore||0) > 0);
       results.sort((a,b)=> (b.bestScoreFree||b.bestScore||0) - (a.bestScoreFree||a.bestScore||0));
@@ -6217,46 +6207,7 @@ async function loadLeaderboardDataSeparate(type){
     list.innerHTML = playBtn + '<div style="color:#ff8a8a">❌ '+e.message+'</div>';
   }
 }
-async function fetchLeaderboardSeparate(type){
-  try{
-    const res = await fetch(`${DOCS_URL}/users&pageSize=200`);
-    const data = await res.json();
-    if(!data.documents) return [];
-    let results = data.documents.map(d=>parseUserDoc(d)).filter(Boolean);
-    if(type==='free'){
-      results = results.filter(u=> (u.bestScoreFree||u.bestScore||0) > 0);
-      results.sort((a,b)=> (b.bestScoreFree||b.bestScore||0) - (a.bestScoreFree||a.bestScore||0));
-      return results.slice(0,50).map(p=>({name:p.username||p.docId||'—',photo:p.photoBase64||'',score:p.bestScoreFree||p.bestScore||0,bio:p.bio||''}));
-    }else if(type==='mobile'){
-      results = results.filter(u=> u.unlockedMobile);
-      results.sort((a,b)=> (b.bestScoreMobile||0) - (a.bestScoreMobile||0));
-      return results.slice(0,50).map(p=>({name:p.username||p.docId||'—',photo:p.photoBase64||'',score:p.bestScoreMobile||0,bio:p.bio||''}));
-    }else{
-      results = results.filter(u=> u.unlockedCar);
-      results.sort((a,b)=> (b.bestScoreCar||0) - (a.bestScoreCar||0));
-      return results.slice(0,50).map(p=>({name:p.username||p.docId||'—',photo:p.photoBase64||'',score:p.bestScoreCar||0,bio:p.bio||''}));
-    }
-  }catch(e){ return []; }
-}
-function renderLbListSeparate(paneId,data,type){
-  const list = document.getElementById(paneId);
-  if(!list) return;
-  const playBtn = `<div style="text-align:center;margin-bottom:10px"><button onclick="playRanking('${type}')" style="width:100%;height:48px;border-radius:12px;border:0;background:${type==='free'?'#00ff88':type==='mobile'?'#6a6aff':'#F7C600'};color:${type==='mobile'?'#fff':'#000'};font-weight:900;font-size:14px;cursor:pointer">▶️ پلای ل ${type==='free'?'بەلاش - 100$':type==='mobile'?'موبایل - 5000':'ترومبێل - 10000'} - سکۆر جودا</button><div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:6px">سکۆرێ هەرسێکان ژێک جودایە - هەر رێزبەندیەک ژ سفرێ</div></div>`;
-  if(!data||data.length===0){
-    list.innerHTML = playBtn + '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.4)">هیچ نینە - یەکەم کەس بە تو - ژ سفرێ 🏆</div>';
-    return;
-  }
-  list.innerHTML = playBtn;
-  data.forEach((u,i)=>{
-    const row=document.createElement('div');
-    row.className='leaderRow '+(i===0?'gold':'');
-    const photo = u.photo ? `<img src="${u.photo}" alt="">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#5B5CFF;color:#fff;font-weight:800">${(u.name||'?').charAt(0).toUpperCase()}</div>`;
-    const bioHtml = u.bio ? `<div class="leaderBio">📝 ${window.escapeHtml(u.bio)}</div>` : `<div class="leaderBio empty">بێ بایۆ</div>`;
-    row.innerHTML=`<div class="rank">${i+1}</div><div class="leaderAvatar">${photo}</div><div class="leaderInfo"><div class="leaderName">${window.escapeHtml(u.name)}</div>${bioHtml}</div><div class="leaderScore" style="color:${type==='free'?'#00ff88':type==='mobile'?'#8b8cff':'#F7C600'}">${u.score||0}</div>`;
-    list.appendChild(row);
-  });
-}
-window.fetchLeaderboard = async function(){ return await fetchLeaderboardSeparate('free'); };
+async function(){ return await fetchLeaderboardSeparate('free'); };
 console.log('✅ FINAL FIX - Separate scores + Play button in each ranking - DONE');
 
 </script>
@@ -7229,11 +7180,11 @@ async function fetchLatestWinnerFromFirestoreWithMode(){
             }
           }
         }
-      }
     }catch(e){}
   }catch(e){}
   return null;
 }
+
 
 async function loadWinnersHistoryForPlayers(){
   try{
