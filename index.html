@@ -1706,9 +1706,10 @@ function startGlobalListeners(){
     console.log('✅ Global listeners started for ALL users');
   }catch(e){ console.error('Failed to start global listeners', e); }
 }
-async function pollBroadcastsFallback(){
+async function pollBroadcastsFallback(){ return; /* SUPABASE - disabled for 50K */
+  const _disabled = async function _pollBroadcastsFallback_DISABLED(){
   try{
-    const res = await fetch(`${DOCS_URL}/broadcasts?key=${firebaseConfig.apiKey}`);
+    const res = await fetch(`${DOCS_URL}/broadcasts?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`);
     if(!res.ok){ console.log('broadcast poll fail status', res.status); return; }
     const data = await res.json();
     if(!data.documents){ console.log('broadcast poll no docs'); return; }
@@ -1720,9 +1721,10 @@ async function pollBroadcastsFallback(){
     if(queue.length>0){ console.log('📢 Broadcast poll found', queue.length); saveBroadcastQueue(queue); startBroadcastRotation(); renderBroadcastQueueList(); }
   }catch(e){ console.log('broadcast poll error', e); }
 }
-async function pollSponsorsFallback(){
+async function pollSponsorsFallback(){ return; /* SUPABASE - disabled for 50K */
+  const _disabled2 = async function _pollSponsorsFallback_DISABLED(){
   try{
-    const res = await fetch(`${DOCS_URL}/sponsors?key=${firebaseConfig.apiKey}`);
+    const res = await fetch(`${DOCS_URL}/sponsors?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`);
     if(!res.ok){ console.log('sponsor poll fail', res.status); renderSponsors(); return; }
     const data = await res.json();
     if(!data.documents){ console.log('sponsor poll no docs - using defaults'); renderSponsors(); return; }
@@ -1737,9 +1739,10 @@ async function pollSponsorsFallback(){
 }
 
 
-const DOCS_URL=`https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents`;
-const QUERY_URL=`https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents:runQuery?key=${firebaseConfig.apiKey}`;
+const DOCS_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1`; // SUPABASE - Firebase removed
+const QUERY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1`; // SUPABASE
 
+function switchTab(tab){ currentTab=tab; document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); const el=document.querySelector(`[data-tab='${tab}']`); if(el) el.classList.add('active'); console.log('Switched to', tab); }
 let currentTab='login',photoBase64='',currentUser = null,profilePhotoBase64='';
   window.currentUser = currentUser;
 let currentChatFriend=null, replyToMessage=null, typingTimeout=null, lastTypingState=false;
@@ -1821,7 +1824,7 @@ async function fetchUserById(id){
   try{
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),10000);
-    const r=await fetch(`${DOCS_URL}/users/${encodeURIComponent(id)}?key=${firebaseConfig.apiKey}`,{signal:controller.signal});
+    const r=await fetch(`${DOCS_URL}/users/${encodeURIComponent(id)}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`,{signal:controller.signal});
     clearTimeout(timeout);
     if(r.status===404) return null;
     if(!r.ok) return null;
@@ -1829,7 +1832,7 @@ async function fetchUserById(id){
     return parseUserDoc(d);
   }catch(e){ return null; }
 }
-async function saveUser(id,obj){const fields={};if(obj.username) fields.username={stringValue:obj.username};if(obj.usernameLower) fields.usernameLower={stringValue:obj.usernameLower};if(obj.password) fields.password={stringValue:obj.password};if(obj.photoBase64) fields.photoBase64={stringValue:obj.photoBase64};if(typeof obj.bestScore==='number') fields.bestScore={integerValue:obj.bestScore.toString()};if(typeof obj.bestScoreFree==='number') fields.bestScoreFree={integerValue:obj.bestScoreFree.toString()};if(typeof obj.bestScoreMobile==='number') fields.bestScoreMobile={integerValue:obj.bestScoreMobile.toString()};if(typeof obj.bestScoreCar==='number') fields.bestScoreCar={integerValue:obj.bestScoreCar.toString()};if(typeof obj.unlockedMobile==='boolean') fields.unlockedMobile={booleanValue:obj.unlockedMobile};if(typeof obj.unlockedCar==='boolean') fields.unlockedCar={booleanValue:obj.unlockedCar};if(obj.deviceIds) fields.deviceIds={arrayValue:{values:obj.deviceIds.map(v=>({stringValue:v}))}};if(obj.bio!==undefined) fields.bio={stringValue:obj.bio||''};if(obj.phoneNumber) fields.phoneNumber={stringValue:obj.phoneNumber};if(obj.privateCode) fields.privateCode={stringValue:obj.privateCode};fields.updatedAt={timestampValue:new Date().toISOString()};if(obj.isNew) fields.createdAt={timestampValue:new Date().toISOString()};const mask=Object.keys(fields).map(f=>`updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');const url=`${DOCS_URL}/users/${encodeURIComponent(id)}?key=${firebaseConfig.apiKey}&${mask}`;const r=await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});if(!r.ok){const t=await r.text();console.log('save fail',t);throw new Error('save failed');}}
+async function saveUser(id,obj){const fields={};if(obj.username) fields.username={stringValue:obj.username};if(obj.usernameLower) fields.usernameLower={stringValue:obj.usernameLower};if(obj.password) fields.password={stringValue:obj.password};if(obj.photoBase64) fields.photoBase64={stringValue:obj.photoBase64};if(typeof obj.bestScore==='number') fields.bestScore={integerValue:obj.bestScore.toString()};if(typeof obj.bestScoreFree==='number') fields.bestScoreFree={integerValue:obj.bestScoreFree.toString()};if(typeof obj.bestScoreMobile==='number') fields.bestScoreMobile={integerValue:obj.bestScoreMobile.toString()};if(typeof obj.bestScoreCar==='number') fields.bestScoreCar={integerValue:obj.bestScoreCar.toString()};if(typeof obj.unlockedMobile==='boolean') fields.unlockedMobile={booleanValue:obj.unlockedMobile};if(typeof obj.unlockedCar==='boolean') fields.unlockedCar={booleanValue:obj.unlockedCar};if(obj.deviceIds) fields.deviceIds={arrayValue:{values:obj.deviceIds.map(v=>({stringValue:v}))}};if(obj.bio!==undefined) fields.bio={stringValue:obj.bio||''};if(obj.phoneNumber) fields.phoneNumber={stringValue:obj.phoneNumber};if(obj.privateCode) fields.privateCode={stringValue:obj.privateCode};fields.updatedAt={timestampValue:new Date().toISOString()};if(obj.isNew) fields.createdAt={timestampValue:new Date().toISOString()};const mask=Object.keys(fields).map(f=>`updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');const url=`${DOCS_URL}/users/${encodeURIComponent(id)}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&${mask}`;const r=await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});if(!r.ok){const t=await r.text();console.log('save fail',t);throw new Error('save failed');}}
 async function firestoreQuerySimple(collectionId, field, value, limitN=50){
   try{
     const structuredQuery={from:[{collectionId}],where:{fieldFilter:{field:{fieldPath:field},op:'EQUAL',value:{stringValue:value}}},limit:limitN};
@@ -1839,8 +1842,8 @@ async function firestoreQuerySimple(collectionId, field, value, limitN=50){
     return data.filter(d=>d.document).map(d=>({id:d.document.name.split('/').pop(), fields:d.document.fields}));
   }catch{return [];}
 }
-async function createDoc(collectionId, docId, fields){const mask=Object.keys(fields).map(f=>`updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');const url=`${DOCS_URL}/${collectionId}/${encodeURIComponent(docId)}?key=${firebaseConfig.apiKey}&${mask}`;const r=await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});return r.ok;}
-async function createDocAuto(collectionId, fields){const url=`${DOCS_URL}/${collectionId}?key=${firebaseConfig.apiKey}`;const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});if(!r.ok){const t=await r.text();console.log('create fail',t);return null;}const data=await r.json();return data.name.split('/').pop();}
+async function createDoc(collectionId, docId, fields){const mask=Object.keys(fields).map(f=>`updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');const url=`${DOCS_URL}/${collectionId}/${encodeURIComponent(docId)}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&${mask}`;const r=await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});return r.ok;}
+async function createDocAuto(collectionId, fields){const url=`${DOCS_URL}/${collectionId}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`;const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});if(!r.ok){const t=await r.text();console.log('create fail',t);return null;}const data=await r.json();return data.name.split('/').pop();}
 function getChatId(id1,id2){return [id1,id2].sort().join('_');}
 
 window.tryAutoFullscreen=async function(){
@@ -2187,7 +2190,7 @@ async function fetchAllData(){
   }
   updateBadges();
 }
-async function fetchAllUsers(){try{const res=await fetch(`${DOCS_URL}/users?key=${firebaseConfig.apiKey}&pageSize=50`);if(!res.ok) return;const data=await res.json();if(!data.documents) return;allUsersCache=data.documents.map(d=>parseUserDoc(d)).filter(Boolean);}catch{}}
+async function fetchAllUsers(){try{const res=await fetch(`${DOCS_URL}/users?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&pageSize=50`);if(!res.ok) return;const data=await res.json();if(!data.documents) return;allUsersCache=data.documents.map(d=>parseUserDoc(d)).filter(Boolean);}catch{}}
 async function fetchPendingRequests(){
   if(!currentUser) return;
   const results=await firestoreQuerySimple('friendRequests','toId',currentUser.usernameLower,20);
@@ -2248,8 +2251,8 @@ async function sendFriendRequest(toId){
   const docId=`${currentUser.usernameLower}_${toId}`;
   const reverseId=`${toId}_${currentUser.usernameLower}`;
   try{
-    const existing=await fetch(`${DOCS_URL}/friendRequests/${docId}?key=${firebaseConfig.apiKey}`);
-    const existing2=await fetch(`${DOCS_URL}/friendRequests/${reverseId}?key=${firebaseConfig.apiKey}`);
+    const existing=await fetch(`${DOCS_URL}/friendRequests/${docId}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`);
+    const existing2=await fetch(`${DOCS_URL}/friendRequests/${reverseId}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`);
     if(existing.ok || existing2.ok){alert('داخوازی هەیە');return;}
   }catch{}
   const fields={fromId:{stringValue:currentUser.usernameLower},fromName:{stringValue:currentUser.username},fromPhoto:{stringValue:currentUser.photoBase64||''},fromBio:{stringValue:currentUser.bio||''},toId:{stringValue:toId},toName:{stringValue:user.username},toPhoto:{stringValue:user.photoBase64||''},toBio:{stringValue:user.bio||''},status:{stringValue:'pending'},createdAt:{timestampValue:new Date().toISOString()}};
@@ -2279,7 +2282,7 @@ async function acceptRequest(id){
   const req=pendingRequests.find(r=>r.id===id);
   const fields={status:{stringValue:'accepted'},updatedAt:{timestampValue:new Date().toISOString()}};
   const mask=`updateMask.fieldPaths=status&updateMask.fieldPaths=updatedAt`;
-  const url=`${DOCS_URL}/friendRequests/${encodeURIComponent(id)}?key=${firebaseConfig.apiKey}&${mask}`;
+  const url=`${DOCS_URL}/friendRequests/${encodeURIComponent(id)}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&${mask}`;
   const r=await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});
   if(r.ok){
     try{soundMgr.success();}catch{}
@@ -2298,7 +2301,7 @@ async function acceptRequest(id){
     await fetchAllData();renderRequestsTab();window.switchFriendsTab('friends');
   }
 }
-async function rejectRequest(id){const url=`${DOCS_URL}/friendRequests/${encodeURIComponent(id)}?key=${firebaseConfig.apiKey}`;await fetch(url,{method:'DELETE'});await fetchPendingRequests();renderRequestsTab();}
+async function rejectRequest(id){const url=`${DOCS_URL}/friendRequests/${encodeURIComponent(id)}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`;await fetch(url,{method:'DELETE'});await fetchPendingRequests();renderRequestsTab();}
 function renderFriendsTab(){
   const body=document.getElementById('friendsBody');
   if(friendsList.length===0){body.innerHTML='<div style="text-align:center;color:rgba(255,255,255,0.4);padding:30px">👥 هەڤال نینە</div>';return;}
@@ -2839,7 +2842,7 @@ async function markMessagesAsRead(){
         return f.read?.booleanValue===false && getStr(f,'fromId')===friendId;
       });
       for(let r of unread){
-        const url=`${DOCS_URL}/messages/${r.id}?key=${firebaseConfig.apiKey}&updateMask.fieldPaths=read`;
+        const url=`${DOCS_URL}/messages/${r.id}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&updateMask.fieldPaths=read`;
         await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{read:{booleanValue:true}}})}).catch(()=>{});
         // update local
         const localMsg=lastMessages.find(m=>m.id===r.id);
@@ -2858,7 +2861,7 @@ async function markMessagesAsRead(){
       const results=await firestoreQuerySimple('messages','toId',currentUser.usernameLower,20);
       const unread=results.filter(r=> r.fields.read?.booleanValue===false);
       for(let r of unread){
-        const url=`${DOCS_URL}/messages/${r.id}?key=${firebaseConfig.apiKey}&updateMask.fieldPaths=read`;
+        const url=`${DOCS_URL}/messages/${r.id}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&updateMask.fieldPaths=read`;
         await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{read:{booleanValue:true}}})}).catch(()=>{});
       }
       unreadCounts={};
@@ -2914,13 +2917,13 @@ window.saveProfile=async function(){
     // Update friendRequests bio and photo only (not name)
     const fromReqs=await firestoreQuerySimple('friendRequests','fromId',currentUser.usernameLower,50);
     for(let r of fromReqs){
-      const url=`${DOCS_URL}/friendRequests/${r.id}?key=${firebaseConfig.apiKey}&updateMask.fieldPaths=fromBio&updateMask.fieldPaths=fromPhoto`;
+      const url=`${DOCS_URL}/friendRequests/${r.id}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&updateMask.fieldPaths=fromBio&updateMask.fieldPaths=fromPhoto`;
       const fields={fromBio:{stringValue:newBio}, fromPhoto:{stringValue:updateData.photoBase64||currentUser.photoBase64||''}};
       await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});
     }
     const toReqs=await firestoreQuerySimple('friendRequests','toId',currentUser.usernameLower,50);
     for(let r of toReqs){
-      const url=`${DOCS_URL}/friendRequests/${r.id}?key=${firebaseConfig.apiKey}&updateMask.fieldPaths=toBio&updateMask.fieldPaths=toPhoto`;
+      const url=`${DOCS_URL}/friendRequests/${r.id}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&updateMask.fieldPaths=toBio&updateMask.fieldPaths=toPhoto`;
       const fields={toBio:{stringValue:newBio}, toPhoto:{stringValue:updateData.photoBase64||currentUser.photoBase64||''}};
       await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});
     }
@@ -3048,7 +3051,7 @@ tryAutoLogin();
 
 async function fetchLeaderboard(){
   try{
-    const res=await fetch(`${DOCS_URL}/users?key=${firebaseConfig.apiKey}&pageSize=10`);
+    const res=await fetch(`${DOCS_URL}/users?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&pageSize=10`);
     const data=await res.json();if(!data.documents) return [];
     const results=data.documents.map(d=>parseUserDoc(d)).filter(Boolean);
     results.sort((a,b)=>b.bestScore-a.bestScore);
@@ -3578,7 +3581,7 @@ window.refreshCurrentUserFromDB = async function(){
   try{
     let cu = window.currentUser;
     if(!cu || !cu.usernameLower) return null;
-    const qUrl = `https://firestore.googleapis.com/v1/projects/${window.firebaseConfig.projectId}/databases/(default)/documents:runQuery?key=${window.firebaseConfig.apiKey}`;
+    const qUrl = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents:runQuery?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`;
     const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: cu.usernameLower}}}, limit:1 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
     const data = await res.json();
@@ -5172,7 +5175,7 @@ async function fetchLeaderboardSeparate(type){
       }catch(e){ console.log('V31 SDK fetch error, fallback REST', e); }
     }
     // Fallback REST
-    const res = await fetch(`${DOCS_URL}/users?key=${firebaseConfig.apiKey}&pageSize=200`);
+    const res = await fetch(`${DOCS_URL}/users?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&pageSize=200`);
     const data = await res.json();
     if(!data.documents) return [];
     let results = data.documents.map(d=>parseUserDoc(d)).filter(Boolean);
@@ -5460,7 +5463,7 @@ window.closeManagerModal = function(){ document.getElementById('managerModal')?.
 window.loadMyShopInfoNew = async function(){
   try{
     if(!window.currentUser){ document.getElementById('myShopInfo').innerHTML='❌ بچو ژوورێ'; return; }
-    const qUrl = `https://firestore.googleapis.com/v1/projects/${window.firebaseConfig.projectId}/databases/(default)/documents:runQuery?key=${window.firebaseConfig.apiKey}`;
+    const qUrl = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents:runQuery?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`;
     const queryBody = { structuredQuery: { from:[{collectionId:'shopkeepers'}], where:{fieldFilter:{field:{fieldPath:'username'}, op:'EQUAL', value:{stringValue: window.currentUser.usernameLower}}}, limit:1 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(queryBody)});
     const data = await res.json();
@@ -5534,7 +5537,7 @@ window.searchPlayerForManager = async function(){
   const resultEl = document.getElementById('managerSearchResult');
   resultEl.innerHTML='<div style="text-align:center;padding:10px;color:rgba(255,255,255,0.5)">⏳ گەڕان...</div>';
   try{
-    const qUrl = `https://firestore.googleapis.com/v1/projects/${window.firebaseConfig.projectId}/databases/(default)/documents:runQuery?key=${window.firebaseConfig.apiKey}`;
+    const qUrl = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents:runQuery?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`;
     const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: input}}}, limit:5 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
     const data = await res.json();
@@ -5571,7 +5574,7 @@ window.searchPlayerByCode = async function(){
   const resultEl = document.getElementById('managerSearchResult');
   resultEl.innerHTML='<div style="text-align:center;padding:10px;color:#F7C600">⏳ گەڕان ب کودی '+codeInput+'...</div>';
   try{
-    const qUrl = `https://firestore.googleapis.com/v1/projects/${window.firebaseConfig.projectId}/databases/(default)/documents:runQuery?key=${window.firebaseConfig.apiKey}`;
+    const qUrl = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents:runQuery?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`;
     const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'privateCode'}, op:'EQUAL', value:{stringValue: codeInput}}}, limit:5 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
     const data = await res.json();
@@ -5620,13 +5623,13 @@ window.unlockPlayer = async function(playerDocId, playerLower, type){
   if(!confirm(`دڵنیای دێ ${type==='mobile'?'📱 موبایل':'🚗 ترومبێل'} بۆ ${playerLower} ڤەکەی؟ دێ 1 کوتا ژ تە کێمبیت`)) return;
   try{
     // 1. Update player unlocked
-    const DOCS_URL = `https://firestore.googleapis.com/v1/projects/${window.firebaseConfig.projectId}/databases/(default)/documents`;
-    const playerUpdateUrl = `${DOCS_URL}/users/${encodeURIComponent(playerDocId)}?key=${window.firebaseConfig.apiKey}&updateMask.fieldPaths=${type==='mobile'?'unlockedMobile':'unlockedCar'}`;
+    const DOCS_URL = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents`;
+    const playerUpdateUrl = `${DOCS_URL}/users/${encodeURIComponent(playerDocId)}?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&updateMask.fieldPaths=${type==='mobile'?'unlockedMobile':'unlockedCar'}`;
     const updRes = await fetch(playerUpdateUrl, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields:{ [type==='mobile'?'unlockedMobile':'unlockedCar']:{booleanValue:true} }})});
     if(!updRes.ok){ const t=await updRes.text(); alert('❌ '+t); return; }
     // 2. Decrease shopkeeper quota
     const newQuota = myShopkeeperDoc[quotaField]-1;
-    const shopUpdUrl = `${DOCS_URL}/shopkeepers/${encodeURIComponent(myShopkeeperDoc.id)}?key=${window.firebaseConfig.apiKey}&updateMask.fieldPaths=${quotaField}`;
+    const shopUpdUrl = `${DOCS_URL}/shopkeepers/${encodeURIComponent(myShopkeeperDoc.id)}?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&updateMask.fieldPaths=${quotaField}`;
     await fetch(shopUpdUrl, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields:{ [quotaField]:{integerValue: newQuota.toString()} }})});
     // 3. Add transaction
     const transFields = {
@@ -5636,7 +5639,7 @@ window.unlockPlayer = async function(playerDocId, playerLower, type){
       type:{stringValue: type},
       createdAt:{timestampValue: new Date().toISOString()}
     };
-    await fetch(`${DOCS_URL}/unlockTransactions?key=${window.firebaseConfig.apiKey}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields: transFields})});
+    await fetch(`${DOCS_URL}/unlockTransactions?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields: transFields})});
     alert(`✅ ${type==='mobile'?'📱 موبایل':'🚗 ترومبێل'} بۆ ${playerLower} هاتە ڤەکرن\n💎 مایە: ${newQuota}`);
     myShopkeeperDoc[quotaField]=newQuota;
     document.getElementById(type==='mobile'?'mMobileQuota':'mCarQuota').textContent = newQuota;
@@ -5650,7 +5653,7 @@ window.loadMySalesListNew = async function(){
   if(!listEl || !myShopkeeperDoc) return;
   listEl.innerHTML='<div style="color:rgba(255,255,255,0.4);font-size:11px;text-align:center;padding:10px">⏳...</div>';
   try{
-    const qUrl = `https://firestore.googleapis.com/v1/projects/${window.firebaseConfig.projectId}/databases/(default)/documents:runQuery?key=${window.firebaseConfig.apiKey}`;
+    const qUrl = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents:runQuery?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`;
     const qb = { structuredQuery: { from:[{collectionId:'unlockTransactions'}], where:{fieldFilter:{field:{fieldPath:'shopkeeperId'}, op:'EQUAL', value:{stringValue: myShopkeeperDoc.id}}}, orderBy:[{field:{fieldPath:'createdAt'}, direction:'DESCENDING'}], limit:20 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
     const data = await res.json();
@@ -5704,7 +5707,7 @@ window.loadAllShopkeepersNew = async function(){
   if(!listEl) return;
   listEl.innerHTML='<div style="text-align:center;padding:12px;color:rgba(255,255,255,0.5)">⏳ بار دبیت...</div>';
   try{
-    const url = `https://firestore.googleapis.com/v1/projects/${window.firebaseConfig.projectId}/databases/(default)/documents/shopkeepers?key=${window.firebaseConfig.apiKey}&pageSize=100`;
+    const url = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents/shopkeepers?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&pageSize=100`;
     const res = await fetch(url);
     const data = await res.json();
     if(!data.documents){ listEl.innerHTML='<div style="color:rgba(255,255,255,0.5);text-align:center;padding:12px">هیچ دکاندار نینە</div>'; return; }
@@ -5750,8 +5753,8 @@ window.openEditShopkeeper = async function(id){
   const lockAction = confirm('دێ قفل بکەین؟ OK=قفلکرن, Cancel=ڤەکرن');
   // For simplicity, we will fetch current and apply delta
   try{
-    const DOCS_URL = `https://firestore.googleapis.com/v1/projects/${window.firebaseConfig.projectId}/databases/(default)/documents`;
-    const getUrl = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window.firebaseConfig.apiKey}`;
+    const DOCS_URL = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents`;
+    const getUrl = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`;
     const getRes = await fetch(getUrl);
     const doc = await getRes.json();
     const f=doc.fields||{};
@@ -5772,7 +5775,7 @@ window.openEditShopkeeper = async function(id){
     // Also update total if increased
     const newMTotal = newMQuota>mTotal ? newMQuota : mTotal;
     const newCTotal = newCQuota>cTotal ? newCQuota : cTotal;
-    const updUrl = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window.firebaseConfig.apiKey}&updateMask.fieldPaths=mobileQuota&updateMask.fieldPaths=carQuota&updateMask.fieldPaths=mobileTotal&updateMask.fieldPaths=carTotal&updateMask.fieldPaths=isLocked`;
+    const updUrl = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&updateMask.fieldPaths=mobileQuota&updateMask.fieldPaths=carQuota&updateMask.fieldPaths=mobileTotal&updateMask.fieldPaths=carTotal&updateMask.fieldPaths=isLocked`;
     const res = await fetch(updUrl, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields:{
       mobileQuota:{integerValue: newMQuota.toString()},
       carQuota:{integerValue: newCQuota.toString()},
@@ -5795,7 +5798,7 @@ window.createShopkeeperREST = async function(){
   const cQuota = parseInt(document.getElementById('adminNewShopCarQuota')?.value||'50');
   if(!username||!shopName||!ownerName||!phone){ alert('هەمی خانەیان پر بکە'); return; }
   try{
-    const DOCS_URL = `https://firestore.googleapis.com/v1/projects/${window.firebaseConfig.projectId}/databases/(default)/documents`;
+    const DOCS_URL = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents`;
     const fields = {
       username:{stringValue: username},
       shopName:{stringValue: shopName},
@@ -5814,17 +5817,17 @@ window.createShopkeeperREST = async function(){
       isManager:{booleanValue:true},
       createdAt:{timestampValue: new Date().toISOString()}
     };
-    const res = await fetch(`${DOCS_URL}/shopkeepers?key=${window.firebaseConfig.apiKey}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields})});
+    const res = await fetch(`${DOCS_URL}/shopkeepers?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields})});
     if(!res.ok){ alert('❌ '+await res.text()); return; }
     // Also update user to manager if exists
     try{
-      const qUrl = `https://firestore.googleapis.com/v1/projects/${window.firebaseConfig.projectId}/databases/(default)/documents:runQuery?key=${window.firebaseConfig.apiKey}`;
+      const qUrl = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents:runQuery?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`;
       const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: username}}}, limit:1 } };
       const qRes = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
       const qData = await qRes.json();
       if(qData && qData[0]?.document){
         const uid = qData[0].document.name.split('/').pop();
-        const updUrl = `${DOCS_URL}/users/${encodeURIComponent(uid)}?key=${window.firebaseConfig.apiKey}&updateMask.fieldPaths=isManager&updateMask.fieldPaths=role`;
+        const updUrl = `${DOCS_URL}/users/${encodeURIComponent(uid)}?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&updateMask.fieldPaths=isManager&updateMask.fieldPaths=role`;
         await fetch(updUrl, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields:{isManager:{booleanValue:true}, role:{stringValue:'manager'}}})});
       }
     }catch(e){}
@@ -5836,8 +5839,8 @@ window.createShopkeeperREST = async function(){
 window.deleteShopkeeperNew = async function(id){
   if(!confirm('دڵنیای دێ ژێبی؟')) return;
   try{
-    const DOCS_URL = `https://firestore.googleapis.com/v1/projects/${window.firebaseConfig.projectId}/databases/(default)/documents`;
-    const url = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window.firebaseConfig.apiKey}`;
+    const DOCS_URL = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents`;
+    const url = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`;
     const res = await fetch(url, {method:'DELETE'});
     if(res.ok){ alert('✅ ژێبرا'); loadAllShopkeepersNew(); } else alert('❌ نەژێبرا');
   }catch(e){ alert(e.message); }
@@ -5849,7 +5852,7 @@ window.searchShopkeepersNew = async function(){
   const listEl = document.getElementById('adminShopkeepersListREST');
   listEl.innerHTML='<div style="text-align:center;padding:12px;color:rgba(255,255,255,0.5)">⏳ گەڕان...</div>';
   try{
-    const url = `https://firestore.googleapis.com/v1/projects/${window.firebaseConfig.projectId}/databases/(default)/documents/shopkeepers?key=${window.firebaseConfig.apiKey}&pageSize=100`;
+    const url = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents/shopkeepers?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&pageSize=100`;
     const res = await fetch(url);
     const data = await res.json();
     if(!data.documents){ listEl.innerHTML='❌ نەهاتە دیتن'; return; }
@@ -6103,7 +6106,7 @@ async function loadLeaderboardDataSeparate(type){
 }
 async function fetchLeaderboardSeparate(type){
   try{
-    const res = await fetch(`${DOCS_URL}/users?key=${firebaseConfig.apiKey}&pageSize=200`);
+    const res = await fetch(`${DOCS_URL}/users?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&pageSize=200`);
     const data = await res.json();
     if(!data.documents) return [];
     let results = data.documents.map(d=>parseUserDoc(d)).filter(Boolean);
@@ -6924,9 +6927,9 @@ async function loadSocialLinks(){
     }
   }catch(e){}
   try{
-    if(typeof firebaseConfig !== 'undefined' && firebaseConfig.apiKey){
-      const proj = firebaseConfig.projectId;
-      const key = firebaseConfig.apiKey;
+    if(typeof firebaseConfig !== 'undefined' && "sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"){
+      const proj = "blrubofyabwgwdkefamm";
+      const key = "sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN";
       const urls = [
         `https://firestore.googleapis.com/v1/projects/${proj}/databases/(default)/documents/settings/social?key=${key}`,
         `https://firestore.googleapis.com/v1/projects/${proj}/databases/(default)/documents/settings/config?key=${key}`
@@ -7085,8 +7088,8 @@ async function fetchLatestWinnerFromFirestoreWithMode(){
       }
     }catch(e){ console.log('SDK winners error', e); }
     if(typeof firebaseConfig === 'undefined') return null;
-    const proj = firebaseConfig.projectId;
-    const key = firebaseConfig.apiKey;
+    const proj = "blrubofyabwgwdkefamm";
+    const key = "sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN";
     const url = `https://firestore.googleapis.com/v1/projects/${proj}/databases/(default)/documents:runQuery?key=${key}`;
     const body = {structuredQuery:{from:[{collectionId:"winners"}],orderBy:[{field:{fieldPath:"createdAt"},direction:"DESCENDING"}],limit:10}};
     try{
@@ -7144,7 +7147,7 @@ async function loadWinnersHistoryForPlayers(){
 }
 
 
-async async function updateWinnerBottomBar(){
+async function updateWinnerBottomBar(){
   // FIX: Don't overwrite if winner modal is open or freeze active
   try{
     const modal = document.getElementById('winnerDisplayModal');
