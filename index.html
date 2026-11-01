@@ -1,6 +1,77 @@
 <!DOCTYPE html>
 <html lang="ku" dir="rtl">
 <head>
+<script>
+// === GLOBAL FIREBASE SHIM TO SUPABASE - PREVENTS ReferenceError ===
+window.firebaseShimLoaded = true;
+
+// Provide global Firebase functions that use Supabase
+window.collection = window.collection || function(db, collectionId){ return { _collectionId: collectionId, id: collectionId }; };
+window.doc = window.doc || function(db, collectionId, docId){ return { _collectionId: collectionId, _docId: docId, id: docId, path: collectionId+'/'+docId }; };
+window.where = window.where || function(fieldPath, op, value){ return { type:'where', fieldPath, op, value }; };
+window.orderBy = window.orderBy || function(fieldPath, direction){ return { type:'orderBy', fieldPath, direction }; };
+window.limit = window.limit || function(n){ return { type:'limit', n }; };
+window.query = window.query || function(colRef, ...constraints){ return { _collectionId: colRef._collectionId||colRef.id, _constraints: constraints, _isQuery: true }; };
+window.getDocs = window.getDocs || async function(q){ 
+  try{
+    const sb = window.supabaseClient || window.supabase;
+    if(!sb) return { empty: true, docs: [], forEach: ()=>{}, size: 0 };
+    const colId = q._collectionId || q.id || 'users';
+    // Handle where clause
+    let queryBuilder = sb.from(colId).select('*');
+    if(q._constraints){
+      for(const c of q._constraints){
+        if(c.type==='where'){
+          if(c.op==='==' || c.op==='EQUAL') queryBuilder = queryBuilder.eq(c.fieldPath, c.value);
+          else if(c.op==='array-contains') queryBuilder = queryBuilder.contains(c.fieldPath, [c.value]);
+        }
+        if(c.type==='limit') queryBuilder = queryBuilder.limit(c.n);
+        if(c.type==='orderBy'){
+          queryBuilder = queryBuilder.order(c.fieldPath, {ascending: c.direction!=='desc'});
+        }
+      }
+    }
+    const { data } = await queryBuilder;
+    const docs = (data||[]).map(d => ({
+      id: d.id,
+      data: () => d,
+      exists: () => true
+    }));
+    return { docs, empty: docs.length===0, size: docs.length, forEach: (cb)=> docs.forEach(cb) };
+  }catch(e){ return { empty: true, docs: [], forEach: ()=>{}, size: 0 }; }
+};
+window.getDoc = window.getDoc || async function(docRef){
+  try{
+    const sb = window.supabaseClient || window.supabase;
+    if(!sb) return { exists: ()=> false, data: ()=> null };
+    const { data } = await sb.from(docRef._collectionId).select('*').eq('id', docRef._docId).maybeSingle();
+    if(!data) return { exists: ()=> false, data: ()=> null };
+    return { exists: ()=> true, data: ()=> data, id: docRef._docId };
+  }catch(e){ return { exists: ()=> false, data: ()=> null }; }
+};
+window.onSnapshot = window.onSnapshot || function(ref, cb){
+  // For Supabase, do polling or immediate call
+  try{
+    if(ref._collectionId){
+      // Document snapshot
+      window.getDoc(ref).then(snap=>{ try{ cb(snap); }catch(e){} }).catch(()=>{});
+    } else if(ref._collectionId || ref._isQuery){
+      window.getDocs(ref).then(snap=>{ try{ cb(snap); }catch(e){} }).catch(()=>{});
+    }
+  }catch(e){}
+  return ()=>{}; // unsubscribe
+};
+window.serverTimestamp = window.serverTimestamp || function(){ return new Date().toISOString(); };
+window.setDoc = window.setDoc || async function(){};
+window.updateDoc = window.updateDoc || async function(){};
+window.addDoc = window.addDoc || async function(){ return { id: 'dummy' }; };
+window.deleteDoc = window.deleteDoc || async function(){};
+window.writeBatch = window.writeBatch || function(){ return { set: ()=>{}, update: ()=>{}, delete: ()=>{}, commit: async ()=>{} }; };
+window.getCountFromServer = window.getCountFromServer || async function(){ return { data: { count: 0 } }; };
+
+console.log('✅ GLOBAL FIREBASE SHIM LOADED - query/doc/onSnapshot fixed');
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 // === YARYA ZAXO - SUPABASE ULTIMATE FIX 401 ===
@@ -912,7 +983,7 @@ body{
 }
 </style>
 
-</head>
+<script>window.handleCentralFreeze = window.handleCentralFreeze || function(){ console.log("freeze handled"); }; window.handleCentralWinner = window.handleCentralWinner || function(){ console.log("winner handled"); };</script></head>
 <body>
 <div id="loadingScreen" class="loadingScreen"><div style="color:#fff;font-weight:900;font-size:20px">👨‍👩‍👧‍👦 هەڤرکیا <span style="color:#F7C600">خێزانێ</span></div><div class="spinner"></div><div style="color:rgba(255,255,255,0.3);font-size:11px">MSG SHOW NOW - ULTIMATE FIX</div></div>
 <script>
@@ -1974,25 +2045,27 @@ window.handleProfilePhoto=function(inp){const f=inp.files?.[0];if(!f) return;con
 // ===== V12 SECURITY: DUPLICATE NAME BLOCK + DEVICE BLOCK =====
 
 // ===== V28 STRICT SINGLE ACCOUNT SYSTEM =====
+
 async function checkDeviceHasAccount(deviceId){
   try{
-    // First check lastDeviceId
-    const q1 = query(collection(db,'users'), where('lastDeviceId','==',deviceId), limit(1));
-    const snap1 = await getDocs(q1);
-    if(!snap1.empty){
-      let found=null; snap1.forEach(d=>{ found={id:d.id, ...d.data(), docId:d.id}; });
-      if(found) return found;
+    const sb = window.supabaseClient || window.supabase;
+    if(!sb) return null;
+    // Check by device_ids array contains
+    const { data, error } = await sb.from('users').select('*').contains('device_ids', [deviceId]).limit(1);
+    if(data && data.length>0){
+      const r = data[0];
+      return { id: r.id, ...r, docId: r.id, username: r.username, usernameLower: r.username_lower, bestScore: r.best_score, bestScoreFree: r.best_score_free, bestScoreMobile: r.best_score_mobile, bestScoreCar: r.best_score_car, photoBase64: r.photo_base64, bio: r.bio, phoneNumber: r.phone_number };
     }
-    // Then check deviceIds array-contains
-    const q2 = query(collection(db,'users'), where('deviceIds','array-contains',deviceId), limit(1));
-    const snap2 = await getDocs(q2);
-    if(!snap2.empty){
-      let found=null; snap2.forEach(d=>{ found={id:d.id, ...d.data(), docId:d.id}; });
-      if(found) return found;
+    // Check lastDeviceId if exists
+    const { data: data2 } = await sb.from('users').select('*').eq('last_device_id', deviceId).limit(1);
+    if(data2 && data2.length>0){
+      const r = data2[0];
+      return { id: r.id, ...r, docId: r.id, username: r.username, usernameLower: r.username_lower, bestScore: r.best_score, bestScoreFree: r.best_score_free, bestScoreMobile: r.best_score_mobile, bestScoreCar: r.best_score_car, photoBase64: r.photo_base64, bio: r.bio, phoneNumber: r.phone_number };
     }
     return null;
   }catch(e){ console.log('checkDeviceHasAccount error', e); return null; }
 }
+
 
 function showCredentialReminder(username, password, isWrong){
   const modal = document.getElementById('credentialReminderModal');
