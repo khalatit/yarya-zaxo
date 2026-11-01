@@ -282,9 +282,9 @@ async function checkAdminPwd(){
 <div class="toolbar">
 <div class="searchWrap"><i>🔍</i><input id="playerSearch" class="searchBox" placeholder="سێرچ - ناڤ، یوزەرنەیم..." oninput="filterPlayers()"></div>
 <select id="playerFilter" onchange="filterPlayers()" class="input" style="width:190px"><option value="">هەمی</option><option value="mobile">تەنێ 5000 ڤەکرین</option><option value="car">تەنێ 10000 ڤەکرین</option><option value="online">ئونلاین نوکە</option></select>
-<button class="btn dark" onclick="loadPlayers()">🔄 نوێکردن</button>
+<button class="btn dark" onclick="loadPlayers()">🔄 نوێکردن</button><button class="btn" style="background:linear-gradient(135deg,#F7C600,#ffe27a);color:#000;font-weight:900" onclick="fixAllMissingCodes()">🔑 هەمی کودان چاک بکە - هەر یاریکەرەکێ کودەکێ جودا</button>
 </div>
-<div class="tableWrap"><table><thead><tr><th>یاریکەر + جیهاز</th><th>🆓 بەلاش</th><th>📱 موبایل</th><th>🚗 ترومبێل</th><th>ستاتوس + سیستەم</th><th>کردار + بلوک</th></tr></thead><tbody id="playersTable"><tr><td colspan="7" class="loading">بار دبیت</td></tr></tbody></table></div>
+<div class="tableWrap"><table><thead><tr><th>یاریکەر + جیهاز</th><th>🔑 کودا تایبەت</th><th>🆓 بەلاش</th><th>📱 موبایل</th><th>🚗 ترومبێل</th><th>ستاتوس + سیستەم</th><th>کردار + بلوک</th></tr></thead><tbody id="playersTable"><tr><td colspan="8" class="loading">بار دبیت</td></tr></tbody></table></div>
 </div>
 </div>
 
@@ -329,7 +329,7 @@ async function checkAdminPwd(){
 <select id="transLimitFilter" onchange="loadTransactions()" class="input" style="width:120px;height:40px"><option value="10" selected>10 دانە</option><option value="20">20 دانە</option><option value="50">50 دانە</option></select>
 <span id="transInfo" style="font-size:11px;color:rgba(255,255,255,0.5);margin-right:auto">تەنێ 10 بۆ خێرایی</span>
 </div>
-<div class="tableWrap"><table><thead><tr><th>روژ / بەروار</th><th>جور</th><th>یاریکەر</th><th>دکاندار</th><th>دکان</th><th>ژێبرن</th></tr></thead><tbody id="transTable"><tr><td colspan="7" class="loading">بار دبیت</td></tr></tbody></table></div>
+<div class="tableWrap"><table><thead><tr><th>روژ / بەروار</th><th>جور</th><th>یاریکەر</th><th>دکاندار</th><th>دکان</th><th>ژێبرن</th></tr></thead><tbody id="transTable"><tr><td colspan="8" class="loading">بار دبیت</td></tr></tbody></table></div>
 </div>
 </div>
 
@@ -413,7 +413,7 @@ async function checkAdminPwd(){
 <button onclick="deleteAllWinners()" style="height:40px;padding:0 16px;border-radius:12px;border:1.5px solid rgba(212,16,31,0.4);background:linear-gradient(135deg,rgba(212,16,31,0.25),rgba(212,16,31,0.15));color:#ff8a8a;font-weight:800;cursor:pointer">🗑️ هەمی ژێببە</button>
 </div>
 </div>
-<div class="tableWrap"><table><thead><tr><th>روژ / بەروار / دەمژمێر</th><th>رێزبەندی</th><th>براوە</th><th>📱 ژمارا موبایل</th><th>سکۆر</th><th>خەلات</th><th>ژێبرن</th></tr></thead><tbody id="winnersTable"><tr><td colspan="7" class="loading">بار دبیت</td></tr></tbody></table></div>
+<div class="tableWrap"><table><thead><tr><th>روژ / بەروار / دەمژمێر</th><th>رێزبەندی</th><th>براوە</th><th>📱 ژمارا موبایل</th><th>سکۆر</th><th>خەلات</th><th>ژێبرن</th></tr></thead><tbody id="winnersTable"><tr><td colspan="8" class="loading">بار دبیت</td></tr></tbody></table></div>
 </div>
 </div>
 
@@ -1085,17 +1085,17 @@ window.deleteShop = async function(id){
 async function loadPlayers(){
   try{ await fetch('/api/fix-missing-device'); }catch{}
   const tbody=document.getElementById('playersTable');
-  tbody.innerHTML='<tr><td colspan="7" class="loading">بار دبیت</td></tr>';
+  tbody.innerHTML='<tr><td colspan="8" class="loading">بار دبیت</td></tr>';
   try{
     const snap=await getDocs(query(collection(db,'users'), orderBy('bestScore','desc'), limit(200)));
     allPlayers=[];
     snap.forEach(d=>{ allPlayers.push({id:d.id, ...d.data()}); });
     renderPlayers(allPlayers);
-  }catch(e){ tbody.innerHTML='<tr><td colspan="7" style="color:#ff8a8a">❌ '+e.message+'</td></tr>'; }
+  }catch(e){ tbody.innerHTML='<tr><td colspan="8" style="color:#ff8a8a">❌ '+e.message+'</td></tr>'; }
 }
 function renderPlayers(players){
   const tbody=document.getElementById('playersTable');
-  if(!players||players.length===0){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:20px">هیچ یاریکەر نینە</td></tr>'; return; }
+  if(!players||players.length===0){ tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px">هیچ یاریکەر نینە</td></tr>'; return; }
   tbody.innerHTML='';
   players.forEach(u=>{
     let lastSeen=null;
@@ -1110,6 +1110,20 @@ function renderPlayers(players){
     tr.style.background = isBlocked ? 'rgba(212,16,31,0.08)' : '';
     tr.innerHTML=`
       <td><div style="display:flex;gap:10px;align-items:center"><div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1a1a3a,#2a2a5a);overflow:hidden;display:flex;align-items:center;justify-content:center;border:2px solid ${isBlocked?'#D4101F':'rgba(247,198,0,0.2)'};position:relative">${u.photoURL?`<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover">`:(u.displayName||u.username||'👤').charAt(0).toUpperCase()}${isBlocked?'<span style="position:absolute;bottom:-4px;right:-4px;background:#D4101F;color:#fff;font-size:8px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid #000">⛔</span>':''}</div><div><div style="font-weight:800;display:flex;align-items:center;gap:6px">${escapeHtml(u.displayName||u.username||'بێ ناڤ')} ${isBlocked?'<span style="background:#D4101F;color:#fff;padding:2px 6px;border-radius:999px;font-size:8px">بلوک</span>':''}</div><div style="font-size:10px;color:rgba(255,255,255,0.5)">@${u.username||''}</div><div style="font-size:9px;color:rgba(255,255,255,0.35);margin-top:2px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${deviceId}">📱 ${deviceId.substring(0,22)}</div><div style="font-size:8px;color:#F7C600;margin-top:2px">🆔 ${docIdShow}</div></div></div></td>
+      
+      <td>
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:center">
+          <div style="background:linear-gradient(135deg, rgba(247,198,0,0.18), rgba(247,198,0,0.08));border:1.5px solid rgba(247,198,0,0.35);border-radius:10px;padding:6px 10px;min-width:90px;text-align:center">
+            <div style="font-size:11px;color:#F7C600;font-weight:900">🔑 کودا تایبەت</div>
+            <div style="font-size:14px;color:#fff;font-weight:900;font-family:monospace;letter-spacing:1px;margin-top:2px">${u.privateCode||u.code||'❌ نینە'}</div>
+            <div style="font-size:8px;color:rgba(255,255,255,0.4);margin-top:2px">هەر یاریکەرەکێ کودەکێ جودا</div>
+          </div>
+          <div style="display:flex;gap:4px">
+            <button onclick="navigator.clipboard.writeText('${u.privateCode||''}'); alert('✅ کودا ${u.username||''} کۆپی بوو: ${u.privateCode||''}')" style="height:24px;padding:0 8px;border-radius:6px;border:1px solid rgba(247,198,0,0.3);background:rgba(247,198,0,0.12);color:#F7C600;font-size:8px;cursor:pointer;font-weight:800">📋 کۆپی</button>
+            ${!u.privateCode ? `<button onclick="generateCodeForPlayer('${u.id}')" style="height:24px;padding:0 8px;border-radius:6px;border:1px solid rgba(0,255,136,0.3);background:rgba(0,255,136,0.12);color:#00ff99;font-size:8px;cursor:pointer;font-weight:800">🔧 دروست بکە</button>` : ''}
+          </div>
+        </div>
+      </td>
       <td style="color:#7CFC9A;font-weight:800">${u.bestScoreFree||u.bestScore||0}</td>
       <td style="color:#8b8cff;font-weight:800">${u.bestScoreMobile||0} ${u.unlockedMobile?'✅':''}</td>
       <td style="color:#F7C600;font-weight:800">${u.bestScoreCar||0} ${u.unlockedCar?'✅':''}</td>
@@ -1126,6 +1140,53 @@ function renderPlayers(players){
     tbody.appendChild(tr);
   });
 }
+
+
+// ===== NEW: FIX PRIVATE CODE - هەر یاریکەرەکێ کودەکێ جودا =====
+window.generateCodeForPlayer = async function(playerId){
+  if(!confirm('دڵنیای دێ کودەکا نوو یا جودا بۆ ڤی یاریکەری دروست کەی؟')) return;
+  function genCode(){ return Math.floor(100000 + Math.random()*900000).toString(); }
+  let newCode = genCode();
+  try{
+    // ensure unique
+    for(let i=0;i<10;i++){
+      const q = query(collection(db,'users'), where('privateCode','==',newCode), limit(1));
+      const snap = await getDocs(q);
+      if(snap.empty) break;
+      newCode = genCode();
+    }
+  }catch(e){}
+  try{
+    await updateDoc(doc(db,'users', playerId), {privateCode: newCode, updatedAt: new Date()});
+    alert('✅ کودا نوو دروست بوو: '+newCode+' بۆ '+playerId);
+    loadPlayers();
+  }catch(e){ alert('❌ '+e.message); }
+};
+
+window.fixAllMissingCodes = async function(){
+  if(!confirm('دڵنیای دێ بۆ هەمی یاریکەرێن بێ کود، کودێن جودا دروست کەی؟\nئەڤە دێ چەند چرکەیان ڤەکێشیت')) return;
+  let fixed=0;
+  for(const u of allPlayers){
+    if(!u.privateCode){
+      let newCode = Math.floor(100000 + Math.random()*900000).toString();
+      try{
+        for(let k=0;k<10;k++){
+          const q = query(collection(db,'users'), where('privateCode','==',newCode), limit(1));
+          const snap = await getDocs(q);
+          if(snap.empty) break;
+          newCode = Math.floor(100000 + Math.random()*900000).toString();
+        }
+        await updateDoc(doc(db,'users', u.id), {privateCode: newCode});
+        fixed++;
+      }catch(e){ console.log('fix fail', u.id, e); }
+    }
+  }
+  alert('✅ '+fixed+' یاریکەر هاتنە چاککرن - هەر ئێکێ کودەکێ جودا وەرگرت');
+  loadPlayers();
+};
+
+// Update tbody colspan from 7 to 8? Actually now 7 columns after adding one
+
 
 // ===== V12 SECURITY: BLOCK DEVICE SYSTEM =====
 let allBlockedDevices = [];
@@ -1329,7 +1390,7 @@ window.resetPlayer = async function(id, type){
 async function loadTransactions(){
   const tbody = document.getElementById('transTable');
   if(!tbody) return;
-  tbody.innerHTML='<tr><td colspan="7" class="loading">بار دبیت - حساب دکەم...</td></tr>';
+  tbody.innerHTML='<tr><td colspan="8" class="loading">بار دبیت - حساب دکەم...</td></tr>';
   const limitVal = parseInt(document.getElementById('transLimitFilter')?.value || '10');
   const typeFilter = document.getElementById('transTypeFilter')?.value || '';
   try{
@@ -1368,7 +1429,7 @@ async function loadTransactions(){
       q = query(collection(db,'unlockTransactions'), limit(limitVal*3));
     }
     const snap = await getDocs(q);
-    if(snap.empty){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:20px">هیچ کرین نینە</td></tr>'; return; }
+    if(snap.empty){ tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px">هیچ کرین نینە</td></tr>'; return; }
     let docs = [];
     snap.forEach(d=>{ docs.push({id:d.id, data:d.data()}); });
     docs.sort((a,b)=>{
@@ -1391,7 +1452,7 @@ async function loadTransactions(){
     });
   }catch(e){ 
     console.error(e);
-    tbody.innerHTML='<tr><td colspan="7" style="color:#ff8a8a">❌ '+e.message+'<br><small style=\'font-size:10px\'>'+(e.code||'')+'</small></td></tr>'; 
+    tbody.innerHTML='<tr><td colspan="8" style="color:#ff8a8a">❌ '+e.message+'<br><small style=\'font-size:10px\'>'+(e.code||'')+'</small></td></tr>'; 
   }
 }
 window.loadTransactions = loadTransactions;
@@ -1417,10 +1478,10 @@ window.deleteAllTrans = async function(){
 };
 async function loadWinners(){
   const tbody = document.getElementById('winnersTable');
-  tbody.innerHTML='<tr><td colspan="7" class="loading">بار دبیت</td></tr>';
+  tbody.innerHTML='<tr><td colspan="8" class="loading">بار دبیت</td></tr>';
   try{
     const snap = await getDocs(query(collection(db,'winners'), orderBy('createdAt','desc'), limit(30)));
-    if(snap.empty){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:20px">هێشتا براوە نینە</td></tr>'; return; }
+    if(snap.empty){ tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px">هێشتا براوە نینە</td></tr>'; return; }
     tbody.innerHTML='';
     snap.forEach(d=>{
       const w=d.data();
@@ -1435,7 +1496,7 @@ async function loadWinners(){
       tr.innerHTML = `<td style="font-size:11px;direction:ltr">${dateStr}</td><td>${typeLabel}</td><td style="font-weight:800;color:#F7C600">${escapeHtml(w.winnerName||'')}</td><td style="direction:ltr;font-weight:700">${phoneDisplay}</td><td>${w.winnerScore||0}</td><td>${escapeHtml(w.prize||'')}</td><td><button onclick="deleteWinner('${d.id}')" class="bqDel" style="width:34px;height:34px;font-size:14px">🗑️</button></td>`;
       tbody.appendChild(tr);
     });
-  }catch(e){ tbody.innerHTML=`<tr><td colspan="7" style="color:#ff8a8a">❌ ${e.message}</td></tr>`; }
+  }catch(e){ tbody.innerHTML=`<tr><td colspan="8" style="color:#ff8a8a">❌ ${e.message}</td></tr>`; }
 }
 window.deleteWinner = async function(id){
   if(!confirm('🗑️ دڵنیای دێ ڤی براوەی ژێبەی؟')) return;
@@ -1845,13 +1906,13 @@ document.addEventListener('input', (e)=>{
 const originalLoadWinners = window.loadWinners;
 window.loadWinners = async function(){
   const tbody = document.getElementById('winnersTable');
-  if(tbody) tbody.innerHTML='<tr><td colspan="7" class="loading">بار دبیت - براوەکان + ژمارا موبایلێ بۆ ئەدمین</td></tr>';
+  if(tbody) tbody.innerHTML='<tr><td colspan="8" class="loading">بار دبیت - براوەکان + ژمارا موبایلێ بۆ ئەدمین</td></tr>';
   try{
     const snap = await getDocs(query(collection(db,'winners'), orderBy('createdAt','desc'), limit(100)));
     const winners = [];
     snap.forEach(d=>{ winners.push({id:d.id, ...d.data()}); });
     if(!tbody) return;
-    if(winners.length===0){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:20px;color:rgba(255,255,255,0.5)">هیچ براوە نینە - چاوەڕێی یەکەمێ رێزبەندیێ بە</td></tr>'; return; }
+    if(winners.length===0){ tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px;color:rgba(255,255,255,0.5)">هیچ براوە نینە - چاوەڕێی یەکەمێ رێزبەندیێ بە</td></tr>'; return; }
     tbody.innerHTML='';
     winners.forEach(w=>{
       const dateStr = w.createdAt?.toDate ? w.createdAt.toDate().toLocaleString('ku-IQ') : (w.date||'');
@@ -1873,7 +1934,7 @@ window.loadWinners = async function(){
     });
   }catch(e){
     console.error(e);
-    if(tbody) tbody.innerHTML='<tr><td colspan="7" style="color:#ff8a8a;padding:12px">❌ '+e.message+'</td></tr>';
+    if(tbody) tbody.innerHTML='<tr><td colspan="8" style="color:#ff8a8a;padding:12px">❌ '+e.message+'</td></tr>';
   }
 };
 
