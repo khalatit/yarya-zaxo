@@ -39,103 +39,6 @@ canvas, #gameCanvas { touch-action: none !important; }
 input, textarea { font-size: 16px !important; }
 </style>
 <title>YARYA ZAXO PRO - هەفرکیا خێزانێ 🏆🐥 - V27 کێم-مەسرەف</title>
-
-<script>
-// GLOBAL switchTab + handlers for inline onclick
-
-<script>
-// GLOBAL HANDLERS - must be before HTML to prevent not-defined errors
-function handlePhoto(input){
-  try{
-    if(window.handlePhoto && window.handlePhoto !== handlePhoto){
-      return window.handlePhoto(input);
-    }
-    // Fallback simple photo handling
-    if(input && input.files && input.files[0]){
-      const reader = new FileReader();
-      reader.onload = function(e){
-        const base64 = e.target.result;
-        localStorage.setItem('yarya_user_photo', base64);
-        const prev = document.getElementById('avatarPrev');
-        if(prev) prev.innerHTML = '<img src="'+base64+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
-        window.photoBase64 = base64;
-        console.log('Photo loaded');
-      };
-      reader.readAsDataURL(input.files[0]);
-    }
-  }catch(e){ console.log('handlePhoto error', e); }
-}
-function handleAuth(){
-  try{
-    // Try module version
-    if(window._moduleHandleAuth){
-      return window._moduleHandleAuth();
-    }
-    // Check if supabase handleAuth exists
-    if(window.handleAuth && window.handleAuth !== handleAuth && window.handleAuth.toString().length > 100){
-      // Avoid recursion, call the module one if different
-      const fn = window.handleAuth;
-      if(fn !== handleAuth) return fn();
-    }
-    console.log('handleAuth called - trying to find real implementation');
-    // Find real implementation in module scope via global
-    if(typeof window.handleAuthImpl === 'function'){
-      return window.handleAuthImpl();
-    }
-    alert('تکایە چاوەڕێبە... یاری ل بارکرنێ دایە - دوبارە کلیک بکە');
-  }catch(e){ console.log('handleAuth error', e); alert('هەلەیەک هەیە: '+e.message); }
-}
-function tryAutoFullscreen(){
-  try{
-    if(document.documentElement.requestFullscreen){
-      document.documentElement.requestFullscreen().catch(()=>{});
-    }
-  }catch(e){}
-}
-window.handlePhoto = handlePhoto;
-window.handleAuth = handleAuth;
-window.tryAutoFullscreen = tryAutoFullscreen;
-window.handleNotificationClick = function(){ console.log('notif click'); };
-window.openProfile = function(){ console.log('openProfile'); document.getElementById('profileModal')?.classList.add('show'); };
-window.closeProfile = function(){ document.getElementById('profileModal')?.classList.remove('show'); };
-window.openLeaderboard = function(){ console.log('openLeaderboard'); };
-window.openManagerModal = function(){};
-window.closeManagerModal = function(){};
-window.resetGame = function(){ location.reload(); };
-window.closeWelcomeAndStart = function(){ document.getElementById('welcomeModal')?.classList.remove('show'); };
-window.closeCredentialReminder = function(){ document.getElementById('credentialReminderModal')?.classList.remove('show'); };
-window.closeSingleAccountBlock = function(){ document.getElementById('singleAccountBlockModal')?.classList.remove('show'); };
-window.deleteBroadcastPublic = function(){};
-window.openAdmin = function(){};
-console.log('✅ Global handlers ready - handleAuth, handlePhoto, etc');
-</script>
-
-// GLOBAL switchTab for inline onclick - must be before HTML
-function switchTab(tab){
-  try{
-    window.currentTab = tab;
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-    const el1 = document.getElementById('tab'+tab.charAt(0).toUpperCase()+tab.slice(1));
-    const el2 = document.getElementById('tabLogin');
-    const el3 = document.getElementById('tabRegister');
-    if(tab==='login' && el2) el2.classList.add('active');
-    if(tab==='register' && el3) el3.classList.add('active');
-    // Show/hide fields
-    const phoneRow = document.getElementById('phoneRow');
-    const photoRow = document.getElementById('photoRow');
-    const bioRow = document.getElementById('bioRow');
-    if(phoneRow) phoneRow.style.display = tab==='register' ? 'block' : 'none';
-    if(photoRow) photoRow.style.display = tab==='register' ? 'flex' : 'none';
-    if(bioRow) bioRow.style.display = tab==='register' ? 'block' : 'none';
-    const mainBtn = document.getElementById('mainBtn');
-    if(mainBtn) mainBtn.textContent = tab==='login' ? 'چوونەژوور' : 'تۆمارکرن';
-    console.log('Switched to', tab);
-  }catch(e){ console.log('switchTab error', e); }
-}
-window.switchTab = switchTab;
-console.log('✅ switchTab global ready');
-</script>
-
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@600;800;900&family=Inter:wght@800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -828,6 +731,95 @@ body{
 }
 </style>
 
+
+<!-- GLOBAL HANDLERS - HEAD - PREVENT NOT DEFINED ERRORS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+// ===== YARYA ZAXO HEAD FIX - ALL GLOBAL BEFORE BODY =====
+window.SUPABASE_URL = 'https://blrubofyabwgwdkefamm.supabase.co';
+window.SUPABASE_ANON_KEY = 'sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN';
+try{
+  if(window.supabase && window.supabase.createClient){
+    window.supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    window.db = window.supabaseClient;
+    console.log('✅ Supabase UMD ready in HEAD');
+  }
+}catch(e){ console.log('supabase head init', e); }
+
+window.switchTab = function(tab){
+  try{
+    window.currentTab = tab;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    const elLogin = document.getElementById('tabLogin');
+    const elReg = document.getElementById('tabRegister');
+    if(tab==='login' && elLogin) elLogin.classList.add('active');
+    if(tab==='register' && elReg) elReg.classList.add('active');
+    const phoneRow = document.getElementById('phoneRow');
+    const photoRow = document.getElementById('photoRow');
+    const bioRow = document.getElementById('bioRow');
+    if(phoneRow) phoneRow.style.display = tab==='register' ? 'block' : 'none';
+    if(photoRow) photoRow.style.display = tab==='register' ? 'flex' : 'none';
+    if(bioRow) bioRow.style.display = tab==='register' ? 'block' : 'none';
+    const mainBtn = document.getElementById('mainBtn');
+    if(mainBtn) mainBtn.textContent = tab==='login' ? 'چوونەژوور' : 'تۆمارکرن';
+    const err = document.getElementById('errorBox');
+    if(err){ err.textContent=''; err.style.display='none'; }
+  }catch(e){ console.log('switchTab head error', e); }
+};
+
+window.handlePhoto = function(input){
+  try{
+    if(input && input.files && input.files[0]){
+      const reader = new FileReader();
+      reader.onload = function(e){
+        const base64 = e.target.result;
+        localStorage.setItem('yarya_user_photo', base64);
+        const prev = document.getElementById('avatarPrev');
+        if(prev) prev.innerHTML = '<img src="'+base64+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+        window.photoBase64 = base64;
+        if(window.setPhotoBase64) window.setPhotoBase64(base64);
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }catch(e){ console.log('handlePhoto head error', e); }
+};
+
+window.tryAutoFullscreen = function(){ try{ if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{}); }catch(e){} };
+window.handleNotificationClick = function(){};
+window.openProfile = function(){ const m=document.getElementById('profileModal'); if(m) m.classList.add('show'); };
+window.closeProfile = function(){ const m=document.getElementById('profileModal'); if(m) m.classList.remove('show'); };
+window.openLeaderboard = function(){};
+window.openManagerModal = function(){};
+window.closeManagerModal = function(){ const m=document.getElementById('managerModal'); if(m) m.classList.remove('show'); };
+window.resetGame = function(){ location.reload(); };
+window.closeWelcomeAndStart = function(){ const m=document.getElementById('welcomeModal'); if(m) m.classList.remove('show'); };
+window.closeCredentialReminder = function(){ const m=document.getElementById('credentialReminderModal'); if(m) m.classList.remove('show'); };
+window.closeSingleAccountBlock = function(){ const m=document.getElementById('singleAccountBlockModal'); if(m) m.classList.remove('show'); };
+window.deleteBroadcastPublic = function(){};
+window.openAdmin = function(){};
+window.openWinnerDisplayModal = function(){ const m=document.getElementById('winnerDisplayModal'); if(m) m.classList.add('show'); };
+window.closeWinnerDisplayModal = function(){ const m=document.getElementById('winnerDisplayModal'); if(m) m.classList.remove('show'); };
+window.closeAccountsModal = function(){ const m=document.getElementById('accountsModal'); if(m) m.classList.remove('show'); };
+window.openAccountsModal = function(){ const m=document.getElementById('accountsModal'); if(m) m.classList.add('show'); };
+window.closeAndroidModal = function(){ const m=document.getElementById('androidModal'); if(m) m.classList.remove('show'); };
+window.closeIOSModal = function(){ const m=document.getElementById('iosModal'); if(m) m.classList.remove('show'); };
+window.closeLeaderboard = function(){ const m=document.getElementById('leaderboardModal'); if(m) m.classList.remove('show'); };
+window.hideInstallBanner = function(){ const m=document.getElementById('installBanner'); if(m) m.style.display='none'; };
+window.hideNotification = function(){};
+window.doSearch = function(){};
+window.contactShopkeeper = function(){};
+window.createShopkeeperREST = function(){};
+window.deleteShopkeeper = function(){};
+window.deleteShopkeeperNew = function(){};
+window.loadAllShopkeepersNew = function(){};
+window.loadMyShopInfoNew = function(){};
+window.openEditShopkeeper = function(){};
+window.openSocialLink = function(){};
+window.playRanking = function(){};
+
+console.log('✅ HEAD GLOBAL HANDLERS READY - switchTab, handlePhoto, all modals');
+</script>
+
 </head>
 <body>
 <div id="loadingScreen" class="loadingScreen"><div style="color:#fff;font-weight:900;font-size:20px">👨‍👩‍👧‍👦 هەڤرکیا <span style="color:#F7C600">خێزانێ</span></div><div class="spinner"></div><div style="color:rgba(255,255,255,0.3);font-size:11px">MSG SHOW NOW - ULTIMATE FIX</div></div>
@@ -1193,7 +1185,71 @@ setTimeout(()=>{
 </div></div></div>
 <div id="sponsorVideoModal" class="modal" style="z-index:90"><div class="modalCard" style="max-width:420px"><div class="videoHeader"><div id="videoHeaderName">🎬 سپونسەر</div><button id="videoCloseBtn" onclick="if(window.sponsorSecondsLeft<=0)window.closeSponsorVideo()" style="width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.2);cursor:not-allowed;opacity:0.3;pointer-events:none" disabled>✕</button></div><div class="videoWrap" id="videoWrap"><div id="videoPlayerContainer" style="width:100%;height:100%"></div><div class="videoBlocker" id="videoBlocker" title="ڤیدیو قفلە 🔒 - ناشێی بسەکنینی یان دەنگی بگری"></div><div class="videoOverlay"><div class="countdownRow"><div class="countNumber" id="countNumber">15</div><div class="countText" id="countText" style="display:none !important"></div></div><div class="progressBar"><div class="progressFill" id="progressFill"></div></div></div></div><div class="videoActions"><button id="continueBtn" class="continueBtn disabled" onclick="window.continueFromSponsor()"><span id="continueBtnIcon">🔒</span> <span id="continueBtnText">هیڤیە چاڤەرێ بە...</span></button><div style="text-align:center;color:rgba(255,255,255,0.25);font-size:10px">⏳ تکایە چاڤەرێ بە...</div></div></div></div>
 
-<script type="module">
+
+<!-- SUPABASE UMD - NO MODULE - 50K READY -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+// ===== SUPABASE V30 ULTIMATE FINAL - NO FIREBASE - NO MODULE =====
+const SUPABASE_URL = 'https://blrubofyabwgwdkefamm.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+window.supabase = supabase;
+const db = supabase;
+window.db = db;
+const firebaseConfig = {projectId: "blrubofyabwgwdkefamm", apiKey: SUPABASE_ANON_KEY};
+window.firebaseConfig = firebaseConfig;
+console.log('✅ SUPABASE ULTIMATE FINAL - 50K READY - No module, all global');
+
+function switchTab(tab){
+  try{
+    window.currentTab = tab;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    const elLogin = document.getElementById('tabLogin');
+    const elReg = document.getElementById('tabRegister');
+    if(tab==='login' && elLogin) elLogin.classList.add('active');
+    if(tab==='register' && elReg) elReg.classList.add('active');
+    const phoneRow = document.getElementById('phoneRow');
+    const photoRow = document.getElementById('photoRow');
+    const bioRow = document.getElementById('bioRow');
+    if(phoneRow) phoneRow.style.display = tab==='register' ? 'block' : 'none';
+    if(photoRow) photoRow.style.display = tab==='register' ? 'flex' : 'none';
+    if(bioRow) bioRow.style.display = tab==='register' ? 'block' : 'none';
+    const mainBtn = document.getElementById('mainBtn');
+    if(mainBtn) mainBtn.textContent = tab==='login' ? 'چوونەژوور' : 'تۆمارکرن';
+  }catch(e){}
+}
+function handlePhoto(input){
+  try{
+    if(input && input.files && input.files[0]){
+      const reader = new FileReader();
+      reader.onload = function(e){
+        const base64 = e.target.result;
+        localStorage.setItem('yarya_user_photo', base64);
+        const prev = document.getElementById('avatarPrev');
+        if(prev) prev.innerHTML = '<img src="'+base64+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+        window.photoBase64 = base64;
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }catch(e){}
+}
+function tryAutoFullscreen(){ try{ if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{}); }catch(e){} }
+window.switchTab = switchTab;
+window.handlePhoto = handlePhoto;
+window.tryAutoFullscreen = tryAutoFullscreen;
+window.handleNotificationClick = function(){};
+window.openProfile = function(){ document.getElementById('profileModal')?.classList.add('show'); };
+window.closeProfile = function(){ document.getElementById('profileModal')?.classList.remove('show'); };
+window.openLeaderboard = function(){};
+window.openManagerModal = function(){};
+window.closeManagerModal = function(){};
+window.resetGame = function(){ location.reload(); };
+window.closeWelcomeAndStart = function(){ document.getElementById('welcomeModal')?.classList.remove('show'); };
+window.closeCredentialReminder = function(){ document.getElementById('credentialReminderModal')?.classList.remove('show'); };
+window.closeSingleAccountBlock = function(){ document.getElementById('singleAccountBlockModal')?.classList.remove('show'); };
+</script>
+
+<script>
 function safeRequestFullscreen(el){
   try{
     if(!el) return;
@@ -1203,18 +1259,10 @@ function safeRequestFullscreen(el){
   }catch(e){ console.log('fullscreen fail', e.message); }
 }
 
-
-// ===== SUPABASE V30 CLEAN - 50K READY - NO FIREBASE =====
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-const SUPABASE_URL = 'https://blrubofyabwgwdkefamm.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN';
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-window.supabase = supabase;
-const db = supabase;
-window.db = db;
-const firebaseConfig = {projectId: "blrubofyabwgwdkefamm", apiKey: SUPABASE_ANON_KEY};
+// Firebase removed - replaced by UMD Supabase
+const firebaseConfig = {projectId: 'blrubofyabwgwdkefamm', apiKey: 'sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN'};
 window.firebaseConfig = firebaseConfig;
-console.log('✅ SUPABASE V30 CLEAN - 50K READY - Firebase removed');
+const db = window.supabase;
 
 
 function debugLog(msg){
@@ -1662,8 +1710,7 @@ function startGlobalListeners(){
     console.log('✅ Global listeners started for ALL users');
   }catch(e){ console.error('Failed to start global listeners', e); }
 }
-async function pollBroadcastsFallback(){ return; // SUPABASE DISABLED
-async function _pollBroadcastsFallback_DISABLED(){
+async function pollBroadcastsFallback(){
   try{
     const res = await fetch(`${DOCS_URL}/broadcasts?key=${firebaseConfig.apiKey}`);
     if(!res.ok){ console.log('broadcast poll fail status', res.status); return; }
@@ -1677,8 +1724,7 @@ async function _pollBroadcastsFallback_DISABLED(){
     if(queue.length>0){ console.log('📢 Broadcast poll found', queue.length); saveBroadcastQueue(queue); startBroadcastRotation(); renderBroadcastQueueList(); }
   }catch(e){ console.log('broadcast poll error', e); }
 }
-async function pollSponsorsFallback(){ return; // SUPABASE DISABLED
-async function _pollSponsorsFallback_DISABLED(){
+async function pollSponsorsFallback(){
   try{
     const res = await fetch(`${DOCS_URL}/sponsors?key=${firebaseConfig.apiKey}`);
     if(!res.ok){ console.log('sponsor poll fail', res.status); renderSponsors(); return; }
@@ -1695,10 +1741,9 @@ async function _pollSponsorsFallback_DISABLED(){
 }
 
 
-const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
-const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
-function switchTab(tab){ try{ currentTab=tab; document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); const els=document.querySelectorAll(`[data-tab='${tab}'], #tab-${tab}, .tab-${tab}`); if(els.length) els[0].classList.add('active'); }catch(e){} }
-window.switchTab=switchTab;
+window.DOCS_URL = window.DOCS_URL ||=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+window.QUERY_URL = window.QUERY_URL ||=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+
 let currentTab='login',photoBase64='',currentUser = null,profilePhotoBase64='';
   window.currentUser = currentUser;
 let currentChatFriend=null, replyToMessage=null, typingTimeout=null, lastTypingState=false;
@@ -2434,7 +2479,7 @@ function startRealtimeChat(){
     }catch(e){console.log('poll error',e);}
   };
   pollREST();
-  chatPollInterval=setInterval(pollREST, 15000);
+  chatPollInterval=setInterval(pollREST, 1000);
   
   const qTyping=query(collection(db, "typing"), where("chatId", "==", chatId), limit(10));
   unsubscribeTyping=onSnapshot(qTyping, 
@@ -3094,7 +3139,7 @@ function startGame(){
     bestScoreFree=currentUser.bestScoreFree||currentUser.bestScore||0; bestScoreMobile=currentUser.bestScoreMobile||0; bestScoreCar=currentUser.bestScoreCar||0; window.bestScoreFree=bestScoreFree; window.bestScoreMobile=bestScoreMobile; window.bestScoreCar=bestScoreCar; let modeLoad = window.proCurrentMode || window.currentRankingMode || 'free'; if(modeLoad==='free') bestScore = bestScoreFree; else if(modeLoad==='mobile') bestScore = bestScoreMobile; else if(modeLoad==='car') bestScore = bestScoreCar; else bestScore = bestScoreFree; bestEl.textContent='⭐ '+bestScore;
     let src=normalizePhoto(currentUser.photoBase64||'');if(src) av.innerHTML=`<img src="${src}" alt="" style="width:100%;height:100%;object-fit:cover">`;
   }
-  setupCanvas();resetGameVars();soundMgr.init();bindEvents();if(!gameLoopStarted){gameLoopStarted=true;loop(0);}startGlobalRealtime();setTimeout(fetchAllData,1000); try{ startGlobalListeners(); }catch(e){} pollBroadcastsFallback(); pollSponsorsFallback(); setInterval(()=>{ pollBroadcastsFallback(); pollSponsorsFallback(); }, 15000); setTimeout(()=>{ pollBroadcastsFallback(); pollSponsorsFallback(); }, 800); checkAndShowAdminBtn(); startBroadcastRotation(); renderSponsors();
+  setupCanvas();resetGameVars();soundMgr.init();bindEvents();if(!gameLoopStarted){gameLoopStarted=true;loop(0);}startGlobalRealtime();setTimeout(fetchAllData,1000); try{ startGlobalListeners(); }catch(e){} pollBroadcastsFallback(); pollSponsorsFallback(); setInterval(()=>{ pollBroadcastsFallback(); pollSponsorsFallback(); }, 4000); setTimeout(()=>{ pollBroadcastsFallback(); pollSponsorsFallback(); }, 800); checkAndShowAdminBtn(); startBroadcastRotation(); renderSponsors();
   setTimeout(window.tryAutoFullscreen,600);
   setTimeout(window.tryAutoFullscreen,1500);
   document.getElementById('readsBadge').classList.add('show');
@@ -3537,8 +3582,8 @@ window.refreshCurrentUserFromDB = async function(){
   try{
     let cu = window.currentUser;
     if(!cu || !cu.usernameLower) return null;
-    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
-const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: cu.usernameLower}}}, limit:1 } };
+    const qUrl = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: cu.usernameLower}}}, limit:1 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
     const data = await res.json();
     if(data && data[0] && data[0].document){
@@ -5419,8 +5464,8 @@ window.closeManagerModal = function(){ document.getElementById('managerModal')?.
 window.loadMyShopInfoNew = async function(){
   try{
     if(!window.currentUser){ document.getElementById('myShopInfo').innerHTML='❌ بچو ژوورێ'; return; }
-    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
-const queryBody = { structuredQuery: { from:[{collectionId:'shopkeepers'}], where:{fieldFilter:{field:{fieldPath:'username'}, op:'EQUAL', value:{stringValue: window.currentUser.usernameLower}}}, limit:1 } };
+    const qUrl = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    const queryBody = { structuredQuery: { from:[{collectionId:'shopkeepers'}], where:{fieldFilter:{field:{fieldPath:'username'}, op:'EQUAL', value:{stringValue: window.currentUser.usernameLower}}}, limit:1 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(queryBody)});
     const data = await res.json();
     if(!data || data.length===0 || !data[0].document){
@@ -5493,8 +5538,8 @@ window.searchPlayerForManager = async function(){
   const resultEl = document.getElementById('managerSearchResult');
   resultEl.innerHTML='<div style="text-align:center;padding:10px;color:rgba(255,255,255,0.5)">⏳ گەڕان...</div>';
   try{
-    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
-const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: input}}}, limit:5 } };
+    const qUrl = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: input}}}, limit:5 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
     const data = await res.json();
     if(!data || data.length===0 || !data[0].document){ resultEl.innerHTML='<div style="color:#ff8a8a;text-align:center;padding:10px">❌ یاریکەر نەهاتە دیتن</div>'; return; }
@@ -5530,8 +5575,8 @@ window.searchPlayerByCode = async function(){
   const resultEl = document.getElementById('managerSearchResult');
   resultEl.innerHTML='<div style="text-align:center;padding:10px;color:#F7C600">⏳ گەڕان ب کودی '+codeInput+'...</div>';
   try{
-    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
-const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'privateCode'}, op:'EQUAL', value:{stringValue: codeInput}}}, limit:5 } };
+    const qUrl = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'privateCode'}, op:'EQUAL', value:{stringValue: codeInput}}}, limit:5 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
     const data = await res.json();
     if(!data || data.length===0 || !data[0].document){ resultEl.innerHTML='<div style="color:#ff8a8a;text-align:center;padding:10px;background:rgba(212,16,31,0.1);border-radius:10px">❌ ئەڤ کودە نەهاتە دیتن<br><small>کودا '+codeInput+' نینە</small></div>'; return; }
@@ -5579,8 +5624,8 @@ window.unlockPlayer = async function(playerDocId, playerLower, type){
   if(!confirm(`دڵنیای دێ ${type==='mobile'?'📱 موبایل':'🚗 ترومبێل'} بۆ ${playerLower} ڤەکەی؟ دێ 1 کوتا ژ تە کێمبیت`)) return;
   try{
     // 1. Update player unlocked
-    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
-const playerUpdateUrl = `${DOCS_URL}/users/${encodeURIComponent(playerDocId)}?key=${window.firebaseConfig.apiKey}&updateMask.fieldPaths=${type==='mobile'?'unlockedMobile':'unlockedCar'}`;
+    window.DOCS_URL = window.DOCS_URL || = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    const playerUpdateUrl = `${DOCS_URL}/users/${encodeURIComponent(playerDocId)}?key=${window.firebaseConfig.apiKey}&updateMask.fieldPaths=${type==='mobile'?'unlockedMobile':'unlockedCar'}`;
     const updRes = await fetch(playerUpdateUrl, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields:{ [type==='mobile'?'unlockedMobile':'unlockedCar']:{booleanValue:true} }})});
     if(!updRes.ok){ const t=await updRes.text(); alert('❌ '+t); return; }
     // 2. Decrease shopkeeper quota
@@ -5609,8 +5654,8 @@ window.loadMySalesListNew = async function(){
   if(!listEl || !myShopkeeperDoc) return;
   listEl.innerHTML='<div style="color:rgba(255,255,255,0.4);font-size:11px;text-align:center;padding:10px">⏳...</div>';
   try{
-    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
-const qb = { structuredQuery: { from:[{collectionId:'unlockTransactions'}], where:{fieldFilter:{field:{fieldPath:'shopkeeperId'}, op:'EQUAL', value:{stringValue: myShopkeeperDoc.id}}}, orderBy:[{field:{fieldPath:'createdAt'}, direction:'DESCENDING'}], limit:20 } };
+    const qUrl = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    const qb = { structuredQuery: { from:[{collectionId:'unlockTransactions'}], where:{fieldFilter:{field:{fieldPath:'shopkeeperId'}, op:'EQUAL', value:{stringValue: myShopkeeperDoc.id}}}, orderBy:[{field:{fieldPath:'createdAt'}, direction:'DESCENDING'}], limit:20 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
     const data = await res.json();
     if(!data || data.length===0 || !data[0].document){ listEl.innerHTML='<div style="color:rgba(255,255,255,0.4);font-size:11px;text-align:center">هیچ کرین نینە</div>'; return; }
@@ -5663,8 +5708,8 @@ window.loadAllShopkeepersNew = async function(){
   if(!listEl) return;
   listEl.innerHTML='<div style="text-align:center;padding:12px;color:rgba(255,255,255,0.5)">⏳ بار دبیت...</div>';
   try{
-    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
-const res = await fetch(url);
+    const url = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    const res = await fetch(url);
     const data = await res.json();
     if(!data.documents){ listEl.innerHTML='<div style="color:rgba(255,255,255,0.5);text-align:center;padding:12px">هیچ دکاندار نینە</div>'; return; }
     listEl.innerHTML='';
@@ -5709,8 +5754,8 @@ window.openEditShopkeeper = async function(id){
   const lockAction = confirm('دێ قفل بکەین؟ OK=قفلکرن, Cancel=ڤەکرن');
   // For simplicity, we will fetch current and apply delta
   try{
-    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
-const getUrl = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window.firebaseConfig.apiKey}`;
+    window.DOCS_URL = window.DOCS_URL || = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    const getUrl = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window.firebaseConfig.apiKey}`;
     const getRes = await fetch(getUrl);
     const doc = await getRes.json();
     const f=doc.fields||{};
@@ -5754,8 +5799,8 @@ window.createShopkeeperREST = async function(){
   const cQuota = parseInt(document.getElementById('adminNewShopCarQuota')?.value||'50');
   if(!username||!shopName||!ownerName||!phone){ alert('هەمی خانەیان پر بکە'); return; }
   try{
-    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
-const fields = {
+    window.DOCS_URL = window.DOCS_URL || = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    const fields = {
       username:{stringValue: username},
       shopName:{stringValue: shopName},
       ownerName:{stringValue: ownerName},
@@ -5777,8 +5822,8 @@ const fields = {
     if(!res.ok){ alert('❌ '+await res.text()); return; }
     // Also update user to manager if exists
     try{
-      const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
-const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: username}}}, limit:1 } };
+      const qUrl = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+      const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: username}}}, limit:1 } };
       const qRes = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
       const qData = await qRes.json();
       if(qData && qData[0]?.document){
@@ -5795,8 +5840,8 @@ const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilte
 window.deleteShopkeeperNew = async function(id){
   if(!confirm('دڵنیای دێ ژێبی؟')) return;
   try{
-    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
-const url = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window.firebaseConfig.apiKey}`;
+    window.DOCS_URL = window.DOCS_URL || = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    const url = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window.firebaseConfig.apiKey}`;
     const res = await fetch(url, {method:'DELETE'});
     if(res.ok){ alert('✅ ژێبرا'); loadAllShopkeepersNew(); } else alert('❌ نەژێبرا');
   }catch(e){ alert(e.message); }
@@ -5808,8 +5853,8 @@ window.searchShopkeepersNew = async function(){
   const listEl = document.getElementById('adminShopkeepersListREST');
   listEl.innerHTML='<div style="text-align:center;padding:12px;color:rgba(255,255,255,0.5)">⏳ گەڕان...</div>';
   try{
-    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
-const res = await fetch(url);
+    const url = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    const res = await fetch(url);
     const data = await res.json();
     if(!data.documents){ listEl.innerHTML='❌ نەهاتە دیتن'; return; }
     const filtered = data.documents.filter(doc=>{
@@ -7046,8 +7091,8 @@ async function fetchLatestWinnerFromFirestoreWithMode(){
     if(typeof firebaseConfig === 'undefined') return null;
     const proj = firebaseConfig.projectId;
     const key = firebaseConfig.apiKey;
-    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
-const body = {structuredQuery:{from:[{collectionId:"winners"}],orderBy:[{field:{fieldPath:"createdAt"},direction:"DESCENDING"}],limit:10}};
+    const url = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    const body = {structuredQuery:{from:[{collectionId:"winners"}],orderBy:[{field:{fieldPath:"createdAt"},direction:"DESCENDING"}],limit:10}};
     try{
       const res = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
       if(res.ok){
