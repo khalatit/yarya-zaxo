@@ -1,6 +1,88 @@
 <!DOCTYPE html>
 <html lang="ku" dir="rtl">
 <head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+// === YARYA ZAXO - SUPABASE FINAL - GLOBAL HANDLERS IN HEAD ===
+window.SUPABASE_URL = 'https://blrubofyabwgwdkefamm.supabase.co';
+window.SUPABASE_ANON_KEY = 'sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN';
+try{
+  window.supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  window.db = window.supabaseClient;
+  console.log('✅ Supabase ready in HEAD');
+}catch(e){ console.log('supabase init', e); }
+
+window.switchTab = function(tab){
+  try{
+    window.currentTab = tab;
+    var tabs = document.querySelectorAll('.tab');
+    for(var i=0;i<tabs.length;i++) tabs[i].classList.remove('active');
+    var elLogin = document.getElementById('tabLogin');
+    var elReg = document.getElementById('tabRegister');
+    if(tab==='login' && elLogin) elLogin.classList.add('active');
+    if(tab==='register' && elReg) elReg.classList.add('active');
+    var phoneRow = document.getElementById('phoneRow');
+    var photoRow = document.getElementById('photoRow');
+    var bioRow = document.getElementById('bioRow');
+    if(phoneRow) phoneRow.style.display = tab==='register' ? 'block' : 'none';
+    if(photoRow) photoRow.style.display = tab==='register' ? 'flex' : 'none';
+    if(bioRow) bioRow.style.display = tab==='register' ? 'block' : 'none';
+    var mainBtn = document.getElementById('mainBtn');
+    if(mainBtn) mainBtn.textContent = tab==='login' ? 'چوونەژوور' : 'تۆمارکرن';
+    var err = document.getElementById('errorBox');
+    if(err){ err.textContent=''; err.style.display='none'; }
+  }catch(e){}
+};
+window.handlePhoto = function(inp){
+  try{
+    if(inp && inp.files && inp.files[0]){
+      var reader = new FileReader();
+      reader.onload = function(e){
+        var base64 = e.target.result;
+        localStorage.setItem('yarya_user_photo', base64);
+        var prev = document.getElementById('avatarPrev');
+        if(prev) prev.innerHTML = '<img src="'+base64+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+        window.photoBase64 = base64;
+      };
+      reader.readAsDataURL(inp.files[0]);
+    }
+  }catch(e){}
+};
+window.tryAutoFullscreen = function(){ try{ if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function(){}); }catch(e){} };
+window.handleNotificationClick = function(){};
+window.openProfile = function(){ var m=document.getElementById('profileModal'); if(m) m.classList.add('show'); };
+window.closeProfile = function(){ var m=document.getElementById('profileModal'); if(m) m.classList.remove('show'); };
+window.openLeaderboard = function(){};
+window.openManagerModal = function(){};
+window.closeManagerModal = function(){ var m=document.getElementById('managerModal'); if(m) m.classList.remove('show'); };
+window.resetGame = function(){ location.reload(); };
+window.closeWelcomeAndStart = function(){ var m=document.getElementById('welcomeModal'); if(m) m.classList.remove('show'); };
+window.closeCredentialReminder = function(){ var m=document.getElementById('credentialReminderModal'); if(m) m.classList.remove('show'); };
+window.closeSingleAccountBlock = function(){ var m=document.getElementById('singleAccountBlockModal'); if(m) m.classList.remove('show'); };
+window.deleteBroadcastPublic = function(){};
+window.openAdmin = function(){};
+window.openWinnerDisplayModal = function(){ var m=document.getElementById('winnerDisplayModal'); if(m) m.classList.add('show'); };
+window.closeWinnerDisplayModal = function(){ var m=document.getElementById('winnerDisplayModal'); if(m) m.classList.remove('show'); };
+window.closeAccountsModal = function(){ var m=document.getElementById('accountsModal'); if(m) m.classList.remove('show'); };
+window.openAccountsModal = function(){ var m=document.getElementById('accountsModal'); if(m) m.classList.add('show'); };
+window.closeAndroidModal = function(){ var m=document.getElementById('androidModal'); if(m) m.classList.remove('show'); };
+window.closeIOSModal = function(){ var m=document.getElementById('iosModal'); if(m) m.classList.remove('show'); };
+window.closeLeaderboard = function(){ var m=document.getElementById('leaderboardModal'); if(m) m.classList.remove('show'); };
+window.hideInstallBanner = function(){ var m=document.getElementById('installBanner'); if(m) m.style.display='none'; };
+window.hideNotification = function(){};
+window.doSearch = function(){};
+window.contactShopkeeper = function(){};
+window.createShopkeeperREST = function(){};
+window.deleteShopkeeper = function(){};
+window.deleteShopkeeperNew = function(){};
+window.loadAllShopkeepersNew = function(){};
+window.loadMyShopInfoNew = function(){};
+window.openEditShopkeeper = function(){};
+window.openSocialLink = function(){};
+window.playRanking = function(){};
+console.log('✅ HEAD GLOBAL READY');
+</script>
+
     
 <meta charset="UTF-8">
 
@@ -731,95 +813,6 @@ body{
 }
 </style>
 
-
-<!-- GLOBAL HANDLERS - HEAD - PREVENT NOT DEFINED ERRORS -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script>
-// ===== YARYA ZAXO HEAD FIX - ALL GLOBAL BEFORE BODY =====
-window.SUPABASE_URL = 'https://blrubofyabwgwdkefamm.supabase.co';
-window.SUPABASE_ANON_KEY = 'sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN';
-try{
-  if(window.supabase && window.supabase.createClient){
-    window.supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-    window.db = window.supabaseClient;
-    console.log('✅ Supabase UMD ready in HEAD');
-  }
-}catch(e){ console.log('supabase head init', e); }
-
-window.switchTab = function(tab){
-  try{
-    window.currentTab = tab;
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-    const elLogin = document.getElementById('tabLogin');
-    const elReg = document.getElementById('tabRegister');
-    if(tab==='login' && elLogin) elLogin.classList.add('active');
-    if(tab==='register' && elReg) elReg.classList.add('active');
-    const phoneRow = document.getElementById('phoneRow');
-    const photoRow = document.getElementById('photoRow');
-    const bioRow = document.getElementById('bioRow');
-    if(phoneRow) phoneRow.style.display = tab==='register' ? 'block' : 'none';
-    if(photoRow) photoRow.style.display = tab==='register' ? 'flex' : 'none';
-    if(bioRow) bioRow.style.display = tab==='register' ? 'block' : 'none';
-    const mainBtn = document.getElementById('mainBtn');
-    if(mainBtn) mainBtn.textContent = tab==='login' ? 'چوونەژوور' : 'تۆمارکرن';
-    const err = document.getElementById('errorBox');
-    if(err){ err.textContent=''; err.style.display='none'; }
-  }catch(e){ console.log('switchTab head error', e); }
-};
-
-window.handlePhoto = function(input){
-  try{
-    if(input && input.files && input.files[0]){
-      const reader = new FileReader();
-      reader.onload = function(e){
-        const base64 = e.target.result;
-        localStorage.setItem('yarya_user_photo', base64);
-        const prev = document.getElementById('avatarPrev');
-        if(prev) prev.innerHTML = '<img src="'+base64+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
-        window.photoBase64 = base64;
-        if(window.setPhotoBase64) window.setPhotoBase64(base64);
-      };
-      reader.readAsDataURL(input.files[0]);
-    }
-  }catch(e){ console.log('handlePhoto head error', e); }
-};
-
-window.tryAutoFullscreen = function(){ try{ if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{}); }catch(e){} };
-window.handleNotificationClick = function(){};
-window.openProfile = function(){ const m=document.getElementById('profileModal'); if(m) m.classList.add('show'); };
-window.closeProfile = function(){ const m=document.getElementById('profileModal'); if(m) m.classList.remove('show'); };
-window.openLeaderboard = function(){};
-window.openManagerModal = function(){};
-window.closeManagerModal = function(){ const m=document.getElementById('managerModal'); if(m) m.classList.remove('show'); };
-window.resetGame = function(){ location.reload(); };
-window.closeWelcomeAndStart = function(){ const m=document.getElementById('welcomeModal'); if(m) m.classList.remove('show'); };
-window.closeCredentialReminder = function(){ const m=document.getElementById('credentialReminderModal'); if(m) m.classList.remove('show'); };
-window.closeSingleAccountBlock = function(){ const m=document.getElementById('singleAccountBlockModal'); if(m) m.classList.remove('show'); };
-window.deleteBroadcastPublic = function(){};
-window.openAdmin = function(){};
-window.openWinnerDisplayModal = function(){ const m=document.getElementById('winnerDisplayModal'); if(m) m.classList.add('show'); };
-window.closeWinnerDisplayModal = function(){ const m=document.getElementById('winnerDisplayModal'); if(m) m.classList.remove('show'); };
-window.closeAccountsModal = function(){ const m=document.getElementById('accountsModal'); if(m) m.classList.remove('show'); };
-window.openAccountsModal = function(){ const m=document.getElementById('accountsModal'); if(m) m.classList.add('show'); };
-window.closeAndroidModal = function(){ const m=document.getElementById('androidModal'); if(m) m.classList.remove('show'); };
-window.closeIOSModal = function(){ const m=document.getElementById('iosModal'); if(m) m.classList.remove('show'); };
-window.closeLeaderboard = function(){ const m=document.getElementById('leaderboardModal'); if(m) m.classList.remove('show'); };
-window.hideInstallBanner = function(){ const m=document.getElementById('installBanner'); if(m) m.style.display='none'; };
-window.hideNotification = function(){};
-window.doSearch = function(){};
-window.contactShopkeeper = function(){};
-window.createShopkeeperREST = function(){};
-window.deleteShopkeeper = function(){};
-window.deleteShopkeeperNew = function(){};
-window.loadAllShopkeepersNew = function(){};
-window.loadMyShopInfoNew = function(){};
-window.openEditShopkeeper = function(){};
-window.openSocialLink = function(){};
-window.playRanking = function(){};
-
-console.log('✅ HEAD GLOBAL HANDLERS READY - switchTab, handlePhoto, all modals');
-</script>
-
 </head>
 <body>
 <div id="loadingScreen" class="loadingScreen"><div style="color:#fff;font-weight:900;font-size:20px">👨‍👩‍👧‍👦 هەڤرکیا <span style="color:#F7C600">خێزانێ</span></div><div class="spinner"></div><div style="color:rgba(255,255,255,0.3);font-size:11px">MSG SHOW NOW - ULTIMATE FIX</div></div>
@@ -1185,71 +1178,7 @@ setTimeout(()=>{
 </div></div></div>
 <div id="sponsorVideoModal" class="modal" style="z-index:90"><div class="modalCard" style="max-width:420px"><div class="videoHeader"><div id="videoHeaderName">🎬 سپونسەر</div><button id="videoCloseBtn" onclick="if(window.sponsorSecondsLeft<=0)window.closeSponsorVideo()" style="width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.2);cursor:not-allowed;opacity:0.3;pointer-events:none" disabled>✕</button></div><div class="videoWrap" id="videoWrap"><div id="videoPlayerContainer" style="width:100%;height:100%"></div><div class="videoBlocker" id="videoBlocker" title="ڤیدیو قفلە 🔒 - ناشێی بسەکنینی یان دەنگی بگری"></div><div class="videoOverlay"><div class="countdownRow"><div class="countNumber" id="countNumber">15</div><div class="countText" id="countText" style="display:none !important"></div></div><div class="progressBar"><div class="progressFill" id="progressFill"></div></div></div></div><div class="videoActions"><button id="continueBtn" class="continueBtn disabled" onclick="window.continueFromSponsor()"><span id="continueBtnIcon">🔒</span> <span id="continueBtnText">هیڤیە چاڤەرێ بە...</span></button><div style="text-align:center;color:rgba(255,255,255,0.25);font-size:10px">⏳ تکایە چاڤەرێ بە...</div></div></div></div>
 
-
-<!-- SUPABASE UMD - NO MODULE - 50K READY -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script>
-// ===== SUPABASE V30 ULTIMATE FINAL - NO FIREBASE - NO MODULE =====
-const SUPABASE_URL = 'https://blrubofyabwgwdkefamm.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-window.supabase = supabase;
-const db = supabase;
-window.db = db;
-const firebaseConfig = {projectId: "blrubofyabwgwdkefamm", apiKey: SUPABASE_ANON_KEY};
-window.firebaseConfig = firebaseConfig;
-console.log('✅ SUPABASE ULTIMATE FINAL - 50K READY - No module, all global');
-
-function switchTab(tab){
-  try{
-    window.currentTab = tab;
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-    const elLogin = document.getElementById('tabLogin');
-    const elReg = document.getElementById('tabRegister');
-    if(tab==='login' && elLogin) elLogin.classList.add('active');
-    if(tab==='register' && elReg) elReg.classList.add('active');
-    const phoneRow = document.getElementById('phoneRow');
-    const photoRow = document.getElementById('photoRow');
-    const bioRow = document.getElementById('bioRow');
-    if(phoneRow) phoneRow.style.display = tab==='register' ? 'block' : 'none';
-    if(photoRow) photoRow.style.display = tab==='register' ? 'flex' : 'none';
-    if(bioRow) bioRow.style.display = tab==='register' ? 'block' : 'none';
-    const mainBtn = document.getElementById('mainBtn');
-    if(mainBtn) mainBtn.textContent = tab==='login' ? 'چوونەژوور' : 'تۆمارکرن';
-  }catch(e){}
-}
-function handlePhoto(input){
-  try{
-    if(input && input.files && input.files[0]){
-      const reader = new FileReader();
-      reader.onload = function(e){
-        const base64 = e.target.result;
-        localStorage.setItem('yarya_user_photo', base64);
-        const prev = document.getElementById('avatarPrev');
-        if(prev) prev.innerHTML = '<img src="'+base64+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
-        window.photoBase64 = base64;
-      };
-      reader.readAsDataURL(input.files[0]);
-    }
-  }catch(e){}
-}
-function tryAutoFullscreen(){ try{ if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{}); }catch(e){} }
-window.switchTab = switchTab;
-window.handlePhoto = handlePhoto;
-window.tryAutoFullscreen = tryAutoFullscreen;
-window.handleNotificationClick = function(){};
-window.openProfile = function(){ document.getElementById('profileModal')?.classList.add('show'); };
-window.closeProfile = function(){ document.getElementById('profileModal')?.classList.remove('show'); };
-window.openLeaderboard = function(){};
-window.openManagerModal = function(){};
-window.closeManagerModal = function(){};
-window.resetGame = function(){ location.reload(); };
-window.closeWelcomeAndStart = function(){ document.getElementById('welcomeModal')?.classList.remove('show'); };
-window.closeCredentialReminder = function(){ document.getElementById('credentialReminderModal')?.classList.remove('show'); };
-window.closeSingleAccountBlock = function(){ document.getElementById('singleAccountBlockModal')?.classList.remove('show'); };
-</script>
-
-<script>
+<script type="module">
 function safeRequestFullscreen(el){
   try{
     if(!el) return;
@@ -1259,11 +1188,12 @@ function safeRequestFullscreen(el){
   }catch(e){ console.log('fullscreen fail', e.message); }
 }
 
-// Firebase removed - replaced by UMD Supabase
-const firebaseConfig = {projectId: 'blrubofyabwgwdkefamm', apiKey: 'sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN'};
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, orderBy, limit, getDocs, getCountFromServer, addDoc, serverTimestamp, deleteDoc, writeBatch, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyB5y-soQQwolnaRLPcARamLXq-YbGFph74",authDomain:"yarya-zaxo.firebaseapp.com",projectId:"yarya-zaxo",storageBucket:"yarya-zaxo.firebasestorage.app",messagingSenderId:"369754174656",appId:"1:369754174656:web:a5d1355bd8ce313f166925"};
 window.firebaseConfig = firebaseConfig;
-const db = window.supabase;
-
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
 
 function debugLog(msg){
   const el=document.getElementById('debugLog');
@@ -1741,8 +1671,8 @@ async function pollSponsorsFallback(){
 }
 
 
-window.DOCS_URL = window.DOCS_URL ||=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
-window.QUERY_URL = window.QUERY_URL ||=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+window.DOCS_URL = window.DOCS_URL || 'https://blrubofyabwgwdkefamm.supabase.co/rest/v1'; const DOCS_URL = window.DOCS_URL;
+window.QUERY_URL = window.QUERY_URL || 'https://blrubofyabwgwdkefamm.supabase.co/rest/v1'; const QUERY_URL = window.QUERY_URL;
 
 let currentTab='login',photoBase64='',currentUser = null,profilePhotoBase64='';
   window.currentUser = currentUser;
@@ -3582,7 +3512,7 @@ window.refreshCurrentUserFromDB = async function(){
   try{
     let cu = window.currentUser;
     if(!cu || !cu.usernameLower) return null;
-    const qUrl = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    const qUrl = `https://firestore.googleapis.com/v1/projects/${window.firebaseConfig.projectId}/databases/(default)/documents:runQuery?key=${window.firebaseConfig.apiKey}`;
     const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: cu.usernameLower}}}, limit:1 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
     const data = await res.json();
@@ -5464,7 +5394,7 @@ window.closeManagerModal = function(){ document.getElementById('managerModal')?.
 window.loadMyShopInfoNew = async function(){
   try{
     if(!window.currentUser){ document.getElementById('myShopInfo').innerHTML='❌ بچو ژوورێ'; return; }
-    const qUrl = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    const qUrl = `https://firestore.googleapis.com/v1/projects/${window.firebaseConfig.projectId}/databases/(default)/documents:runQuery?key=${window.firebaseConfig.apiKey}`;
     const queryBody = { structuredQuery: { from:[{collectionId:'shopkeepers'}], where:{fieldFilter:{field:{fieldPath:'username'}, op:'EQUAL', value:{stringValue: window.currentUser.usernameLower}}}, limit:1 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(queryBody)});
     const data = await res.json();
@@ -5538,7 +5468,7 @@ window.searchPlayerForManager = async function(){
   const resultEl = document.getElementById('managerSearchResult');
   resultEl.innerHTML='<div style="text-align:center;padding:10px;color:rgba(255,255,255,0.5)">⏳ گەڕان...</div>';
   try{
-    const qUrl = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    const qUrl = `https://firestore.googleapis.com/v1/projects/${window.firebaseConfig.projectId}/databases/(default)/documents:runQuery?key=${window.firebaseConfig.apiKey}`;
     const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: input}}}, limit:5 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
     const data = await res.json();
@@ -5575,7 +5505,7 @@ window.searchPlayerByCode = async function(){
   const resultEl = document.getElementById('managerSearchResult');
   resultEl.innerHTML='<div style="text-align:center;padding:10px;color:#F7C600">⏳ گەڕان ب کودی '+codeInput+'...</div>';
   try{
-    const qUrl = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    const qUrl = `https://firestore.googleapis.com/v1/projects/${window.firebaseConfig.projectId}/databases/(default)/documents:runQuery?key=${window.firebaseConfig.apiKey}`;
     const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'privateCode'}, op:'EQUAL', value:{stringValue: codeInput}}}, limit:5 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
     const data = await res.json();
@@ -5624,7 +5554,7 @@ window.unlockPlayer = async function(playerDocId, playerLower, type){
   if(!confirm(`دڵنیای دێ ${type==='mobile'?'📱 موبایل':'🚗 ترومبێل'} بۆ ${playerLower} ڤەکەی؟ دێ 1 کوتا ژ تە کێمبیت`)) return;
   try{
     // 1. Update player unlocked
-    window.DOCS_URL = window.DOCS_URL || = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    window.DOCS_URL = window.DOCS_URL || 'https://blrubofyabwgwdkefamm.supabase.co/rest/v1'; const DOCS_URL = window.DOCS_URL;
     const playerUpdateUrl = `${DOCS_URL}/users/${encodeURIComponent(playerDocId)}?key=${window.firebaseConfig.apiKey}&updateMask.fieldPaths=${type==='mobile'?'unlockedMobile':'unlockedCar'}`;
     const updRes = await fetch(playerUpdateUrl, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields:{ [type==='mobile'?'unlockedMobile':'unlockedCar']:{booleanValue:true} }})});
     if(!updRes.ok){ const t=await updRes.text(); alert('❌ '+t); return; }
@@ -5654,7 +5584,7 @@ window.loadMySalesListNew = async function(){
   if(!listEl || !myShopkeeperDoc) return;
   listEl.innerHTML='<div style="color:rgba(255,255,255,0.4);font-size:11px;text-align:center;padding:10px">⏳...</div>';
   try{
-    const qUrl = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    const qUrl = `https://firestore.googleapis.com/v1/projects/${window.firebaseConfig.projectId}/databases/(default)/documents:runQuery?key=${window.firebaseConfig.apiKey}`;
     const qb = { structuredQuery: { from:[{collectionId:'unlockTransactions'}], where:{fieldFilter:{field:{fieldPath:'shopkeeperId'}, op:'EQUAL', value:{stringValue: myShopkeeperDoc.id}}}, orderBy:[{field:{fieldPath:'createdAt'}, direction:'DESCENDING'}], limit:20 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
     const data = await res.json();
@@ -5708,7 +5638,7 @@ window.loadAllShopkeepersNew = async function(){
   if(!listEl) return;
   listEl.innerHTML='<div style="text-align:center;padding:12px;color:rgba(255,255,255,0.5)">⏳ بار دبیت...</div>';
   try{
-    const url = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    const url = `https://firestore.googleapis.com/v1/projects/${window.firebaseConfig.projectId}/databases/(default)/documents/shopkeepers?key=${window.firebaseConfig.apiKey}&pageSize=100`;
     const res = await fetch(url);
     const data = await res.json();
     if(!data.documents){ listEl.innerHTML='<div style="color:rgba(255,255,255,0.5);text-align:center;padding:12px">هیچ دکاندار نینە</div>'; return; }
@@ -5723,8 +5653,8 @@ window.loadAllShopkeepersNew = async function(){
       const owner=getStr('ownerName');
       const phone=getStr('phone');
       const prov=getStr('province');
-      const mQuota=getInt('mobileQuota');
-      const cQuota=getInt('carQuota');
+      let mQuota=getInt('mobileQuota');
+      let cQuota=getInt('carQuota');
       const mTotal=getInt('mobileTotal');
       const cTotal=getInt('carTotal');
       const isLocked=getBool('isLocked');
@@ -5754,7 +5684,7 @@ window.openEditShopkeeper = async function(id){
   const lockAction = confirm('دێ قفل بکەین؟ OK=قفلکرن, Cancel=ڤەکرن');
   // For simplicity, we will fetch current and apply delta
   try{
-    window.DOCS_URL = window.DOCS_URL || = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    window.DOCS_URL = window.DOCS_URL || 'https://blrubofyabwgwdkefamm.supabase.co/rest/v1'; const DOCS_URL = window.DOCS_URL;
     const getUrl = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window.firebaseConfig.apiKey}`;
     const getRes = await fetch(getUrl);
     const doc = await getRes.json();
@@ -5795,11 +5725,11 @@ window.createShopkeeperREST = async function(){
   const ownerName = (document.getElementById('adminNewShopOwner')?.value||'').trim();
   const phone = (document.getElementById('adminNewShopPhone')?.value||'').trim();
   const province = (document.getElementById('adminNewShopProvince')?.value||'zaxo');
-  const mQuota = parseInt(document.getElementById('adminNewShopMobileQuota')?.value||'50');
-  const cQuota = parseInt(document.getElementById('adminNewShopCarQuota')?.value||'50');
+  let mQuota = parseInt(document.getElementById('adminNewShopMobileQuota')?.value||'50');
+  let cQuota = parseInt(document.getElementById('adminNewShopCarQuota')?.value||'50');
   if(!username||!shopName||!ownerName||!phone){ alert('هەمی خانەیان پر بکە'); return; }
   try{
-    window.DOCS_URL = window.DOCS_URL || = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    window.DOCS_URL = window.DOCS_URL || 'https://blrubofyabwgwdkefamm.supabase.co/rest/v1'; const DOCS_URL = window.DOCS_URL;
     const fields = {
       username:{stringValue: username},
       shopName:{stringValue: shopName},
@@ -5822,7 +5752,7 @@ window.createShopkeeperREST = async function(){
     if(!res.ok){ alert('❌ '+await res.text()); return; }
     // Also update user to manager if exists
     try{
-      const qUrl = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+      const qUrl = `https://firestore.googleapis.com/v1/projects/${window.firebaseConfig.projectId}/databases/(default)/documents:runQuery?key=${window.firebaseConfig.apiKey}`;
       const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: username}}}, limit:1 } };
       const qRes = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
       const qData = await qRes.json();
@@ -5840,7 +5770,7 @@ window.createShopkeeperREST = async function(){
 window.deleteShopkeeperNew = async function(id){
   if(!confirm('دڵنیای دێ ژێبی؟')) return;
   try{
-    window.DOCS_URL = window.DOCS_URL || = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    window.DOCS_URL = window.DOCS_URL || 'https://blrubofyabwgwdkefamm.supabase.co/rest/v1'; const DOCS_URL = window.DOCS_URL;
     const url = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window.firebaseConfig.apiKey}`;
     const res = await fetch(url, {method:'DELETE'});
     if(res.ok){ alert('✅ ژێبرا'); loadAllShopkeepersNew(); } else alert('❌ نەژێبرا');
@@ -5853,7 +5783,7 @@ window.searchShopkeepersNew = async function(){
   const listEl = document.getElementById('adminShopkeepersListREST');
   listEl.innerHTML='<div style="text-align:center;padding:12px;color:rgba(255,255,255,0.5)">⏳ گەڕان...</div>';
   try{
-    const url = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    const url = `https://firestore.googleapis.com/v1/projects/${window.firebaseConfig.projectId}/databases/(default)/documents/shopkeepers?key=${window.firebaseConfig.apiKey}&pageSize=100`;
     const res = await fetch(url);
     const data = await res.json();
     if(!data.documents){ listEl.innerHTML='❌ نەهاتە دیتن'; return; }
@@ -5874,8 +5804,8 @@ window.searchShopkeepersNew = async function(){
       const owner=getStr('ownerName');
       const phone=getStr('phone');
       const prov=getStr('province');
-      const mQuota=getInt('mobileQuota');
-      const cQuota=getInt('carQuota');
+      let mQuota=getInt('mobileQuota');
+      let cQuota=getInt('carQuota');
       const isLocked=getBool('isLocked');
       const card=document.createElement('div');
       card.style.cssText='background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px';
@@ -6932,8 +6862,8 @@ async function loadSocialLinks(){
       const proj = firebaseConfig.projectId;
       const key = firebaseConfig.apiKey;
       const urls = [
-        `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`,
-        `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`
+        `https://firestore.googleapis.com/v1/projects/${proj}/databases/(default)/documents/settings/social?key=${key}`,
+        `https://firestore.googleapis.com/v1/projects/${proj}/databases/(default)/documents/settings/config?key=${key}`
       ];
       for(let url of urls){
         try{
@@ -7091,7 +7021,7 @@ async function fetchLatestWinnerFromFirestoreWithMode(){
     if(typeof firebaseConfig === 'undefined') return null;
     const proj = firebaseConfig.projectId;
     const key = firebaseConfig.apiKey;
-    const url = `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`;
+    const url = `https://firestore.googleapis.com/v1/projects/${proj}/databases/(default)/documents:runQuery?key=${key}`;
     const body = {structuredQuery:{from:[{collectionId:"winners"}],orderBy:[{field:{fieldPath:"createdAt"},direction:"DESCENDING"}],limit:10}};
     try{
       const res = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
@@ -7148,7 +7078,7 @@ async function loadWinnersHistoryForPlayers(){
 }
 
 
-async function updateWinnerBottomBar(){
+async async function updateWinnerBottomBar(){
   // FIX: Don't overwrite if winner modal is open or freeze active
   try{
     const modal = document.getElementById('winnerDisplayModal');
