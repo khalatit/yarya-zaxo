@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>Admin - YARYA ZAXO Supabase</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{background:#070a1a;color:#fff;font-family:Arial;padding:20px}
+.card{background:#16162e;border-radius:12px;padding:16px;margin-bottom:12px}
+button{padding:8px 14px;border-radius:8px;border:0;background:#F7C600;color:#000;font-weight:800;cursor:pointer}
+</style>
+</head>
+<body>
+<h2>👑 ئەدمین - Supabase - 50K Ready</h2>
+<div class="card">
+<h3>Settings - خولا 5 خولەکی</h3>
+<button onclick="triggerFreeze()">⏸️ FREEZE بۆ هەمی 50K کەس</button>
+<button onclick="resetRound()">🔄 Reset خول</button>
+<div id="settings"></div>
+</div>
+<div class="card">
+<h3>Top Users</h3>
+<div id="users"></div>
+</div>
+<script>
+const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function load(){
+  let {data: settings} = await supabaseClient.from('settings').select('*');
+  document.getElementById('settings').innerHTML = '<pre>'+JSON.stringify(settings,null,2)+'</pre>';
+  let {data: users} = await supabaseClient.from('users').select('*').order('best_score_free',{ascending:false}).limit(20);
+  document.getElementById('users').innerHTML = users.map(u=>`<div>${u.username} - ${u.best_score_free}</div>`).join('');
+}
+async function triggerFreeze(){
+  await supabaseClient.from('settings').upsert({key:'freezeStatus', value:{active:true, timestamp: Date.now()}, updated_at: new Date()});
+  alert('Freeze ناردرا بۆ هەمی');
+}
+async function resetRound(){
+  await supabaseClient.from('settings').upsert({key:'freezeStatus', value:{active:false}, updated_at: new Date()});
+  alert('Reset کرا');
+}
+load();
+</script>
+</body>
+</html>
