@@ -41,6 +41,75 @@ input, textarea { font-size: 16px !important; }
 <title>YARYA ZAXO PRO - هەفرکیا خێزانێ 🏆🐥 - V27 کێم-مەسرەف</title>
 
 <script>
+// GLOBAL switchTab + handlers for inline onclick
+
+<script>
+// GLOBAL HANDLERS - must be before HTML to prevent not-defined errors
+function handlePhoto(input){
+  try{
+    if(window.handlePhoto && window.handlePhoto !== handlePhoto){
+      return window.handlePhoto(input);
+    }
+    // Fallback simple photo handling
+    if(input && input.files && input.files[0]){
+      const reader = new FileReader();
+      reader.onload = function(e){
+        const base64 = e.target.result;
+        localStorage.setItem('yarya_user_photo', base64);
+        const prev = document.getElementById('avatarPrev');
+        if(prev) prev.innerHTML = '<img src="'+base64+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+        window.photoBase64 = base64;
+        console.log('Photo loaded');
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }catch(e){ console.log('handlePhoto error', e); }
+}
+function handleAuth(){
+  try{
+    // Try module version
+    if(window._moduleHandleAuth){
+      return window._moduleHandleAuth();
+    }
+    // Check if supabase handleAuth exists
+    if(window.handleAuth && window.handleAuth !== handleAuth && window.handleAuth.toString().length > 100){
+      // Avoid recursion, call the module one if different
+      const fn = window.handleAuth;
+      if(fn !== handleAuth) return fn();
+    }
+    console.log('handleAuth called - trying to find real implementation');
+    // Find real implementation in module scope via global
+    if(typeof window.handleAuthImpl === 'function'){
+      return window.handleAuthImpl();
+    }
+    alert('تکایە چاوەڕێبە... یاری ل بارکرنێ دایە - دوبارە کلیک بکە');
+  }catch(e){ console.log('handleAuth error', e); alert('هەلەیەک هەیە: '+e.message); }
+}
+function tryAutoFullscreen(){
+  try{
+    if(document.documentElement.requestFullscreen){
+      document.documentElement.requestFullscreen().catch(()=>{});
+    }
+  }catch(e){}
+}
+window.handlePhoto = handlePhoto;
+window.handleAuth = handleAuth;
+window.tryAutoFullscreen = tryAutoFullscreen;
+window.handleNotificationClick = function(){ console.log('notif click'); };
+window.openProfile = function(){ console.log('openProfile'); document.getElementById('profileModal')?.classList.add('show'); };
+window.closeProfile = function(){ document.getElementById('profileModal')?.classList.remove('show'); };
+window.openLeaderboard = function(){ console.log('openLeaderboard'); };
+window.openManagerModal = function(){};
+window.closeManagerModal = function(){};
+window.resetGame = function(){ location.reload(); };
+window.closeWelcomeAndStart = function(){ document.getElementById('welcomeModal')?.classList.remove('show'); };
+window.closeCredentialReminder = function(){ document.getElementById('credentialReminderModal')?.classList.remove('show'); };
+window.closeSingleAccountBlock = function(){ document.getElementById('singleAccountBlockModal')?.classList.remove('show'); };
+window.deleteBroadcastPublic = function(){};
+window.openAdmin = function(){};
+console.log('✅ Global handlers ready - handleAuth, handlePhoto, etc');
+</script>
+
 // GLOBAL switchTab for inline onclick - must be before HTML
 function switchTab(tab){
   try{
