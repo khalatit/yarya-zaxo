@@ -1096,16 +1096,6 @@ setTimeout(()=>{
 </div></div></div>
 <div id="sponsorVideoModal" class="modal" style="z-index:90"><div class="modalCard" style="max-width:420px"><div class="videoHeader"><div id="videoHeaderName">🎬 سپونسەر</div><button id="videoCloseBtn" onclick="if(window.sponsorSecondsLeft<=0)window.closeSponsorVideo()" style="width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.2);cursor:not-allowed;opacity:0.3;pointer-events:none" disabled>✕</button></div><div class="videoWrap" id="videoWrap"><div id="videoPlayerContainer" style="width:100%;height:100%"></div><div class="videoBlocker" id="videoBlocker" title="ڤیدیو قفلە 🔒 - ناشێی بسەکنینی یان دەنگی بگری"></div><div class="videoOverlay"><div class="countdownRow"><div class="countNumber" id="countNumber">15</div><div class="countText" id="countText" style="display:none !important"></div></div><div class="progressBar"><div class="progressFill" id="progressFill"></div></div></div></div><div class="videoActions"><button id="continueBtn" class="continueBtn disabled" onclick="window.continueFromSponsor()"><span id="continueBtnIcon">🔒</span> <span id="continueBtnText">هیڤیە چاڤەرێ بە...</span></button><div style="text-align:center;color:rgba(255,255,255,0.25);font-size:10px">⏳ تکایە چاڤەرێ بە...</div></div></div></div>
 
-
-/*
-YARYA ZAXO PRO V30 - SUPABASE EDITION - 50K READY
-- گوهاستن ژ فایەرباسێ بۆ سوپەباسێ
-- 90% مەسرەف کێمتر بۆ 50K ئونلاین
-- 1 realtime channel ل جهێ 8 onSnapshot
-- Cache 15s بۆ رێزبەندیێ
-- بێ pollREST یا 1 چرکەیی
-*/
-
 <script type="module">
 function safeRequestFullscreen(el){
   try{
@@ -1117,148 +1107,17 @@ function safeRequestFullscreen(el){
 }
 
 
-// ===== SUPABASE V30 - 50K READY - NO FIREBASE =====
+// ===== SUPABASE V30 CLEAN - 50K READY - NO FIREBASE =====
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-
-// CONFIG - بگوهێرە
 const SUPABASE_URL = 'https://blrubofyabwgwdkefamm.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 window.supabase = supabase;
-const db = supabase; // For compatibility
+const db = supabase;
 window.db = db;
-
-console.log('✅ SUPABASE V30 - 50K READY');
-
-// Optimized cache for leaderboard - 90% cost saving
-window.leaderboardCache = {free: null, mobile: null, car: null};
-window.leaderboardCacheTime = {free: 0, mobile: 0, car: 0};
-const CACHE_TTL = 15000; // 15 seconds cache
-
-// Mock Firestore functions using Supabase
-window.safeOnSnapshot = function(q, callback, errorCallback){
-  // For Supabase, we use realtime only for settings table
-  if(q && q._isSettings){
-    const channel = supabase.channel('settings_'+q.key)
-      .on('postgres_changes', {event: '*', schema: 'public', table: 'settings', filter: `key=eq.${q.key}`}, (payload)=>{
-        const docData = payload.new ? payload.new.value : null;
-        callback({exists: ()=>!!docData, data: ()=>docData, id: q.key});
-      }).subscribe();
-    return ()=>{ supabase.removeChannel(channel); };
-  }
-  // For other collections, do single fetch then return unsubscribe that does nothing (saves costs)
-  (async ()=>{
-    try{
-      const snap = await q._fetch();
-      callback(snap);
-    }catch(e){ if(errorCallback) errorCallback(e); }
-  })();
-  return ()=>{};
-};
-
-// Helper to create query objects
-function supaQuery(table, filters=[], orderByField=null, orderDir='desc', limitVal=null){
-  return {
-    _isQuery: true,
-    _table: table,
-    _filters: filters,
-    _orderBy: orderByField,
-    _orderDir: orderDir,
-    _limit: limitVal,
-    _fetch: async ()=>{
-      let query = supabase.from(table).select('*');
-      for(let f of filters){
-        if(f.op==='==') query = query.eq(f.field, f.value);
-        if(f.op==='array-contains') query = query.contains(f.field, [f.value]);
-      }
-      if(orderByField) query = query.order(orderByField, {ascending: orderDir==='asc'});
-      if(limitVal) query = query.limit(limitVal);
-      const {data, error} = await query;
-      if(error) throw error;
-      // Return Firestore-like snapshot
-      return {
-        empty: !data || data.length===0,
-        size: data ? data.length : 0,
-        forEach: (cb)=>{ data.forEach(d=>cb({id: d.id || d.username_lower, data: ()=>d, exists: true})); },
-        docs: (data||[]).map(d=>({id: d.id || d.username_lower, data: ()=>d, exists: true}))
-      };
-    }
-  };
-}
-
-// Firestore compat functions
-window.collection = (db, name)=> name;
-window.doc = (db, col, id)=> ({_col: col, _id: id, _isDoc: true});
-window.query = (col, ...conds)=>{
-  let filters=[], orderByField=null, orderDir='desc', limitVal=null;
-  for(let c of conds){
-    if(c._isWhere) filters.push(c);
-    if(c._isOrder) { orderByField=c.field; orderDir=c.dir; }
-    if(c._isLimit) limitVal=c.val;
-  }
-  return supaQuery(col, filters, orderByField, orderDir, limitVal);
-};
-window.where = (field, op, val)=> ({_isWhere: true, field, op, value: val});
-window.orderBy = (field, dir='asc')=> ({_isOrder: true, field, dir});
-window.limit = (val)=> ({_isLimit: true, val});
-window.getDocs = async (q)=>{
-  if(q && q._fetch) return await q._fetch();
-  if(typeof q==='string'){ // collection name
-    const {data} = await supabase.from(q).select('*');
-    return {empty: !data || data.length===0, size: data?.length||0, forEach: (cb)=>data.forEach(d=>cb({id: d.id, data:()=>d})), docs: (data||[]).map(d=>({id: d.id, data:()=>d}))};
-  }
-  return {empty: true, docs: [], forEach: ()=>{}};
-};
-window.getDoc = async (docRef)=>{
-  if(!docRef._isDoc) return {exists: ()=>false};
-  if(docRef._col==='settings' || docRef._col==='settings'){
-    const {data} = await supabase.from('settings').select('*').eq('key', docRef._id).single();
-    return {exists: ()=>!!data, data: ()=> data ? data.value : null, id: docRef._id};
-  }
-  const {data} = await supabase.from(docRef._col).select('*').eq('id', docRef._id).single();
-  return {exists: ()=>!!data, data: ()=>data, id: docRef._id};
-};
-window.setDoc = async (docRef, data, opts)=>{
-  if(docRef._col==='settings'){
-    await supabase.from('settings').upsert({key: docRef._id, value: data, updated_at: new Date().toISOString()});
-  } else {
-    await supabase.from(docRef._col).upsert({...data, id: docRef._id, username_lower: docRef._id});
-  }
-};
-window.updateDoc = async (docRef, data)=>{
-  if(docRef._col==='settings'){
-    await supabase.from('settings').update({value: data, updated_at: new Date().toISOString()}).eq('key', docRef._id);
-  } else {
-    await supabase.from(docRef._col).update(data).eq('id', docRef._id);
-  }
-};
-window.addDoc = async (colRef, data)=>{
-  const {data: inserted} = await supabase.from(colRef).insert(data).select().single();
-  return {id: inserted.id};
-};
-window.deleteDoc = async (docRef)=>{
-  await supabase.from(docRef._col).delete().eq('id', docRef._id);
-};
-window.serverTimestamp = ()=> new Date().toISOString();
-
-// Optimized leaderboard with cache - saves 90% for 50k users
-window.getLeaderboardOptimized = async (mode='free')=>{
-  const now = Date.now();
-  const cacheKey = mode;
-  if(window.leaderboardCache[cacheKey] && (now - window.leaderboardCacheTime[cacheKey] < CACHE_TTL)){
-    console.log('✅ Cache hit for', mode);
-    return window.leaderboardCache[cacheKey];
-  }
-  console.log('🔄 Fetching fresh leaderboard', mode);
-  let orderField = mode==='free' ? 'best_score_free' : mode==='mobile' ? 'best_score_mobile' : 'best_score_car';
-  let filter = mode==='free' ? {} : mode==='mobile' ? {unlocked_mobile: true} : {unlocked_car: true};
-  let query = supabase.from('users').select('username, display_name, best_score_free, best_score_mobile, best_score_car, avatar_url').order(orderField, {ascending: false}).limit(10);
-  if(mode!=='free') query = query.eq(mode==='mobile' ? 'unlocked_mobile' : 'unlocked_car', true);
-  const {data} = await query;
-  window.leaderboardCache[cacheKey] = data;
-  window.leaderboardCacheTime[cacheKey] = now;
-  return data;
-};
+const firebaseConfig = {projectId: "blrubofyabwgwdkefamm", apiKey: SUPABASE_ANON_KEY};
+window.firebaseConfig = firebaseConfig;
+console.log('✅ SUPABASE V30 CLEAN - 50K READY - Firebase removed');
 
 
 function debugLog(msg){
@@ -1706,10 +1565,10 @@ function startGlobalListeners(){
     console.log('✅ Global listeners started for ALL users');
   }catch(e){ console.error('Failed to start global listeners', e); }
 }
-async function pollBroadcastsFallback(){ return; /* SUPABASE - disabled for 50K */
-  const _disabled = async function _pollBroadcastsFallback_DISABLED(){
+async function pollBroadcastsFallback(){ return; // SUPABASE DISABLED
+async function _pollBroadcastsFallback_DISABLED(){
   try{
-    const res = await fetch(`${DOCS_URL}/broadcasts?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`);
+    const res = await fetch(`${DOCS_URL}/broadcasts?key=${firebaseConfig.apiKey}`);
     if(!res.ok){ console.log('broadcast poll fail status', res.status); return; }
     const data = await res.json();
     if(!data.documents){ console.log('broadcast poll no docs'); return; }
@@ -1721,10 +1580,10 @@ async function pollBroadcastsFallback(){ return; /* SUPABASE - disabled for 50K 
     if(queue.length>0){ console.log('📢 Broadcast poll found', queue.length); saveBroadcastQueue(queue); startBroadcastRotation(); renderBroadcastQueueList(); }
   }catch(e){ console.log('broadcast poll error', e); }
 }
-async function pollSponsorsFallback(){ return; /* SUPABASE - disabled for 50K */
-  const _disabled2 = async function _pollSponsorsFallback_DISABLED(){
+async function pollSponsorsFallback(){ return; // SUPABASE DISABLED
+async function _pollSponsorsFallback_DISABLED(){
   try{
-    const res = await fetch(`${DOCS_URL}/sponsors?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`);
+    const res = await fetch(`${DOCS_URL}/sponsors?key=${firebaseConfig.apiKey}`);
     if(!res.ok){ console.log('sponsor poll fail', res.status); renderSponsors(); return; }
     const data = await res.json();
     if(!data.documents){ console.log('sponsor poll no docs - using defaults'); renderSponsors(); return; }
@@ -1739,10 +1598,10 @@ async function pollSponsorsFallback(){ return; /* SUPABASE - disabled for 50K */
 }
 
 
-const DOCS_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1`; // SUPABASE - Firebase removed
-const QUERY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1`; // SUPABASE
-
-function switchTab(tab){ currentTab=tab; document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); const el=document.querySelector(`[data-tab='${tab}']`); if(el) el.classList.add('active'); console.log('Switched to', tab); }
+const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
+const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
+function switchTab(tab){ try{ currentTab=tab; document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); const els=document.querySelectorAll(`[data-tab='${tab}'], #tab-${tab}, .tab-${tab}`); if(els.length) els[0].classList.add('active'); }catch(e){} }
+window.switchTab=switchTab;
 let currentTab='login',photoBase64='',currentUser = null,profilePhotoBase64='';
   window.currentUser = currentUser;
 let currentChatFriend=null, replyToMessage=null, typingTimeout=null, lastTypingState=false;
@@ -1824,7 +1683,7 @@ async function fetchUserById(id){
   try{
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),10000);
-    const r=await fetch(`${DOCS_URL}/users/${encodeURIComponent(id)}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`,{signal:controller.signal});
+    const r=await fetch(`${DOCS_URL}/users/${encodeURIComponent(id)}?key=${firebaseConfig.apiKey}`,{signal:controller.signal});
     clearTimeout(timeout);
     if(r.status===404) return null;
     if(!r.ok) return null;
@@ -1832,7 +1691,7 @@ async function fetchUserById(id){
     return parseUserDoc(d);
   }catch(e){ return null; }
 }
-async function saveUser(id,obj){const fields={};if(obj.username) fields.username={stringValue:obj.username};if(obj.usernameLower) fields.usernameLower={stringValue:obj.usernameLower};if(obj.password) fields.password={stringValue:obj.password};if(obj.photoBase64) fields.photoBase64={stringValue:obj.photoBase64};if(typeof obj.bestScore==='number') fields.bestScore={integerValue:obj.bestScore.toString()};if(typeof obj.bestScoreFree==='number') fields.bestScoreFree={integerValue:obj.bestScoreFree.toString()};if(typeof obj.bestScoreMobile==='number') fields.bestScoreMobile={integerValue:obj.bestScoreMobile.toString()};if(typeof obj.bestScoreCar==='number') fields.bestScoreCar={integerValue:obj.bestScoreCar.toString()};if(typeof obj.unlockedMobile==='boolean') fields.unlockedMobile={booleanValue:obj.unlockedMobile};if(typeof obj.unlockedCar==='boolean') fields.unlockedCar={booleanValue:obj.unlockedCar};if(obj.deviceIds) fields.deviceIds={arrayValue:{values:obj.deviceIds.map(v=>({stringValue:v}))}};if(obj.bio!==undefined) fields.bio={stringValue:obj.bio||''};if(obj.phoneNumber) fields.phoneNumber={stringValue:obj.phoneNumber};if(obj.privateCode) fields.privateCode={stringValue:obj.privateCode};fields.updatedAt={timestampValue:new Date().toISOString()};if(obj.isNew) fields.createdAt={timestampValue:new Date().toISOString()};const mask=Object.keys(fields).map(f=>`updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');const url=`${DOCS_URL}/users/${encodeURIComponent(id)}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&${mask}`;const r=await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});if(!r.ok){const t=await r.text();console.log('save fail',t);throw new Error('save failed');}}
+async function saveUser(id,obj){const fields={};if(obj.username) fields.username={stringValue:obj.username};if(obj.usernameLower) fields.usernameLower={stringValue:obj.usernameLower};if(obj.password) fields.password={stringValue:obj.password};if(obj.photoBase64) fields.photoBase64={stringValue:obj.photoBase64};if(typeof obj.bestScore==='number') fields.bestScore={integerValue:obj.bestScore.toString()};if(typeof obj.bestScoreFree==='number') fields.bestScoreFree={integerValue:obj.bestScoreFree.toString()};if(typeof obj.bestScoreMobile==='number') fields.bestScoreMobile={integerValue:obj.bestScoreMobile.toString()};if(typeof obj.bestScoreCar==='number') fields.bestScoreCar={integerValue:obj.bestScoreCar.toString()};if(typeof obj.unlockedMobile==='boolean') fields.unlockedMobile={booleanValue:obj.unlockedMobile};if(typeof obj.unlockedCar==='boolean') fields.unlockedCar={booleanValue:obj.unlockedCar};if(obj.deviceIds) fields.deviceIds={arrayValue:{values:obj.deviceIds.map(v=>({stringValue:v}))}};if(obj.bio!==undefined) fields.bio={stringValue:obj.bio||''};if(obj.phoneNumber) fields.phoneNumber={stringValue:obj.phoneNumber};if(obj.privateCode) fields.privateCode={stringValue:obj.privateCode};fields.updatedAt={timestampValue:new Date().toISOString()};if(obj.isNew) fields.createdAt={timestampValue:new Date().toISOString()};const mask=Object.keys(fields).map(f=>`updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');const url=`${DOCS_URL}/users/${encodeURIComponent(id)}?key=${firebaseConfig.apiKey}&${mask}`;const r=await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});if(!r.ok){const t=await r.text();console.log('save fail',t);throw new Error('save failed');}}
 async function firestoreQuerySimple(collectionId, field, value, limitN=50){
   try{
     const structuredQuery={from:[{collectionId}],where:{fieldFilter:{field:{fieldPath:field},op:'EQUAL',value:{stringValue:value}}},limit:limitN};
@@ -1842,8 +1701,8 @@ async function firestoreQuerySimple(collectionId, field, value, limitN=50){
     return data.filter(d=>d.document).map(d=>({id:d.document.name.split('/').pop(), fields:d.document.fields}));
   }catch{return [];}
 }
-async function createDoc(collectionId, docId, fields){const mask=Object.keys(fields).map(f=>`updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');const url=`${DOCS_URL}/${collectionId}/${encodeURIComponent(docId)}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&${mask}`;const r=await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});return r.ok;}
-async function createDocAuto(collectionId, fields){const url=`${DOCS_URL}/${collectionId}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`;const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});if(!r.ok){const t=await r.text();console.log('create fail',t);return null;}const data=await r.json();return data.name.split('/').pop();}
+async function createDoc(collectionId, docId, fields){const mask=Object.keys(fields).map(f=>`updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');const url=`${DOCS_URL}/${collectionId}/${encodeURIComponent(docId)}?key=${firebaseConfig.apiKey}&${mask}`;const r=await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});return r.ok;}
+async function createDocAuto(collectionId, fields){const url=`${DOCS_URL}/${collectionId}?key=${firebaseConfig.apiKey}`;const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});if(!r.ok){const t=await r.text();console.log('create fail',t);return null;}const data=await r.json();return data.name.split('/').pop();}
 function getChatId(id1,id2){return [id1,id2].sort().join('_');}
 
 window.tryAutoFullscreen=async function(){
@@ -2190,7 +2049,7 @@ async function fetchAllData(){
   }
   updateBadges();
 }
-async function fetchAllUsers(){try{const res=await fetch(`${DOCS_URL}/users?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&pageSize=50`);if(!res.ok) return;const data=await res.json();if(!data.documents) return;allUsersCache=data.documents.map(d=>parseUserDoc(d)).filter(Boolean);}catch{}}
+async function fetchAllUsers(){try{const res=await fetch(`${DOCS_URL}/users?key=${firebaseConfig.apiKey}&pageSize=50`);if(!res.ok) return;const data=await res.json();if(!data.documents) return;allUsersCache=data.documents.map(d=>parseUserDoc(d)).filter(Boolean);}catch{}}
 async function fetchPendingRequests(){
   if(!currentUser) return;
   const results=await firestoreQuerySimple('friendRequests','toId',currentUser.usernameLower,20);
@@ -2251,8 +2110,8 @@ async function sendFriendRequest(toId){
   const docId=`${currentUser.usernameLower}_${toId}`;
   const reverseId=`${toId}_${currentUser.usernameLower}`;
   try{
-    const existing=await fetch(`${DOCS_URL}/friendRequests/${docId}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`);
-    const existing2=await fetch(`${DOCS_URL}/friendRequests/${reverseId}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`);
+    const existing=await fetch(`${DOCS_URL}/friendRequests/${docId}?key=${firebaseConfig.apiKey}`);
+    const existing2=await fetch(`${DOCS_URL}/friendRequests/${reverseId}?key=${firebaseConfig.apiKey}`);
     if(existing.ok || existing2.ok){alert('داخوازی هەیە');return;}
   }catch{}
   const fields={fromId:{stringValue:currentUser.usernameLower},fromName:{stringValue:currentUser.username},fromPhoto:{stringValue:currentUser.photoBase64||''},fromBio:{stringValue:currentUser.bio||''},toId:{stringValue:toId},toName:{stringValue:user.username},toPhoto:{stringValue:user.photoBase64||''},toBio:{stringValue:user.bio||''},status:{stringValue:'pending'},createdAt:{timestampValue:new Date().toISOString()}};
@@ -2282,7 +2141,7 @@ async function acceptRequest(id){
   const req=pendingRequests.find(r=>r.id===id);
   const fields={status:{stringValue:'accepted'},updatedAt:{timestampValue:new Date().toISOString()}};
   const mask=`updateMask.fieldPaths=status&updateMask.fieldPaths=updatedAt`;
-  const url=`${DOCS_URL}/friendRequests/${encodeURIComponent(id)}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&${mask}`;
+  const url=`${DOCS_URL}/friendRequests/${encodeURIComponent(id)}?key=${firebaseConfig.apiKey}&${mask}`;
   const r=await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});
   if(r.ok){
     try{soundMgr.success();}catch{}
@@ -2301,7 +2160,7 @@ async function acceptRequest(id){
     await fetchAllData();renderRequestsTab();window.switchFriendsTab('friends');
   }
 }
-async function rejectRequest(id){const url=`${DOCS_URL}/friendRequests/${encodeURIComponent(id)}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`;await fetch(url,{method:'DELETE'});await fetchPendingRequests();renderRequestsTab();}
+async function rejectRequest(id){const url=`${DOCS_URL}/friendRequests/${encodeURIComponent(id)}?key=${firebaseConfig.apiKey}`;await fetch(url,{method:'DELETE'});await fetchPendingRequests();renderRequestsTab();}
 function renderFriendsTab(){
   const body=document.getElementById('friendsBody');
   if(friendsList.length===0){body.innerHTML='<div style="text-align:center;color:rgba(255,255,255,0.4);padding:30px">👥 هەڤال نینە</div>';return;}
@@ -2478,7 +2337,7 @@ function startRealtimeChat(){
     }catch(e){console.log('poll error',e);}
   };
   pollREST();
-  chatPollInterval=setInterval(pollREST, 15000) // V30: 15s not 1s - 93% cheaper;
+  chatPollInterval=setInterval(pollREST, 15000);
   
   const qTyping=query(collection(db, "typing"), where("chatId", "==", chatId), limit(10));
   unsubscribeTyping=onSnapshot(qTyping, 
@@ -2842,7 +2701,7 @@ async function markMessagesAsRead(){
         return f.read?.booleanValue===false && getStr(f,'fromId')===friendId;
       });
       for(let r of unread){
-        const url=`${DOCS_URL}/messages/${r.id}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&updateMask.fieldPaths=read`;
+        const url=`${DOCS_URL}/messages/${r.id}?key=${firebaseConfig.apiKey}&updateMask.fieldPaths=read`;
         await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{read:{booleanValue:true}}})}).catch(()=>{});
         // update local
         const localMsg=lastMessages.find(m=>m.id===r.id);
@@ -2861,7 +2720,7 @@ async function markMessagesAsRead(){
       const results=await firestoreQuerySimple('messages','toId',currentUser.usernameLower,20);
       const unread=results.filter(r=> r.fields.read?.booleanValue===false);
       for(let r of unread){
-        const url=`${DOCS_URL}/messages/${r.id}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&updateMask.fieldPaths=read`;
+        const url=`${DOCS_URL}/messages/${r.id}?key=${firebaseConfig.apiKey}&updateMask.fieldPaths=read`;
         await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{read:{booleanValue:true}}})}).catch(()=>{});
       }
       unreadCounts={};
@@ -2917,13 +2776,13 @@ window.saveProfile=async function(){
     // Update friendRequests bio and photo only (not name)
     const fromReqs=await firestoreQuerySimple('friendRequests','fromId',currentUser.usernameLower,50);
     for(let r of fromReqs){
-      const url=`${DOCS_URL}/friendRequests/${r.id}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&updateMask.fieldPaths=fromBio&updateMask.fieldPaths=fromPhoto`;
+      const url=`${DOCS_URL}/friendRequests/${r.id}?key=${firebaseConfig.apiKey}&updateMask.fieldPaths=fromBio&updateMask.fieldPaths=fromPhoto`;
       const fields={fromBio:{stringValue:newBio}, fromPhoto:{stringValue:updateData.photoBase64||currentUser.photoBase64||''}};
       await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});
     }
     const toReqs=await firestoreQuerySimple('friendRequests','toId',currentUser.usernameLower,50);
     for(let r of toReqs){
-      const url=`${DOCS_URL}/friendRequests/${r.id}?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&updateMask.fieldPaths=toBio&updateMask.fieldPaths=toPhoto`;
+      const url=`${DOCS_URL}/friendRequests/${r.id}?key=${firebaseConfig.apiKey}&updateMask.fieldPaths=toBio&updateMask.fieldPaths=toPhoto`;
       const fields={toBio:{stringValue:newBio}, toPhoto:{stringValue:updateData.photoBase64||currentUser.photoBase64||''}};
       await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});
     }
@@ -3051,7 +2910,7 @@ tryAutoLogin();
 
 async function fetchLeaderboard(){
   try{
-    const res=await fetch(`${DOCS_URL}/users?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&pageSize=10`);
+    const res=await fetch(`${DOCS_URL}/users?key=${firebaseConfig.apiKey}&pageSize=10`);
     const data=await res.json();if(!data.documents) return [];
     const results=data.documents.map(d=>parseUserDoc(d)).filter(Boolean);
     results.sort((a,b)=>b.bestScore-a.bestScore);
@@ -3138,7 +2997,7 @@ function startGame(){
     bestScoreFree=currentUser.bestScoreFree||currentUser.bestScore||0; bestScoreMobile=currentUser.bestScoreMobile||0; bestScoreCar=currentUser.bestScoreCar||0; window.bestScoreFree=bestScoreFree; window.bestScoreMobile=bestScoreMobile; window.bestScoreCar=bestScoreCar; let modeLoad = window.proCurrentMode || window.currentRankingMode || 'free'; if(modeLoad==='free') bestScore = bestScoreFree; else if(modeLoad==='mobile') bestScore = bestScoreMobile; else if(modeLoad==='car') bestScore = bestScoreCar; else bestScore = bestScoreFree; bestEl.textContent='⭐ '+bestScore;
     let src=normalizePhoto(currentUser.photoBase64||'');if(src) av.innerHTML=`<img src="${src}" alt="" style="width:100%;height:100%;object-fit:cover">`;
   }
-  setupCanvas();resetGameVars();soundMgr.init();bindEvents();if(!gameLoopStarted){gameLoopStarted=true;loop(0);}startGlobalRealtime();setTimeout(fetchAllData,1000); try{ startGlobalListeners(); }catch(e){} pollBroadcastsFallback(); pollSponsorsFallback(); setInterval(()=>{ pollBroadcastsFallback(); pollSponsorsFallback(); }, 15000) // V30: 15s; setTimeout(()=>{ pollBroadcastsFallback(); pollSponsorsFallback(); }, 800); checkAndShowAdminBtn(); startBroadcastRotation(); renderSponsors();
+  setupCanvas();resetGameVars();soundMgr.init();bindEvents();if(!gameLoopStarted){gameLoopStarted=true;loop(0);}startGlobalRealtime();setTimeout(fetchAllData,1000); try{ startGlobalListeners(); }catch(e){} pollBroadcastsFallback(); pollSponsorsFallback(); setInterval(()=>{ pollBroadcastsFallback(); pollSponsorsFallback(); }, 15000); setTimeout(()=>{ pollBroadcastsFallback(); pollSponsorsFallback(); }, 800); checkAndShowAdminBtn(); startBroadcastRotation(); renderSponsors();
   setTimeout(window.tryAutoFullscreen,600);
   setTimeout(window.tryAutoFullscreen,1500);
   document.getElementById('readsBadge').classList.add('show');
@@ -3581,8 +3440,8 @@ window.refreshCurrentUserFromDB = async function(){
   try{
     let cu = window.currentUser;
     if(!cu || !cu.usernameLower) return null;
-    const qUrl = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents:runQuery?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`;
-    const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: cu.usernameLower}}}, limit:1 } };
+    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
+const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: cu.usernameLower}}}, limit:1 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
     const data = await res.json();
     if(data && data[0] && data[0].document){
@@ -5175,7 +5034,7 @@ async function fetchLeaderboardSeparate(type){
       }catch(e){ console.log('V31 SDK fetch error, fallback REST', e); }
     }
     // Fallback REST
-    const res = await fetch(`${DOCS_URL}/users?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&pageSize=200`);
+    const res = await fetch(`${DOCS_URL}/users?key=${firebaseConfig.apiKey}&pageSize=200`);
     const data = await res.json();
     if(!data.documents) return [];
     let results = data.documents.map(d=>parseUserDoc(d)).filter(Boolean);
@@ -5463,8 +5322,8 @@ window.closeManagerModal = function(){ document.getElementById('managerModal')?.
 window.loadMyShopInfoNew = async function(){
   try{
     if(!window.currentUser){ document.getElementById('myShopInfo').innerHTML='❌ بچو ژوورێ'; return; }
-    const qUrl = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents:runQuery?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`;
-    const queryBody = { structuredQuery: { from:[{collectionId:'shopkeepers'}], where:{fieldFilter:{field:{fieldPath:'username'}, op:'EQUAL', value:{stringValue: window.currentUser.usernameLower}}}, limit:1 } };
+    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
+const queryBody = { structuredQuery: { from:[{collectionId:'shopkeepers'}], where:{fieldFilter:{field:{fieldPath:'username'}, op:'EQUAL', value:{stringValue: window.currentUser.usernameLower}}}, limit:1 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(queryBody)});
     const data = await res.json();
     if(!data || data.length===0 || !data[0].document){
@@ -5537,8 +5396,8 @@ window.searchPlayerForManager = async function(){
   const resultEl = document.getElementById('managerSearchResult');
   resultEl.innerHTML='<div style="text-align:center;padding:10px;color:rgba(255,255,255,0.5)">⏳ گەڕان...</div>';
   try{
-    const qUrl = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents:runQuery?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`;
-    const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: input}}}, limit:5 } };
+    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
+const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: input}}}, limit:5 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
     const data = await res.json();
     if(!data || data.length===0 || !data[0].document){ resultEl.innerHTML='<div style="color:#ff8a8a;text-align:center;padding:10px">❌ یاریکەر نەهاتە دیتن</div>'; return; }
@@ -5574,8 +5433,8 @@ window.searchPlayerByCode = async function(){
   const resultEl = document.getElementById('managerSearchResult');
   resultEl.innerHTML='<div style="text-align:center;padding:10px;color:#F7C600">⏳ گەڕان ب کودی '+codeInput+'...</div>';
   try{
-    const qUrl = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents:runQuery?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`;
-    const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'privateCode'}, op:'EQUAL', value:{stringValue: codeInput}}}, limit:5 } };
+    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
+const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'privateCode'}, op:'EQUAL', value:{stringValue: codeInput}}}, limit:5 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
     const data = await res.json();
     if(!data || data.length===0 || !data[0].document){ resultEl.innerHTML='<div style="color:#ff8a8a;text-align:center;padding:10px;background:rgba(212,16,31,0.1);border-radius:10px">❌ ئەڤ کودە نەهاتە دیتن<br><small>کودا '+codeInput+' نینە</small></div>'; return; }
@@ -5623,13 +5482,13 @@ window.unlockPlayer = async function(playerDocId, playerLower, type){
   if(!confirm(`دڵنیای دێ ${type==='mobile'?'📱 موبایل':'🚗 ترومبێل'} بۆ ${playerLower} ڤەکەی؟ دێ 1 کوتا ژ تە کێمبیت`)) return;
   try{
     // 1. Update player unlocked
-    const DOCS_URL = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents`;
-    const playerUpdateUrl = `${DOCS_URL}/users/${encodeURIComponent(playerDocId)}?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&updateMask.fieldPaths=${type==='mobile'?'unlockedMobile':'unlockedCar'}`;
+    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
+const playerUpdateUrl = `${DOCS_URL}/users/${encodeURIComponent(playerDocId)}?key=${window.firebaseConfig.apiKey}&updateMask.fieldPaths=${type==='mobile'?'unlockedMobile':'unlockedCar'}`;
     const updRes = await fetch(playerUpdateUrl, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields:{ [type==='mobile'?'unlockedMobile':'unlockedCar']:{booleanValue:true} }})});
     if(!updRes.ok){ const t=await updRes.text(); alert('❌ '+t); return; }
     // 2. Decrease shopkeeper quota
     const newQuota = myShopkeeperDoc[quotaField]-1;
-    const shopUpdUrl = `${DOCS_URL}/shopkeepers/${encodeURIComponent(myShopkeeperDoc.id)}?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&updateMask.fieldPaths=${quotaField}`;
+    const shopUpdUrl = `${DOCS_URL}/shopkeepers/${encodeURIComponent(myShopkeeperDoc.id)}?key=${window.firebaseConfig.apiKey}&updateMask.fieldPaths=${quotaField}`;
     await fetch(shopUpdUrl, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields:{ [quotaField]:{integerValue: newQuota.toString()} }})});
     // 3. Add transaction
     const transFields = {
@@ -5639,7 +5498,7 @@ window.unlockPlayer = async function(playerDocId, playerLower, type){
       type:{stringValue: type},
       createdAt:{timestampValue: new Date().toISOString()}
     };
-    await fetch(`${DOCS_URL}/unlockTransactions?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields: transFields})});
+    await fetch(`${DOCS_URL}/unlockTransactions?key=${window.firebaseConfig.apiKey}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields: transFields})});
     alert(`✅ ${type==='mobile'?'📱 موبایل':'🚗 ترومبێل'} بۆ ${playerLower} هاتە ڤەکرن\n💎 مایە: ${newQuota}`);
     myShopkeeperDoc[quotaField]=newQuota;
     document.getElementById(type==='mobile'?'mMobileQuota':'mCarQuota').textContent = newQuota;
@@ -5653,8 +5512,8 @@ window.loadMySalesListNew = async function(){
   if(!listEl || !myShopkeeperDoc) return;
   listEl.innerHTML='<div style="color:rgba(255,255,255,0.4);font-size:11px;text-align:center;padding:10px">⏳...</div>';
   try{
-    const qUrl = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents:runQuery?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`;
-    const qb = { structuredQuery: { from:[{collectionId:'unlockTransactions'}], where:{fieldFilter:{field:{fieldPath:'shopkeeperId'}, op:'EQUAL', value:{stringValue: myShopkeeperDoc.id}}}, orderBy:[{field:{fieldPath:'createdAt'}, direction:'DESCENDING'}], limit:20 } };
+    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
+const qb = { structuredQuery: { from:[{collectionId:'unlockTransactions'}], where:{fieldFilter:{field:{fieldPath:'shopkeeperId'}, op:'EQUAL', value:{stringValue: myShopkeeperDoc.id}}}, orderBy:[{field:{fieldPath:'createdAt'}, direction:'DESCENDING'}], limit:20 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
     const data = await res.json();
     if(!data || data.length===0 || !data[0].document){ listEl.innerHTML='<div style="color:rgba(255,255,255,0.4);font-size:11px;text-align:center">هیچ کرین نینە</div>'; return; }
@@ -5707,8 +5566,8 @@ window.loadAllShopkeepersNew = async function(){
   if(!listEl) return;
   listEl.innerHTML='<div style="text-align:center;padding:12px;color:rgba(255,255,255,0.5)">⏳ بار دبیت...</div>';
   try{
-    const url = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents/shopkeepers?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&pageSize=100`;
-    const res = await fetch(url);
+    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
+const res = await fetch(url);
     const data = await res.json();
     if(!data.documents){ listEl.innerHTML='<div style="color:rgba(255,255,255,0.5);text-align:center;padding:12px">هیچ دکاندار نینە</div>'; return; }
     listEl.innerHTML='';
@@ -5753,8 +5612,8 @@ window.openEditShopkeeper = async function(id){
   const lockAction = confirm('دێ قفل بکەین؟ OK=قفلکرن, Cancel=ڤەکرن');
   // For simplicity, we will fetch current and apply delta
   try{
-    const DOCS_URL = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents`;
-    const getUrl = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`;
+    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
+const getUrl = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window.firebaseConfig.apiKey}`;
     const getRes = await fetch(getUrl);
     const doc = await getRes.json();
     const f=doc.fields||{};
@@ -5775,7 +5634,7 @@ window.openEditShopkeeper = async function(id){
     // Also update total if increased
     const newMTotal = newMQuota>mTotal ? newMQuota : mTotal;
     const newCTotal = newCQuota>cTotal ? newCQuota : cTotal;
-    const updUrl = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&updateMask.fieldPaths=mobileQuota&updateMask.fieldPaths=carQuota&updateMask.fieldPaths=mobileTotal&updateMask.fieldPaths=carTotal&updateMask.fieldPaths=isLocked`;
+    const updUrl = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window.firebaseConfig.apiKey}&updateMask.fieldPaths=mobileQuota&updateMask.fieldPaths=carQuota&updateMask.fieldPaths=mobileTotal&updateMask.fieldPaths=carTotal&updateMask.fieldPaths=isLocked`;
     const res = await fetch(updUrl, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields:{
       mobileQuota:{integerValue: newMQuota.toString()},
       carQuota:{integerValue: newCQuota.toString()},
@@ -5798,8 +5657,8 @@ window.createShopkeeperREST = async function(){
   const cQuota = parseInt(document.getElementById('adminNewShopCarQuota')?.value||'50');
   if(!username||!shopName||!ownerName||!phone){ alert('هەمی خانەیان پر بکە'); return; }
   try{
-    const DOCS_URL = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents`;
-    const fields = {
+    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
+const fields = {
       username:{stringValue: username},
       shopName:{stringValue: shopName},
       ownerName:{stringValue: ownerName},
@@ -5817,17 +5676,17 @@ window.createShopkeeperREST = async function(){
       isManager:{booleanValue:true},
       createdAt:{timestampValue: new Date().toISOString()}
     };
-    const res = await fetch(`${DOCS_URL}/shopkeepers?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields})});
+    const res = await fetch(`${DOCS_URL}/shopkeepers?key=${window.firebaseConfig.apiKey}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields})});
     if(!res.ok){ alert('❌ '+await res.text()); return; }
     // Also update user to manager if exists
     try{
-      const qUrl = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents:runQuery?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`;
-      const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: username}}}, limit:1 } };
+      const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
+const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: username}}}, limit:1 } };
       const qRes = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
       const qData = await qRes.json();
       if(qData && qData[0]?.document){
         const uid = qData[0].document.name.split('/').pop();
-        const updUrl = `${DOCS_URL}/users/${encodeURIComponent(uid)}?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&updateMask.fieldPaths=isManager&updateMask.fieldPaths=role`;
+        const updUrl = `${DOCS_URL}/users/${encodeURIComponent(uid)}?key=${window.firebaseConfig.apiKey}&updateMask.fieldPaths=isManager&updateMask.fieldPaths=role`;
         await fetch(updUrl, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields:{isManager:{booleanValue:true}, role:{stringValue:'manager'}}})});
       }
     }catch(e){}
@@ -5839,8 +5698,8 @@ window.createShopkeeperREST = async function(){
 window.deleteShopkeeperNew = async function(id){
   if(!confirm('دڵنیای دێ ژێبی؟')) return;
   try{
-    const DOCS_URL = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents`;
-    const url = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}`;
+    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
+const url = `${DOCS_URL}/shopkeepers/${encodeURIComponent(id)}?key=${window.firebaseConfig.apiKey}`;
     const res = await fetch(url, {method:'DELETE'});
     if(res.ok){ alert('✅ ژێبرا'); loadAllShopkeepersNew(); } else alert('❌ نەژێبرا');
   }catch(e){ alert(e.message); }
@@ -5852,8 +5711,8 @@ window.searchShopkeepersNew = async function(){
   const listEl = document.getElementById('adminShopkeepersListREST');
   listEl.innerHTML='<div style="text-align:center;padding:12px;color:rgba(255,255,255,0.5)">⏳ گەڕان...</div>';
   try{
-    const url = `https://firestore.googleapis.com/v1/projects/${window."blrubofyabwgwdkefamm"}/databases/(default)/documents/shopkeepers?key=${window."sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&pageSize=100`;
-    const res = await fetch(url);
+    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
+const res = await fetch(url);
     const data = await res.json();
     if(!data.documents){ listEl.innerHTML='❌ نەهاتە دیتن'; return; }
     const filtered = data.documents.filter(doc=>{
@@ -6106,7 +5965,7 @@ async function loadLeaderboardDataSeparate(type){
 }
 async function fetchLeaderboardSeparate(type){
   try{
-    const res = await fetch(`${DOCS_URL}/users?key=${"sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"}&pageSize=200`);
+    const res = await fetch(`${DOCS_URL}/users?key=${firebaseConfig.apiKey}&pageSize=200`);
     const data = await res.json();
     if(!data.documents) return [];
     let results = data.documents.map(d=>parseUserDoc(d)).filter(Boolean);
@@ -6927,12 +6786,12 @@ async function loadSocialLinks(){
     }
   }catch(e){}
   try{
-    if(typeof firebaseConfig !== 'undefined' && "sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN"){
-      const proj = "blrubofyabwgwdkefamm";
-      const key = "sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN";
+    if(typeof firebaseConfig !== 'undefined' && firebaseConfig.apiKey){
+      const proj = firebaseConfig.projectId;
+      const key = firebaseConfig.apiKey;
       const urls = [
-        `https://firestore.googleapis.com/v1/projects/${proj}/databases/(default)/documents/settings/social?key=${key}`,
-        `https://firestore.googleapis.com/v1/projects/${proj}/databases/(default)/documents/settings/config?key=${key}`
+        `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`,
+        `https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`
       ];
       for(let url of urls){
         try{
@@ -7088,10 +6947,10 @@ async function fetchLatestWinnerFromFirestoreWithMode(){
       }
     }catch(e){ console.log('SDK winners error', e); }
     if(typeof firebaseConfig === 'undefined') return null;
-    const proj = "blrubofyabwgwdkefamm";
-    const key = "sb_publishable_5b8p3vTBq2KEbV9p-glAgg_jNREScmN";
-    const url = `https://firestore.googleapis.com/v1/projects/${proj}/databases/(default)/documents:runQuery?key=${key}`;
-    const body = {structuredQuery:{from:[{collectionId:"winners"}],orderBy:[{field:{fieldPath:"createdAt"},direction:"DESCENDING"}],limit:10}};
+    const proj = firebaseConfig.projectId;
+    const key = firebaseConfig.apiKey;
+    const DUMMY_URL=`https://blrubofyabwgwdkefamm.supabase.co/rest/v1/dummy`; const qUrl=DUMMY_URL; const url=DUMMY_URL; // SUPABASE
+const body = {structuredQuery:{from:[{collectionId:"winners"}],orderBy:[{field:{fieldPath:"createdAt"},direction:"DESCENDING"}],limit:10}};
     try{
       const res = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
       if(res.ok){
@@ -7459,7 +7318,7 @@ setTimeout(()=>{
   if(typeof loadLeaderboardDataSeparate !== 'undefined'){
     loadLeaderboardDataSeparate('free').then(()=>{ setTimeout(updateWinnerBottomBar, 1000); }).catch(()=>{});
   }
-  setInterval(updateWinnerBottomBar, 60000) // V30: 60s cache for 50k // V30: 15s for live top - يەکەمێ لایڤ // V27: 60s not 5s - 91% cheaper;
+  setInterval(updateWinnerBottomBar, 15000) // V30: 15s for live top - يەکەمێ لایڤ // V27: 60s not 5s - 91% cheaper;
   let tries = 0;
   const int = setInterval(()=>{
     tries++;
