@@ -1927,6 +1927,7 @@ window.handleAuth=async function(){
       localStorage.setItem('yarya_username_original',user.username);
       localStorage.setItem('yarya_last_password_plain', p);
       if(user.photoBase64) localStorage.setItem('yarya_user_photo',user.photoBase64);
+      if(!user.privateCode || user.privateCode.length!==6){ try{ await window.ensurePrivateCode(user, low); }catch(e){} }
       if(user.privateCode) localStorage.setItem('yarya_private_code',user.privateCode);
       if(user.phoneNumber) localStorage.setItem('yarya_phone',user.phoneNumber);
       currentUser = user;
@@ -1963,8 +1964,32 @@ window.handleAuth=async function(){
         }
       }catch(e){ console.log('phone check error', e); }
 
-      // Generate private code unique
+      // Generate private code unique - FIXED V30.1 - ensures uniqueness
       function genPrivateCode(){ return Math.floor(100000 + Math.random()*900000).toString(); }
+      window.genPrivateCode = genPrivateCode;
+      window.ensurePrivateCode = async function(userObj, userId){
+        if(userObj.privateCode && userObj.privateCode.length===6) return userObj.privateCode;
+        let newCode = genPrivateCode();
+        try{
+          // try to ensure unique via REST query too
+          for(let i=0;i<8;i++){
+            const qUrl = `/api/firestore-query`;
+            const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'privateCode'}, op:'EQUAL', value:{stringValue: newCode}}}, limit:1 } };
+            const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
+            const data = await res.json();
+            if(!data || data.length===0 || !data[0].document) break;
+            newCode = genPrivateCode();
+          }
+        }catch(e){}
+        try{
+          const DOCS_URL_LOCAL = window.DOCS_URL || `${window.firebaseConfig ? 'https://firestore.googleapis.com/v1/projects/'+window.firebaseConfig.projectId+'/databases/(default)/documents' : '/api/firestore'}`;
+          const url = `${DOCS_URL_LOCAL}/users/${encodeURIComponent(userId)}?key=${window.firebaseConfig.apiKey}&updateMask.fieldPaths=privateCode`;
+          await fetch(url, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields:{privateCode:{stringValue:newCode}}})});
+        }catch(e){ console.log('ensure privateCode save fail', e); }
+        localStorage.setItem('yarya_private_code', newCode);
+        userObj.privateCode = newCode;
+        return newCode;
+      };
       let privateCode = genPrivateCode();
       try{
         for(let i=0;i<5;i++){
@@ -2738,7 +2763,7 @@ async function markAllAsRead(){
     if(data.read===false) await updateDoc(doc(db, "notifications", d.id), {read:true});
   });
 }
-window.openProfile=function(){
+window.openProfile=async function(){ try{ if(currentUser && (!currentUser.privateCode || currentUser.privateCode.length!==6) && window.ensurePrivateCode){ await window.ensurePrivateCode(currentUser, currentUser.usernameLower||currentUser.username); } }catch(e){} 
   if(!currentUser) return;
   document.getElementById('profileNameInput').value=currentUser.username||'';
   const phoneDisplay = document.getElementById('profilePhoneDisplay');
@@ -2839,6 +2864,7 @@ async function tryAutoLogin(){
           phoneNumber: deviceAccount.phoneNumber||'',
           privateCode: deviceAccount.privateCode||'',
           lastDeviceId: deviceAccount.lastDeviceId||dev,
+
           isAdmin: deviceAccount.isAdmin||false,
           isBlocked: deviceAccount.isBlocked||false
         };
@@ -5536,7 +5562,34 @@ window.searchPlayerByCode = async function(){
     const qb = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'privateCode'}, op:'EQUAL', value:{stringValue: codeInput}}}, limit:5 } };
     const res = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb)});
     const data = await res.json();
-    if(!data || data.length===0 || !data[0].document){ resultEl.innerHTML='<div style="color:#ff8a8a;text-align:center;padding:10px;background:rgba(212,16,31,0.1);border-radius:10px">❌ ئەڤ کودە نەهاتە دیتن<br><small>کودا '+codeInput+' نینە</small></div>'; return; }
+    if(!data || data.length===0 || !data[0].document){ 
+        // Fallback: try search as username if code not found - helps old users
+        try{
+          const qb2 = { structuredQuery: { from:[{collectionId:'users'}], where:{fieldFilter:{field:{fieldPath:'usernameLower'}, op:'EQUAL', value:{stringValue: codeInput.toLowerCase()}}}, limit:1 } };
+          const res2 = await fetch(qUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(qb2)});
+          const data2 = await res2.json();
+          if(data2 && data2.length>0 && data2[0].document){
+            resultEl.innerHTML='<div style="color:#ffb86a;text-align:center;padding:10px;background:rgba(247,198,0,0.1);border-radius:10px">⚠️ ئەڤە ناڤە نەک کود - بەس دۆزرا<br><small>'+codeInput+' ب ناڤی هاتە دیتن - کودا وی '+ (data2[0].document.fields?.privateCode?.stringValue||'نینە - دێ نوو چێکەین') +'</small></div>';
+            // continue to show that user
+            const doc = data2[0].document;
+            const f = doc.fields||{};
+            const getStr = (k)=> f[k]?.stringValue||'';
+            const getBool = (k)=> f[k]?.booleanValue||false;
+            const player = { id: doc.name.split('/').pop(), username: getStr('username'), usernameLower: getStr('usernameLower'), bestScore: parseInt(f.bestScore?.integerValue||'0'), bestScoreFree: parseInt(f.bestScoreFree?.integerValue||'0'), bestScoreMobile: parseInt(f.bestScoreMobile?.integerValue||'0'), bestScoreCar: parseInt(f.bestScoreCar?.integerValue||'0'), phoneNumber: getStr('phoneNumber'), privateCode: getStr('privateCode'), unlockedMobile: getBool('unlockedMobile'), unlockedCar: getBool('unlockedCar') };
+            if(!player.privateCode){ 
+              const newC = window.genPrivateCode ? window.genPrivateCode() : Math.floor(100000+Math.random()*900000).toString();
+              player.privateCode = newC;
+              try{ await fetch(`/api/firestore/users/${encodeURIComponent(player.id)}?key=${window.firebaseConfig.apiKey}&updateMask.fieldPaths=privateCode`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields:{privateCode:{stringValue:newC}}})}); }catch(e){}
+            }
+            const isMobileLockedByAdmin = (typeof proConfig !== 'undefined' && proConfig.mobileLocked);
+            const isCarLockedByAdmin = (typeof proConfig !== 'undefined' && proConfig.carLocked);
+            const canMobile = !player.unlockedMobile && myShopkeeperDoc && myShopkeeperDoc.mobileQuota>0 && !myShopkeeperDoc.isLocked && !isMobileLockedByAdmin;
+            const canCar = !player.unlockedCar && myShopkeeperDoc && myShopkeeperDoc.carQuota>0 && !myShopkeeperDoc.isLocked && !isCarLockedByAdmin;
+            resultEl.innerHTML += `<div style="background:linear-gradient(135deg, rgba(247,198,0,0.15), rgba(247,198,0,0.08));border:1.5px solid rgba(247,198,0,0.3);border-radius:16px;padding:14px;margin-top:8px"><div style="display:flex;align-items:center;gap:10px"><div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#F7C600,#ffe27a);display:flex;align-items:center;justify-content:center;color:#000;font-weight:900;font-size:18px">🔑</div><div style="flex:1"><div style="color:#fff;font-weight:900;font-size:14px">${player.username} - ✅ هاتە دیتن</div><div style="color:rgba(255,255,255,0.7);font-size:12px;margin-top:2px">🔑 ${player.privateCode} - کودا تایبەت</div></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px"><button onclick="unlockPlayer('${player.id}','${player.usernameLower}','mobile')" ${canMobile?'':'disabled'} style="height:48px;border-radius:12px;border:0;background:${canMobile?'linear-gradient(135deg,#5B5CFF,#7a7cff)':'rgba(255,255,255,0.1)'};color:${canMobile?'#fff':'rgba(255,255,255,0.4)'};font-weight:800;cursor:${canMobile?'pointer':'not-allowed'}">${canMobile?'📱 موبایل ڤەکە (1 کوتا)':'📱 موبایل - نابیت'}</button><button onclick="unlockPlayer('${player.id}','${player.usernameLower}','car')" ${canCar?'':'disabled'} style="height:48px;border-radius:12px;border:0;background:${canCar?'linear-gradient(135deg,#F7C600,#ffe27a)':'rgba(255,255,255,0.1)'};color:${canCar?'#000':'rgba(255,255,255,0.4)'};font-weight:800;cursor:${canCar?'pointer':'not-allowed'}">${canCar?'🚗 ترومبێل ڤەکە (1 کوتا)':'🚗 ترومبێل - نابیت'}</button></div></div>`;
+            return;
+          }
+        }catch(e){}
+        resultEl.innerHTML='<div style="color:#ff8a8a;text-align:center;padding:10px;background:rgba(212,16,31,0.1);border-radius:10px">❌ ئەڤ کودە نەهاتە دیتن<br><small>کودا '+codeInput+' نینە - دڵنیابە کودا 6 ژمارەیی یا دروستە - هەر یاریکەرەکێ کودەکێ جودا هەیە</small><br><small style="color:#F7C600">💡 ب ناڤی بگەڕە ل سەرێ</small></div>'; return; }
     const doc = data[0].document;
     const f = doc.fields||{};
     const getStr = (k)=> f[k]?.stringValue||'';
